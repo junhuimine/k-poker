@@ -68,6 +68,7 @@ class HwatuCard extends StatefulWidget {
   final bool isSelected;
   final bool isField;
   final bool isFaceDown;
+  final String skinPath;
 
   const HwatuCard({
     super.key,
@@ -77,6 +78,7 @@ class HwatuCard extends StatefulWidget {
     this.isSelected = false,
     this.isField = false,
     this.isFaceDown = false,
+    this.skinPath = 'assets/images/cards/card_back.png',
   });
 
   @override
@@ -131,7 +133,7 @@ class _HwatuCardState extends State<HwatuCard> {
   /// ── 카드 뒷면 ──
   Widget _buildCardBack() {
     return Image.asset(
-      'assets/images/cards/card_back.png',
+      widget.skinPath,
       fit: BoxFit.cover,
       errorBuilder: (_, __, ___) => Container(
         decoration: const BoxDecoration(
@@ -153,7 +155,7 @@ class _HwatuCardState extends State<HwatuCard> {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          'assets/images/cards/card_back.png',
+          widget.skinPath,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
             decoration: const BoxDecoration(

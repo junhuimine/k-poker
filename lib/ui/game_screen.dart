@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/game_providers.dart';
+import '../state/card_skin_provider.dart';
 import '../engine/game_engine.dart';
 import '../state/audio_manager.dart';
 import '../i18n/locale_provider.dart';
@@ -615,7 +616,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
           for (var i = 0; i < count && i < state.opponentHand.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize, isFaceDown: true),
+              child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize, isFaceDown: true,
+                skinPath: ref.watch(cardSkinProvider).assetPath),
             ),
         ],
       ),
@@ -752,7 +754,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(5),
         child: Image.asset(
-          'assets/images/cards/card_back.png',
+          ref.watch(cardSkinProvider).assetPath,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
             color: const Color(0xFF2A1A3A),

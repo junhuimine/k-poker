@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/audio_manager.dart';
+import '../state/card_skin_provider.dart';
 import '../i18n/locale_provider.dart';
 import '../i18n/app_strings.dart';
 
@@ -134,13 +135,51 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: [
-                        _skinChip('🎴 클래식', true),
-                        _skinChip('🌸 네온', false),
-                        _skinChip('💀 다크', false),
-                        _skinChip('✨ 홀로', false),
-                        _skinChip('🔥 금박', false),
-                      ],
+                      children: CardSkin.values.map((skin) {
+                        final isActive = skin == ref.watch(cardSkinProvider);
+                        return GestureDetector(
+                          onTap: () => ref.read(cardSkinProvider.notifier).setSkin(skin),
+                          child: Container(
+                            width: 64, height: 90,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isActive ? Colors.amber : Colors.white24,
+                                width: isActive ? 2 : 1,
+                              ),
+                              boxShadow: isActive ? [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 8)] : null,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.asset(skin.assetPath, fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: const Color(0xFF2A1A3A),
+                                      child: Center(child: Text(skin.emoji, style: const TextStyle(fontSize: 20))),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0, left: 0, right: 0,
+                                    child: Container(
+                                      color: Colors.black54,
+                                      padding: const EdgeInsets.symmetric(vertical: 2),
+                                      child: Text(skin.displayName,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: isActive ? Colors.amber : Colors.white70,
+                                          fontSize: 9, fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),

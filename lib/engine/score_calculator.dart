@@ -43,8 +43,31 @@ class ScoreCalculator {
     final captured = round.playerCaptured;
     final brights = captured.where((c) => c.def.grade == CardGrade.bright).toList();
     final ribbons = captured.where((c) => c.def.grade == CardGrade.ribbon).toList();
-    final animals = captured.where((c) => c.def.grade == CardGrade.animal).toList();
+    var animals = captured.where((c) => c.def.grade == CardGrade.animal).toList();
     final junks = captured.where((c) => c.def.grade == CardGrade.junk).toList();
+
+    // 국화 술잔(m09_double) 양용 처리: 동물 vs 쌍피 자동 최적 선택
+    final hasChrysanthemumCup = animals.any((c) => c.def.id == 'm09_double');
+    bool cupAsJunk = false; // true = 쌍피로 계산
+    if (hasChrysanthemumCup) {
+      // 동물로 둘 때: animals.length 그대로 / 쌍피로 보낼 때: animals-1, junk+2
+      final animalsWithCup = animals.length;
+      final animalsWithoutCup = animals.length - 1;
+      // 동물 5장 이상이면 점수, 아니면 0
+      final animalPtsWithCup = animalsWithCup >= 5 ? 1 + (animalsWithCup - 5) : 0;
+      final animalPtsWithoutCup = animalsWithoutCup >= 5 ? 1 + (animalsWithoutCup - 5) : 0;
+      // 피 계산: 현재 피 + 쌍피 2장
+      int currentJunkCount = 0;
+      for (var j in junks) { currentJunkCount += j.def.doubleJunk ? 2 : 1; }
+      final junkPtsNoCup = currentJunkCount >= 10 ? 1 + (currentJunkCount - 10) : 0;
+      final junkPtsWithCup = (currentJunkCount + 2) >= 10 ? 1 + ((currentJunkCount + 2) - 10) : 0;
+      // 쌍피로 보내는 게 더 유리한지 비교
+      if ((animalPtsWithoutCup + junkPtsWithCup) > (animalPtsWithCup + junkPtsNoCup)) {
+        cupAsJunk = true;
+        animals = animals.where((c) => c.def.id != 'm09_double').toList();
+        yakuList.add('🍶 국화술잔 → 쌍피');
+      }
+    }
 
     // 상대 카드 분류
     final oppBrights = round.opponentCaptured.where((c) => c.def.grade == CardGrade.bright).length;
@@ -55,11 +78,12 @@ class ScoreCalculator {
       oppJunkCount += j.def.doubleJunk ? 2 : 1;
     }
 
-    // 피 카운트 (쌍피 = 2장)
+    // 피 카운트 (쌍피 = 2장) + 국화 술잔이 쌍피로 전환됐으면 +2
     int junkCount = 0;
     for (var j in junks) {
       junkCount += j.def.doubleJunk ? 2 : 1;
     }
+    if (cupAsJunk) junkCount += 2;
 
     // ═══════════════════════════════════
     // 2. 족보 판정 (공식 고스톱 점수)
