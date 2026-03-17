@@ -228,17 +228,41 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   flex: 3,
                   child: Column(
                     children: [
-                      // 상단 영역 (고정 높이, 비례 축소)
+                      // 상단 영역: 상대 정보 + 핸드
                       if (isGameStarted)
                         _buildTopBar(gameState, strings),
                       if (isGameStarted) _buildOpponentInfoBar(gameState),
                       if (isGameStarted) _buildOpponentHand(gameState),
-                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
-                      // 중앙 필드 (남은 공간 전부 차지)
+                      // 중앙 영역: 필드(좌) + 획득카드(우)
                       if (isGameStarted)
-                        Expanded(child: _buildFieldWithDeck(gameState)),
-                      // 하단 영역 (고정 높이, 비례 축소)
-                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // 필드 영역 (왼쪽, 넓게)
+                              Expanded(
+                                flex: 3,
+                                child: _buildFieldWithDeck(gameState),
+                              ),
+                              // 획득카드 영역 (오른쪽, 좁게)
+                              SizedBox(
+                                width: _screenW * 0.22 > 140 ? 140 : _screenW * 0.22,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
+                                    ),
+                                    const Divider(color: Color(0xFF30363D), height: 1),
+                                    Expanded(
+                                      child: _buildCapturedArea(gameState.playerCaptured, '내 획득'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      // 하단 영역: 점수 + 내 핸드
                       if (isGameStarted) _buildScoreDashboard(gameState, strings),
                       if (isGameStarted) _buildPlayerHand(gameState),
                     ],
