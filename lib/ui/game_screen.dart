@@ -45,26 +45,28 @@ class _GameScreenState extends ConsumerState<GameScreen>
   bool _showShop = false;
   bool _showTutorial = false;
 
-  // ─── 반응형 UI 헬퍼 ─────────────────
+  // ─── 반응형 UI 헬퍼 (화면 비율 기반) ─────────────────
   double get _screenW => MediaQuery.of(context).size.width;
   double get _screenH => MediaQuery.of(context).size.height;
-  bool get _isMobile => _screenW < 600;
-  bool get _isTablet => _screenW >= 600 && _screenW < 900;
+  // 기준 해상도 대비 스케일 팩터 (1200x700 기준)
+  double get _scaleW => (_screenW / 1200).clamp(0.4, 1.5);
+  double get _scaleH => (_screenH / 700).clamp(0.4, 1.5);
+  double get _scale => (_scaleW < _scaleH ? _scaleW : _scaleH); // 작은 쪽 기준
   bool get _showSidePanel => _screenW >= 700;
 
-  // 카드 크기 (화면 너비 기준 동적 계산)
-  double get _opponentCardSize => _isMobile ? 28 : 38;
-  double get _fieldCardSize => _isMobile ? 48 : (_isTablet ? 58 : 70);
-  double get _playerCardSize => _isMobile ? 56 : 72;
-  double get _capturedCardSize => _isMobile ? 32 : 45;
-  double get _capturedFanHeight => _isMobile ? 52 : 70;
+  // 카드 크기 (화면 비율에 따라 부드럽게 스케일)
+  double get _opponentCardSize => (38 * _scale).clamp(20, 50);
+  double get _fieldCardSize => (70 * _scale).clamp(35, 90);
+  double get _playerCardSize => (72 * _scale).clamp(40, 95);
+  double get _capturedCardSize => (45 * _scale).clamp(22, 55);
+  double get _capturedFanHeight => (70 * _scale).clamp(38, 85);
 
-  // 레이아웃 수치
-  double get _opponentHandHeight => _isMobile ? 50 : 70;
-  double get _playerHandHeight => _isMobile ? 105 : 145;
-  double get _capturedAreaHeight => _isMobile ? 52 : 75;
-  double get _fieldMinHeight => _isMobile ? 90 : 140;
-  double get _fontSize => _isMobile ? 10 : 13;
+  // 레이아웃 수치 (화면 비율 기반)
+  double get _opponentHandHeight => (70 * _scaleH).clamp(35, 80);
+  double get _playerHandHeight => (145 * _scaleH).clamp(80, 160);
+  double get _capturedAreaHeight => (75 * _scaleH).clamp(38, 85);
+  double get _fieldMinHeight => (140 * _scaleH).clamp(70, 160);
+  double get _fontSize => (13 * _scale).clamp(9, 16);
 
   @override
   void didChangeDependencies() {
@@ -244,7 +246,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                               // 하단 영역
                               if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
                               if (isGameStarted) _buildScoreDashboard(gameState, strings),
-                              SizedBox(height: _isMobile ? 2 : 4),
+                              SizedBox(height: (4 * _scaleH).clamp(1, 6)),
                               if (isGameStarted) _buildPlayerHand(gameState),
                             ],
                           ),
