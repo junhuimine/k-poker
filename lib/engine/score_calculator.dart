@@ -199,8 +199,8 @@ class ScoreCalculator {
     // 4. 박 배율 (상대에게 페널티)
     // ═══════════════════════════════════
 
-    // 광박: 내가 광 점수가 있는데, 상대가 광 0장
-    if (brights.isNotEmpty && oppBrights == 0) {
+    // 광박: 내가 3광 이상 족보가 있고, 상대가 광 0장
+    if (brights.length >= 3 && oppBrights == 0) {
       penaltyMult *= 2;
       yakuList.add('💥 광박 (x2)');
     }
@@ -211,14 +211,14 @@ class ScoreCalculator {
       yakuList.add('🥊 피박 (x2)');
     }
 
-    // 띠박: 내가 띠가 있는데, 상대 띠 0장
-    if (ribbons.isNotEmpty && oppRibbons == 0) {
+    // 띠박: 내가 띠 5장 이상이고, 상대 띠 0장
+    if (ribbons.length >= 5 && oppRibbons == 0) {
       penaltyMult *= 2;
       yakuList.add('🎗️ 띠박 (x2)');
     }
 
-    // 멍박: 내가 동물 7장 이상, 상대 동물 미달
-    if (animals.length >= 7) {
+    // 멍박: 내가 동물 5장 이상이고, 상대 동물 0장
+    if (animals.length >= 5 && oppAnimals == 0) {
       penaltyMult *= 2;
       yakuList.add('🐾 멍박 (x2)');
     }

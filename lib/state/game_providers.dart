@@ -147,36 +147,61 @@ class GameState extends _$GameState {
 
     // 2. 매칭 피드백 이벤트 + SFX
     final newCaptured = nextState.playerCaptured.length - prevCaptured;
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    var modifiedNextState = nextState;
+
     if (newCaptured > 0) {
       AudioManager().cardMatch();
-      // 광 획득 시 특수 SFX
-      final hasBright = nextState.playerCaptured.any((c) => c.def.grade == CardGrade.bright && !state.playerCaptured.contains(c));
+      final hasBright = modifiedNextState.playerCaptured.any((c) => c.def.grade == CardGrade.bright && !state.playerCaptured.contains(c));
       if (hasBright) AudioManager().brightCapture();
       ref.read(gameEventsProvider.notifier)
           .addEvent('match', '✅ ${card.def.nameKo} → $newCaptured장 획득!');
+      
+      final lines = ai.dialogues['player_match'] ?? ['흥!'];
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
     } else {
       ref.read(gameEventsProvider.notifier)
           .addEvent('miss', '❌ ${card.def.nameKo} → 매칭 실패');
+      
+      final lines = ai.dialogues['player_miss'] ?? ['쯧쯧'];
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
+    }
+
+    // 쓸(sweep) 감지 및 피 뺏기
+    if (modifiedNextState.sweepCount > state.sweepCount || (modifiedNextState.field.isEmpty && newCaptured > 0)) {
+      AudioManager().cardSweep();
+      
+      // 상대 피 1장 빼앗기 로직
+      final opJunks = modifiedNextState.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
+      String sweepText = '🌊 쓸! 바닥을 쓸었다!';
+      if (opJunks.isNotEmpty) {
+        final stolenJunk = opJunks.first;
+        modifiedNextState = modifiedNextState.copyWith(
+          sweepCount: modifiedNextState.sweepCount == state.sweepCount ? modifiedNextState.sweepCount + 1 : modifiedNextState.sweepCount,
+          playerCaptured: [...modifiedNextState.playerCaptured, stolenJunk],
+          opponentCaptured: modifiedNextState.opponentCaptured.where((c) => c != stolenJunk).toList(),
+        );
+        sweepText += ' + 상대 피 빼앗기!';
+      }
+      ref.read(gameEventsProvider.notifier).addEvent('sweep', sweepText);
+      
+      // AI 쓸 반응 대사
+      final sweepLines = ai.dialogues['sweep_react'] ?? ['내 피...!'];
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${sweepLines[DateTime.now().millisecond % sweepLines.length]}"');
     }
 
     // 3. 점수 업데이트
-    final run = ref.read(runStateNotifierProvider);
     final prevYaku = state.playerScore > 0
         ? ScoreCalculator.calculate(state, run).appliedYaku
         : <String>[];
-    final scoreResult = ScoreCalculator.calculate(nextState, run);
+    final scoreResult = ScoreCalculator.calculate(modifiedNextState, run);
 
-    state = nextState.copyWith(
+    state = modifiedNextState.copyWith(
       playerScore: scoreResult.finalScore,
       baseChips: scoreResult.baseChips,
       multiplier: scoreResult.multiplier,
     );
-
-    // 쓸(sweep) 감지
-    if (nextState.sweepCount > state.sweepCount || (nextState.field.isEmpty && newCaptured > 0)) {
-      AudioManager().cardSweep();
-      ref.read(gameEventsProvider.notifier).addEvent('sweep', '🌊 쓸! 바닥을 쓹었다!');
-    }
 
     // 족보 달성 알림 (#4)
     final newYaku = scoreResult.appliedYaku;
@@ -225,8 +250,13 @@ class GameState extends _$GameState {
     ref.read(gameEventsProvider.notifier)
         .addEvent('bomb', '💣 폭탄! ${bombMonth}월 3장 일괄 획득!${stolenJunk ? ' + 상대 피 빼앗기!' : ''}');
 
-    // 점수 업데이트
+    // AI 반응 대사
     final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final bombLines = ai.dialogues['bomb_react'] ?? ['앗!'];
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${bombLines[DateTime.now().millisecond % bombLines.length]}"');
+
+    // 점수 업데이트
     final scoreResult = ScoreCalculator.calculate(nextState, run);
     state = nextState.copyWith(
       playerScore: scoreResult.finalScore,
@@ -259,11 +289,18 @@ class GameState extends _$GameState {
     AudioManager().goDeclare();
     ref.read(gameEventsProvider.notifier).addEvent('go', '🔥 고! 선언! (배율 증가)');
 
-    // AI 반응 대사
+    // AI 반응 대사 (고 횟수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.wins + run.losses);
-    final goLines = ai.dialogues['go'] ?? ['오호, 대담하네!'];
-    final goLine = goLines[state.goCount % goLines.length];
+    final isFear = state.goCount >= 2; // 3고 이상 (현재 count 2일때 선언하면 3고가 됨)
+    final goLines = isFear 
+        ? (ai.dialogues['player_go_fear'] ?? ['안돼!'])
+        : (ai.dialogues['player_go'] ?? ['오호, 대담하네!']);
+    final goLine = goLines[DateTime.now().millisecond % goLines.length];
+    
+    // 두려운 상황이면 추가 놀라는 SFX 플레이 가능
+    if (isFear) AudioManager().cardSweep(); // 에러음 대신 쓸과 비슷한 임팩트음 사용
+
     ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$goLine"');
 
     state = state.copyWith(
@@ -282,10 +319,13 @@ class GameState extends _$GameState {
     AudioManager().stopDeclare();
     ref.read(gameEventsProvider.notifier).addEvent('stop', '🛑 스톱! 라운드 종료!');
 
-    // AI 반응 대사
+    // AI 반응 대사 (점수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.wins + run.losses);
-    final stopLines = ai.dialogues['stop'] ?? ['흐음...'];
+    final isBig = state.playerScore >= 10;
+    final stopLines = isBig 
+        ? (ai.dialogues['player_stop_big'] ?? ['너무하네!'])
+        : (ai.dialogues['player_stop_small'] ?? ['소박하네~']);
     final stopLine = stopLines[DateTime.now().millisecond % stopLines.length];
     ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$stopLine"');
 
@@ -381,17 +421,27 @@ class GameState extends _$GameState {
           || (aiResult.finalScore >= 5 && ai.goAggressiveness < 0.3);
       
       if (shouldStop) {
+        AudioManager().stopDeclare(); // AI 스톱 효과음
         ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
         ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖 AI: 스톱! 라운드 종료!');
+        
+        final stopLines = ai.dialogues['stop'] ?? ['스톱!'];
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${stopLines[DateTime.now().millisecond % stopLines.length]}"');
+
         state = state.copyWith(isFinished: true);
         Future.delayed(const Duration(milliseconds: 1500), () {
           ref.read(aiGoStopAnnounceProvider.notifier).clear();
           _handleRoundEnd();
         });
       } else {
+        AudioManager().goDeclare(); // AI 고 효과음
         final newGoCount = aiGoCount + 1;
         ref.read(aiGoStopAnnounceProvider.notifier).announce('go_$newGoCount');
         ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖🔥 AI: 고! ×$newGoCount');
+        
+        final goLines = ai.dialogues['go'] ?? ['고!'];
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${goLines[DateTime.now().millisecond % goLines.length]}"');
+
         state = state.copyWith(
           opponentGoCount: newGoCount,
           opponentScore: aiResult.finalScore,
@@ -416,9 +466,13 @@ class GameState extends _$GameState {
         List<CardInstance>.from(state.opponentHand),
       );
       if (aiBombMonth != null) {
+        AudioManager().cardSweep(); // 폭탄 효과음
         final nextState = GameEngine.playBomb(state, aiBombMonth);
         ref.read(gameEventsProvider.notifier)
             .addEvent('ai_play', '🤖💣 AI: ${aiBombMonth}월 폭탄!');
+        
+        final bombLines = ai.dialogues['bomb'] ?? ['폭탄이다!'];
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${bombLines[DateTime.now().millisecond % bombLines.length]}"');
         
         // AI 점수 계산
         final aiScoreState = nextState.copyWith(
