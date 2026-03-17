@@ -45,6 +45,27 @@ class _GameScreenState extends ConsumerState<GameScreen>
   bool _showShop = false;
   bool _showTutorial = false;
 
+  // ─── 반응형 UI 헬퍼 ─────────────────
+  double get _screenW => MediaQuery.of(context).size.width;
+  double get _screenH => MediaQuery.of(context).size.height;
+  bool get _isMobile => _screenW < 600;
+  bool get _isTablet => _screenW >= 600 && _screenW < 900;
+  bool get _showSidePanel => _screenW >= 700;
+
+  // 카드 크기 (화면 너비 기준 동적 계산)
+  double get _opponentCardSize => _isMobile ? 28 : 38;
+  double get _fieldCardSize => _isMobile ? 48 : (_isTablet ? 58 : 70);
+  double get _playerCardSize => _isMobile ? 56 : 72;
+  double get _capturedCardSize => _isMobile ? 32 : 45;
+  double get _capturedFanHeight => _isMobile ? 52 : 70;
+
+  // 레이아웃 수치
+  double get _opponentHandHeight => _isMobile ? 50 : 70;
+  double get _playerHandHeight => _isMobile ? 105 : 145;
+  double get _capturedAreaHeight => _isMobile ? 52 : 75;
+  double get _fieldMinHeight => _isMobile ? 90 : 140;
+  double get _fontSize => _isMobile ? 10 : 13;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -219,7 +240,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     ],
                   ),
                 ),
-                if (isGameStarted)
+                if (isGameStarted && _showSidePanel)
                   _buildSidePanel(gameState, events),
               ],
             ),
@@ -584,14 +605,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Widget _buildOpponentHand(dynamic state) {
     final count = _isDealing ? _dealtOpponentCount : state.opponentHand.length;
     return SizedBox(
-      height: 70,
+      height: _opponentHandHeight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           for (var i = 0; i < count && i < state.opponentHand.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: HwatuCard(card: state.opponentHand[i], size: 38, isFaceDown: true),
+              child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize, isFaceDown: true),
             ),
         ],
       ),
@@ -613,7 +634,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final junks = captured.where((c) => c.def.grade == CardGrade.junk).toList();
 
     return SizedBox(
-      height: 75,
+      height: _capturedAreaHeight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -640,7 +661,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   Widget _buildFanGroup(List<CardInstance> cards) {
-    const cardSize = 45.0;
+    final cardSize = _capturedCardSize;
     const fanAngleStep = 0.12;
     final startAngle = -(cards.length - 1) * fanAngleStep / 2;
 
@@ -648,7 +669,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       margin: const EdgeInsets.only(right: 12),
       child: SizedBox(
         width: cardSize + (cards.length - 1) * 14 + 8,
-        height: 70,
+        height: _capturedFanHeight,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -743,7 +764,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Widget _buildFieldArea(dynamic state) {
     final count = _isDealing ? _dealtFieldCount : state.field.length;
     return Container(
-      constraints: const BoxConstraints(minHeight: 140),
+      constraints: BoxConstraints(minHeight: _fieldMinHeight),
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -757,7 +778,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               spacing: 5, runSpacing: 5, alignment: WrapAlignment.center,
               children: [
                 for (var i = 0; i < count && i < state.field.length; i++)
-                  HwatuCard(card: state.field[i], size: 70, isField: true),
+                  HwatuCard(card: state.field[i], size: _fieldCardSize, isField: true),
               ],
             ),
     );
@@ -817,7 +838,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
 
     return Container(
-      height: 145,
+      height: _playerHandHeight,
       padding: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -875,7 +896,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     children: [
                       HwatuCard(
                         card: card,
-                        size: 72,
+                        size: _playerCardSize,
                         onTap: isPlayable
                             ? () => _playCardWithAnimation(card)
                             : null,
