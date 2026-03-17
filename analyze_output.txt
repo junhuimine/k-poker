@@ -1,0 +1,103 @@
+﻿Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (97.0.0 available)
+  analyzer 7.6.0 (11.0.0 available)
+  analyzer_plugin 0.13.4 (0.14.5 available)
+  build 2.5.4 (4.0.4 available)
+  build_config 1.1.2 (1.3.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.12.2 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  custom_lint_core 0.7.5 (0.8.2 available)
+  custom_lint_visitor 1.0.0+7.7.0 (1.0.0+9.0.0 available)
+  dart_style 3.1.1 (3.1.7 available)
+  flutter_lints 4.0.0 (6.0.0 available)
+  flutter_riverpod 2.6.1 (3.3.1 available)
+  freezed 2.5.8 (3.2.5 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  google_fonts 6.3.3 (8.0.2 available)
+  json_annotation 4.9.0 (4.11.0 available)
+  json_serializable 6.9.5 (6.13.0 available)
+  lints 4.0.0 (6.1.0 available)
+  matcher 0.12.18 (0.12.19 available)
+  meta 1.17.0 (1.18.1 available)
+  riverpod 2.6.1 (3.2.1 available)
+  riverpod_analyzer_utils 0.5.9 (0.5.10 available)
+  riverpod_annotation 2.6.1 (4.0.2 available)
+  riverpod_generator 2.6.4 (4.0.3 available)
+  source_gen 2.0.0 (4.2.1 available)
+  source_helper 1.3.7 (1.3.10 available)
+  test_api 0.7.9 (0.7.10 available)
+Got dependencies!
+28 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing 08_k-poker...                                         
+
+   info - Dangling library doc comment - lib\common\constants.dart:3:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\data\all_cards.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\data\skills.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: '../models/card_def.dart' - lib\data\skills.dart:3:8 - unused_import
+  error - Invalid constant value - lib\data\skills.dart:88:41 - invalid_constant
+  error - There's no constant named 'ruleBend' in 'SkillCategory' - lib\data\skills.dart:88:55 - undefined_enum_constant
+   info - Dangling library doc comment - lib\engine\ai_player.dart:1:1 - dangling_library_doc_comments
+warning - The value of the field '_random' isn't used - lib\engine\ai_player.dart:22:23 - unused_field
+   info - Dangling library doc comment - lib\engine\card_matcher.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\engine\game_engine.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: '../models/run_state.dart' - lib\engine\game_engine.dart:8:8 - unused_import
+warning - Unused import: 'score_calculator.dart' - lib\engine\game_engine.dart:11:8 - unused_import
+   info - Dangling library doc comment - lib\engine\score_calculator.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\engine\skill_effects.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: '../models/card_def.dart' - lib\engine\skill_effects.dart:5:8 - unused_import
+   info - Dangling library doc comment - lib\engine\synergy_evaluator.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: 'score_calculator.dart' - lib\engine\synergy_evaluator.dart:8:8 - unused_import
+   info - Dangling library doc comment - lib\main.dart:1:1 - dangling_library_doc_comments
+   info - Use 'const' with the constructor to improve performance - lib\main.dart:24:22 - prefer_const_constructors
+   info - Dangling library doc comment - lib\models\card_def.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\models\round_state.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\models\run_state.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\state\game_providers.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\ui\game_screen.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: 'widgets/score_text_effect.dart' - lib\ui\game_screen.dart:9:8 - unused_import
+  error - The named parameter 'bottom' isn't defined - lib\ui\game_screen.dart:106:42 - undefined_named_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\game_screen.dart:108:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\game_screen.dart:112:40 - deprecated_member_use
+   info - Unnecessary 'const' keyword - lib\ui\game_screen.dart:126:40 - unnecessary_const
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\game_screen.dart:143:47 - deprecated_member_use
+   info - Dangling library doc comment - lib\ui\widgets\dealing_animation.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\ui\widgets\hwatu_card.dart:1:1 - dangling_library_doc_comments
+   info - 'translate' is deprecated and shouldn't be used. Use translateByVector3, translateByVector4, or translateByDouble instead - lib\ui\widgets\hwatu_card.dart:57:15 - deprecated_member_use
+   info - 'scale' is deprecated and shouldn't be used. Use scaleByVector3, scaleByVector4, or scaleByDouble instead - lib\ui\widgets\hwatu_card.dart:58:15 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\widgets\hwatu_card.dart:105:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\widgets\hwatu_card.dart:118:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\widgets\hwatu_card.dart:120:26 - deprecated_member_use
+   info - Dangling library doc comment - lib\ui\widgets\score_text_effect.dart:1:1 - dangling_library_doc_comments
+  error - The getter 'black' isn't defined for the type 'FontWeight' - lib\ui\widgets\score_text_effect.dart:79:42 - undefined_getter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\widgets\score_text_effect.dart:81:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\ui\widgets\score_text_effect.dart:82:48 - deprecated_member_use
+   info - Dangling library doc comment - test\engine\score_calculator_test.dart:1:1 - dangling_library_doc_comments
+   info - Use 'const' for final variables initialized to a constant value - test\engine\score_calculator_test.dart:17:7 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value - test\engine\score_calculator_test.dart:31:7 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value - test\engine\score_calculator_test.dart:45:7 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value - test\engine\score_calculator_test.dart:66:7 - prefer_const_declarations
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+
+flutter : 47 issues fo
+und. (ran in 4.1s)
+위치 줄:1 문자:37
++ $env:Path += ";C:\sr
+c\flutter\bin"; flutte
+r analyze 2>&1 | Out-F
+ile - ...
++                     
+                ~~~~~~
+~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (47 issues    
+ found. (ran in 4.    
+1s):String) [], R    e
+moteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 

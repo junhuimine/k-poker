@@ -1,0 +1,612 @@
+/// 🎴 K-Poker — Riverpod 상태 관리 (GDD 2.0)
+///
+/// AI 자동 턴, 고/스톱, 점수 계산, 판돈/소지금, 저장/불러오기 포함.
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../models/round_state.dart';
+import '../models/run_state.dart';
+import '../models/card_def.dart';
+import '../engine/game_engine.dart';
+import '../engine/score_calculator.dart';
+import '../engine/card_matcher.dart';
+import '../data/stage_config.dart';
+import '../state/game_save_manager.dart';
+import '../state/audio_manager.dart';
+
+part 'game_providers.g.dart';
+
+/// 게임 이벤트 로그 (UI 피드백용)
+class GameEvent {
+  final String type; // 'match', 'sweep', 'go', 'stop', 'ppuk', 'ai_play', 'round_end'
+  final String message;
+  final DateTime time;
+  GameEvent({required this.type, required this.message}) : time = DateTime.now();
+}
+
+/// 게임 이벤트 Provider
+@riverpod
+class GameEvents extends _$GameEvents {
+  @override
+  List<GameEvent> build() => [];
+
+  void addEvent(String type, String message) {
+    state = [...state, GameEvent(type: type, message: message)];
+  }
+
+  void clear() {
+    state = [];
+  }
+}
+
+/// 고/스톱 선택 대기 Provider (플레이어용)
+@riverpod
+class GoStopPending extends _$GoStopPending {
+  @override
+  bool build() => false;
+
+  void show() => state = true;
+  void hide() => state = false;
+}
+
+/// AI 고/스톱 알림 Provider (화면 애니메이션용)
+/// 값: null = 없음, 'go_1', 'go_2', 'go_3', 'stop' 등
+@riverpod
+class AiGoStopAnnounce extends _$AiGoStopAnnounce {
+  @override
+  String? build() => null;
+
+  void announce(String value) => state = value;
+  void clear() => state = null;
+}
+
+/// 족보 달성 알림 Provider (화면 중앙 플래시)
+/// 값: null = 없음, '오광', '삼광', '홍단' 등
+@riverpod
+class YakuAnnounce extends _$YakuAnnounce {
+  @override
+  String? build() => null;
+
+  void announce(String value) => state = value;
+  void clear() => state = null;
+}
+
+/// 게임 세션(라운드) 상태 관리자
+@riverpod
+class GameState extends _$GameState {
+  @override
+  RoundState build() {
+    return const RoundState();
+  }
+
+  /// 게임 시작 (딜링)
+  void startGame() {
+    ref.read(gameEventsProvider.notifier).clear();
+    ref.read(goStopPendingProvider.notifier).hide();
+    state = GameEngine.createInitialState();
+    ref.read(gameEventsProvider.notifier).addEvent('start', '🎴 새 라운드 시작!');
+  }
+
+  /// 카드 플레이 (플레이어)
+  void playCard(CardInstance card, {CardInstance? selectedMatch}) {
+    if (state.isFinished || state.currentTurn != 'player') return;
+
+    // 1. 플레이어 턴 실행
+    final prevCaptured = state.playerCaptured.length;
+    final nextState = GameEngine.playTurn(state, card, selectedMatch: selectedMatch);
+
+    // 2. 매칭 피드백 이벤트 + SFX
+    final newCaptured = nextState.playerCaptured.length - prevCaptured;
+    if (newCaptured > 0) {
+      AudioManager().cardMatch();
+      // 광 획득 시 특수 SFX
+      final hasBright = nextState.playerCaptured.any((c) => c.def.grade == CardGrade.bright && !state.playerCaptured.contains(c));
+      if (hasBright) AudioManager().brightCapture();
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('match', '✅ ${card.def.nameKo} → $newCaptured장 획득!');
+    } else {
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('miss', '❌ ${card.def.nameKo} → 매칭 실패');
+    }
+
+    // 3. 점수 업데이트
+    final run = ref.read(runStateNotifierProvider);
+    final prevYaku = state.playerScore > 0
+        ? ScoreCalculator.calculate(state, run).appliedYaku
+        : <String>[];
+    final scoreResult = ScoreCalculator.calculate(nextState, run);
+
+    state = nextState.copyWith(
+      playerScore: scoreResult.finalScore,
+      baseChips: scoreResult.baseChips,
+      multiplier: scoreResult.multiplier,
+    );
+
+    // 쓸(sweep) 감지
+    if (nextState.sweepCount > state.sweepCount || (nextState.field.isEmpty && newCaptured > 0)) {
+      AudioManager().cardSweep();
+      ref.read(gameEventsProvider.notifier).addEvent('sweep', '🌊 쓸! 바닥을 쓹었다!');
+    }
+
+    // 족보 달성 알림 (#4)
+    final newYaku = scoreResult.appliedYaku;
+    for (final yaku in newYaku) {
+      if (!prevYaku.contains(yaku)) {
+        ref.read(yakuAnnounceProvider.notifier).announce(yaku);
+        Future.delayed(const Duration(milliseconds: 1800), () {
+          ref.read(yakuAnnounceProvider.notifier).clear();
+        });
+        break; // 한 번에 하나만
+      }
+    }
+
+    // 4. 게임 종료 체크
+    if (state.isFinished) {
+      _handleRoundEnd();
+      return;
+    }
+
+    // 5. 고/스톱 판정 (3점 이상일 때)
+    if (scoreResult.finalScore >= 3 && state.goCount == 0) {
+      ref.read(goStopPendingProvider.notifier).show();
+      return;
+    }
+
+    // 6. AI 턴 — GameScreen에서 애니메이션과 함께 처리
+    // (currentTurn == 'opponent' 상태를 UI가 감지)
+  }
+
+  /// 폭탄! (같은 월 3장 한번에 내기)
+  void playBomb(int bombMonth) {
+    if (state.isFinished || state.currentTurn != 'player') return;
+
+    final prevOpJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).length;
+    final nextState = GameEngine.playBomb(state, bombMonth);
+    final newOpJunks = nextState.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).length;
+    final stolenJunk = prevOpJunks > newOpJunks;
+
+    // 이벤트
+    AudioManager().cardSweep(); // 폭탄은 쓸과 비슷한 임팩트 SFX
+    ref.read(gameEventsProvider.notifier)
+        .addEvent('bomb', '💣 폭탄! ${bombMonth}월 3장 일괄 획득!${stolenJunk ? ' + 상대 피 빼앗기!' : ''}');
+
+    // 점수 업데이트
+    final run = ref.read(runStateNotifierProvider);
+    final scoreResult = ScoreCalculator.calculate(nextState, run);
+    state = nextState.copyWith(
+      playerScore: scoreResult.finalScore,
+      baseChips: scoreResult.baseChips,
+      multiplier: scoreResult.multiplier,
+    );
+
+    if (state.isFinished) {
+      _handleRoundEnd();
+      return;
+    }
+
+    // 고/스톱 판정
+    if (scoreResult.finalScore >= 3 && state.goCount == 0) {
+      ref.read(goStopPendingProvider.notifier).show();
+      return;
+    }
+
+    // AI 턴
+    if (state.currentTurn == 'opponent') {
+      Future.delayed(const Duration(milliseconds: 1200), () => _playAiTurn());
+    }
+  }
+
+  /// 고! 선언
+  void declareGo() {
+    ref.read(goStopPendingProvider.notifier).hide();
+    AudioManager().goDeclare();
+    ref.read(gameEventsProvider.notifier).addEvent('go', '🔥 고! 선언! (배율 증가)');
+
+    state = state.copyWith(
+      goCount: state.goCount + 1,
+      multiplier: state.multiplier * 2.0,
+    );
+
+    if (state.currentTurn == 'opponent') {
+      Future.delayed(const Duration(milliseconds: 1200), () => _playAiTurn());
+    }
+  }
+
+  /// 스톱! 선언
+  void declareStop() {
+    ref.read(goStopPendingProvider.notifier).hide();
+    AudioManager().stopDeclare();
+    ref.read(gameEventsProvider.notifier).addEvent('stop', '🛑 스톱! 라운드 종료!');
+
+    state = state.copyWith(isFinished: true);
+    _handleRoundEnd();
+  }
+
+  /// AI가 어떤 카드를 낼지 선택만 반환 (애니메이션용)
+  CardInstance? getAiChoice() {
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+
+    // 폭탄 체크
+    if (ai.matchPriority >= 0.7) {
+      final aiBombMonth = GameEngine.getBombMonth(
+        List<CardInstance>.from(state.opponentHand),
+      );
+      if (aiBombMonth != null) return null; // 폭탄은 기존 로직으로
+    }
+
+    // 최적 카드 선택 (기존 _playAiTurn 로직과 동일)
+    CardInstance? bestCard;
+    int bestScore = -1;
+    for (final card in state.opponentHand) {
+      final matchable = findMatchableCards(card, state.field);
+      if (matchable.isNotEmpty) {
+        int cardScore = 0;
+        if (card.def.grade == CardGrade.bright) cardScore = 100;
+        else if (card.def.grade == CardGrade.animal) cardScore = 50;
+        else if (card.def.grade == CardGrade.ribbon) cardScore = 30;
+        else cardScore = 10;
+        if (ai.matchPriority < 0.5) {
+          cardScore = (cardScore * ai.matchPriority).round();
+        }
+        if (cardScore > bestScore) {
+          bestScore = cardScore;
+          bestCard = card;
+        }
+      }
+    }
+    return bestCard ?? (state.opponentHand.isNotEmpty ? state.opponentHand.first : null);
+  }
+
+  /// AI 턴 처리 (UI에서 애니메이션 후 호출)
+  void playAiCard(CardInstance card) {
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+
+    final prevCaptured = state.opponentCaptured.length;
+    final nextState = GameEngine.playTurn(state, card);
+    final newCaptured = nextState.opponentCaptured.length - prevCaptured;
+
+    if (newCaptured > 0) {
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('ai_play', '🤖 AI: ${card.def.nameKo} → $newCaptured장 획득');
+      final matchLine = ai.getDialogue('match');
+      if (matchLine != null) {
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
+      }
+    } else {
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('ai_play', '🤖 AI: ${card.def.nameKo}');
+      final missLine = ai.getDialogue('miss');
+      if (missLine != null) {
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
+      }
+    }
+
+    state = nextState;
+
+    // AI 점수 계산
+    final aiRun = ref.read(runStateNotifierProvider);
+    final aiScoreState = nextState.copyWith(
+      playerCaptured: nextState.opponentCaptured,
+      opponentCaptured: nextState.playerCaptured,
+    );
+    final aiResult = ScoreCalculator.calculate(aiScoreState, aiRun);
+    state = state.copyWith(opponentScore: aiResult.finalScore);
+
+    if (state.isFinished) {
+      _handleRoundEnd();
+      return;
+    }
+
+    // AI 고/스톱 판정
+    if (aiResult.finalScore >= 3) {
+      final aiGoCount = state.opponentGoCount;
+      final shouldStop = aiResult.finalScore >= 7
+          || aiGoCount >= 2
+          || (aiGoCount >= 1 && ai.goAggressiveness < 0.4)
+          || (aiResult.finalScore >= 5 && ai.goAggressiveness < 0.3);
+      
+      if (shouldStop) {
+        ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖 AI: 스톱! 라운드 종료!');
+        state = state.copyWith(isFinished: true);
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          ref.read(aiGoStopAnnounceProvider.notifier).clear();
+          _handleRoundEnd();
+        });
+      } else {
+        final newGoCount = aiGoCount + 1;
+        ref.read(aiGoStopAnnounceProvider.notifier).announce('go_$newGoCount');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖🔥 AI: 고! ×$newGoCount');
+        state = state.copyWith(
+          opponentGoCount: newGoCount,
+          opponentScore: aiResult.finalScore,
+        );
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          ref.read(aiGoStopAnnounceProvider.notifier).clear();
+        });
+      }
+    }
+  }
+
+  /// AI 턴 실행 (기존 - 폭탄/fallback용)
+  void _playAiTurn() {
+    if (state.isFinished || state.currentTurn != 'opponent') return;
+
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+
+    // AI 폭탄 체크: 높은 난이도 AI만 폭탄 사용
+    if (ai.matchPriority >= 0.7) {
+      final aiBombMonth = GameEngine.getBombMonth(
+        List<CardInstance>.from(state.opponentHand),
+      );
+      if (aiBombMonth != null) {
+        final nextState = GameEngine.playBomb(state, aiBombMonth);
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('ai_play', '🤖💣 AI: ${aiBombMonth}월 폭탄!');
+        
+        // AI 점수 계산
+        final aiScoreState = nextState.copyWith(
+          playerCaptured: nextState.opponentCaptured,
+          opponentCaptured: nextState.playerCaptured,
+        );
+        final aiResult = ScoreCalculator.calculate(aiScoreState, run);
+        state = nextState.copyWith(opponentScore: aiResult.finalScore);
+
+        if (state.isFinished) {
+          _handleRoundEnd();
+        }
+        return;
+      }
+    }
+
+    // AI 전략: matchPriority에 따라 최적 카드 선택
+    CardInstance? bestCard;
+    int bestScore = -1;
+    
+    for (final card in state.opponentHand) {
+      final matchable = findMatchableCards(card, state.field);
+      if (matchable.isNotEmpty) {
+        // 높은 등급 카드 우선 (AI 난이도에 따라)
+        int cardScore = 0;
+        if (card.def.grade == CardGrade.bright) cardScore = 100;
+        else if (card.def.grade == CardGrade.animal) cardScore = 50;
+        else if (card.def.grade == CardGrade.ribbon) cardScore = 30;
+        else cardScore = 10;
+        
+        // AI 난이도: 낮으면 랜덤 요소 추가
+        if (ai.matchPriority < 0.5) {
+          cardScore = (cardScore * ai.matchPriority).round();
+        }
+        
+        if (cardScore > bestScore) {
+          bestScore = cardScore;
+          bestCard = card;
+        }
+      }
+    }
+    bestCard ??= state.opponentHand.isNotEmpty ? state.opponentHand.first : null;
+
+    if (bestCard == null) return;
+
+    final prevCaptured = state.opponentCaptured.length;
+    final nextState = GameEngine.playTurn(state, bestCard);
+    final newCaptured = nextState.opponentCaptured.length - prevCaptured;
+
+    if (newCaptured > 0) {
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('ai_play', '🤖 AI: ${bestCard.def.nameKo} → $newCaptured장 획득');
+      // #6 AI 대사
+      final matchLine = ai.getDialogue('match');
+      if (matchLine != null) {
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
+      }
+    } else {
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('ai_play', '🤖 AI: ${bestCard.def.nameKo}');
+      final missLine = ai.getDialogue('miss');
+      if (missLine != null) {
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
+      }
+    }
+
+    state = nextState;
+
+    // AI 점수 계산 (상대 시점)
+    final aiRun = ref.read(runStateNotifierProvider);
+    final aiScoreState = nextState.copyWith(
+      playerCaptured: nextState.opponentCaptured,
+      opponentCaptured: nextState.playerCaptured,
+    );
+    final aiResult = ScoreCalculator.calculate(aiScoreState, aiRun);
+    state = state.copyWith(opponentScore: aiResult.finalScore);
+
+    if (state.isFinished) {
+      _handleRoundEnd();
+      return;
+    }
+
+    // AI 고/스톱 판정: 3점 이상이면 AI가 자동 결정
+    if (aiResult.finalScore >= 3) {
+      final aiGoCount = state.opponentGoCount;
+      // AI 전략: goAggressiveness 반영 (#1)
+      final shouldStop = aiResult.finalScore >= 7
+          || aiGoCount >= 2
+          || (aiGoCount >= 1 && ai.goAggressiveness < 0.4)
+          || (aiResult.finalScore >= 5 && ai.goAggressiveness < 0.3);
+      
+      if (shouldStop) {
+        // AI 스톱!
+        ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖 AI: 스톱! 라운드 종료!');
+        state = state.copyWith(isFinished: true);
+        // 애니메이션 후 라운드 종료 처리 (UI에서 처리)
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          ref.read(aiGoStopAnnounceProvider.notifier).clear();
+          _handleRoundEnd();
+        });
+      } else {
+        // AI 고!
+        final newGoCount = aiGoCount + 1;
+        ref.read(aiGoStopAnnounceProvider.notifier).announce('go_$newGoCount');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖🔥 AI: 고! ×$newGoCount');
+        state = state.copyWith(
+          opponentGoCount: newGoCount,
+          opponentScore: aiResult.finalScore,
+        );
+        // 애니메이션 후 알림 제거
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          ref.read(aiGoStopAnnounceProvider.notifier).clear();
+        });
+      }
+    }
+  }
+
+  /// 라운드 종료 처리 (판돈 정산)
+  void _handleRoundEnd() {
+    final run = ref.read(runStateNotifierProvider);
+    final currency = getCurrencyForLocale(run.currencyLocale);
+    final stageConfig = getStageConfig(run.stage);
+    final stake = stageConfig.getStake(currency.pointValue); // 스테이지 판돈
+    
+    // 수입 계산: 판돈 × (1 + 고 횟수) — 밸런스 조정
+    final goBonus = 1.0 + state.goCount * 0.5;
+    final earnings = stake * goBonus;
+
+    if (state.playerScore > state.opponentScore) {
+      // 승리!
+      ref.read(runStateNotifierProvider.notifier).onWin(earnings, state.playerScore);
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('round_end', '🏆 승리! +${currency.formatAmount(earnings)}');
+    } else {
+      // 패배 — 판돈만큼 잃음
+      final penalty = stake;
+      ref.read(runStateNotifierProvider.notifier).onLose(penalty);
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('round_end', '💀 패배... -${currency.formatAmount(penalty)}');
+    }
+
+    // 자동 저장
+    final updatedRun = ref.read(runStateNotifierProvider);
+    GameSaveManager.save(updatedRun);
+  }
+}
+
+/// 전체 런 상태 관리자
+@riverpod
+class RunStateNotifier extends _$RunStateNotifier {
+  @override
+  RunState build() => const RunState();
+
+  /// 저장된 게임 불러오기
+  Future<bool> loadGame() async {
+    final saved = await GameSaveManager.load();
+    if (saved != null) {
+      state = saved;
+      return true;
+    }
+    return false;
+  }
+
+  /// 새 게임 시작
+  void newGame(String locale) {
+    final currency = getCurrencyForLocale(locale);
+    final initialMoney = stageConfigs[0].stakeMultiplier * currency.pointValue * 5; // 판돈 5배
+    state = RunState(
+      stage: 1,
+      money: initialMoney,
+      currencyLocale: locale,
+    );
+    _autoSave();
+  }
+
+  /// 승리 시 정산
+  void onWin(double earnings, int score) {
+    final newMoney = state.money + earnings;
+    final stageConfig = getStageConfig(state.stage);
+    final currency = getCurrencyForLocale(state.currencyLocale);
+    final stake = stageConfig.getStake(currency.pointValue);
+    final newStageEarned = state.stageEarned + earnings;
+
+    // 스테이지 클리어 판정
+    int newStage = state.stage;
+    double resetEarned = newStageEarned;
+    if (newStageEarned >= stake) {
+      newStage = state.stage + 1;
+      resetEarned = 0;
+    }
+
+    state = state.copyWith(
+      money: newMoney,
+      stageEarned: resetEarned,
+      stage: newStage,
+      wins: state.wins + 1,
+      winStreak: state.winStreak + 1,
+      highestScore: score > state.highestScore ? score : state.highestScore,
+      highestMoney: newMoney > state.highestMoney ? newMoney : state.highestMoney,
+      moneyHistory: [...state.moneyHistory, newMoney],
+    );
+    _autoSave();
+  }
+
+  /// 패배 시 정산
+  void onLose(double penalty) {
+    final newMoney = (state.money - penalty).clamp(0, double.infinity);
+    state = state.copyWith(
+      money: newMoney.toDouble(),
+      losses: state.losses + 1,
+      winStreak: 0,
+      moneyHistory: [...state.moneyHistory, newMoney.toDouble()],
+    );
+    _autoSave();
+  }
+
+  /// 파산 여부 체크 (남은 돈이 최소 판돈의 10% 이하면 파산)
+  bool get isBankrupt {
+    final currency = getCurrencyForLocale(state.currencyLocale);
+    final minStake = currency.pointValue * 3; // 3점어치 금액 = 최소 판돈
+    return state.money <= minStake;
+  }
+
+  /// 런 재시작 (처음부터 다시)
+  Future<void> restartRun() async {
+    await GameSaveManager.deleteSave();
+    newGame(state.currencyLocale);
+  }
+
+  /// 금화 추가 (레거시 호환)
+  void addGold(int amount) {
+    state = state.copyWith(gold: state.gold + amount);
+  }
+
+  /// 기술 구매
+  void buySkill(String skillId, double cost) {
+    if (state.money < cost) return;
+    state = state.copyWith(
+      activeSkillIds: [...state.activeSkillIds, skillId],
+      money: state.money - cost,
+    );
+    _autoSave();
+  }
+
+  /// 부적 구매
+  void buyTalisman(String talismanId, double cost) {
+    if (state.money < cost) return;
+    state = state.copyWith(
+      activeTalismanIds: [...state.activeTalismanIds, talismanId],
+      money: state.money - cost,
+    );
+    _autoSave();
+  }
+
+  /// 자동 저장
+  void _autoSave() {
+    GameSaveManager.save(state);
+  }
+}
+
