@@ -129,8 +129,8 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const Divider(color: Color(0xFF30363D)),
                     const SizedBox(height: 12),
 
-                    // 🎴 카드 스킨
-                    const Text('🎴 카드 스킨', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    // 🎴 카드 뒷면 스킨
+                    const Text('🃏 카드 뒷면 디자인', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
