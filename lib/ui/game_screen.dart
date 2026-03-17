@@ -223,21 +223,34 @@ class _GameScreenState extends ConsumerState<GameScreen>
               children: [
                 Expanded(
                   flex: 3,
-                  child: Column(
-                    children: [
-                      if (isGameStarted)
-                        _buildTopBar(gameState, strings),
-                      if (isGameStarted) _buildOpponentInfoBar(gameState),
-                      if (isGameStarted) _buildOpponentHand(gameState),
-                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
-                      const Spacer(),
-                      if (isGameStarted) _buildFieldWithDeck(gameState),
-                      const Spacer(),
-                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
-                      if (isGameStarted) _buildScoreDashboard(gameState, strings),
-                      const SizedBox(height: 4),
-                      if (isGameStarted) _buildPlayerHand(gameState),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final maxH = constraints.maxHeight;
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: maxH),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // 상단 영역
+                              if (isGameStarted)
+                                _buildTopBar(gameState, strings),
+                              if (isGameStarted) _buildOpponentInfoBar(gameState),
+                              if (isGameStarted) _buildOpponentHand(gameState),
+                              if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
+                              // 중앙 필드
+                              if (isGameStarted) _buildFieldWithDeck(gameState),
+                              // 하단 영역
+                              if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
+                              if (isGameStarted) _buildScoreDashboard(gameState, strings),
+                              SizedBox(height: _isMobile ? 2 : 4),
+                              if (isGameStarted) _buildPlayerHand(gameState),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 if (isGameStarted && _showSidePanel)
