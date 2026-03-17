@@ -830,7 +830,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   // ─── 플레이어 핸드 (매칭 가능 카드 올라옴 + 폭탄 표시) ─────────────
   Widget _buildPlayerHand(dynamic state) {
-    final count = _isDealing ? _dealtPlayerCount : state.playerHand.length;
+    // 월 순서로 정렬 (같은 월이면 grade 순)
+    final sortedHand = List<CardInstance>.from(state.playerHand)
+      ..sort((a, b) {
+        final monthCmp = a.def.month.compareTo(b.def.month);
+        if (monthCmp != 0) return monthCmp;
+        return a.def.grade.index.compareTo(b.def.grade.index);
+      });
+    final count = _isDealing ? _dealtPlayerCount : sortedHand.length;
     // 필드에 있는 월 목록
     final fieldMonths = <int>{};
     for (final fc in state.field) {
@@ -885,9 +892,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ),
                 ),
               ),
-            for (var i = 0; i < count && i < state.playerHand.length; i++)
+            for (var i = 0; i < count && i < sortedHand.length; i++)
               () {
-                final card = state.playerHand[i];
+                final card = sortedHand[i];
                 final canMatch = fieldMonths.contains(card.def.month);
                 final isBombCard = bombMonth != null && card.def.month == bombMonth;
                 final isPlayable = !_isDealing && state.currentTurn == 'player';
