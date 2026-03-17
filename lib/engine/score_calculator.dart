@@ -1,9 +1,13 @@
-/// 🎴 K-Poker — 점수 계산 엔진 (Balatro 스타일)
-/// 
-/// 설계 원칙: Score = Chips × Mult
-/// 1. 족보(Yaku) 판정 -> Base Chips 부여
-/// 2. 족보 보너스 -> +Mult 부여
-/// 3. 시즈닝(Skills/Editions) -> +Mult 또는 ×Mult 부여
+/// 🎴 K-Poker — 점수 계산 엔진 (공식 고스톱 룰)
+///
+/// 공식 고스톱 점수 체계:
+/// - 광: 3광=3점, 비삼광=2점, 4광=4점, 오광=15점
+/// - 고도리: 2,4,8월 새 3마리 = 5점
+/// - 띠: 홍단/청단/초단 = 3점, 띠 5장=1점, 추가 1장당 +1점
+/// - 동물: 5장=1점, 추가 1장당 +1점
+/// - 피: 10장=1점, 추가 1장당 +1점
+/// - 박: 광박/피박/띠박/멍박 = x2 배율 (누적 곱)
+/// - 고: 1고=+1점, 2고=+2점, 3고=x2, 4고=x4...
 
 import '../models/card_def.dart';
 import '../models/round_state.dart';
@@ -25,14 +29,14 @@ class ScoreResult {
   });
 
   @override
-  String toString() => 'Score: $finalScore ($baseChips × ${multiplier.toStringAsFixed(1)})';
+  String toString() => 'Score: $finalScore (base $baseChips × ${multiplier.toStringAsFixed(1)})';
 }
 
 class ScoreCalculator {
   /// 현재 라운드 상태와 런 상태를 기반으로 점수를 계산
   static ScoreResult calculate(RoundState round, RunState run) {
-    int totalChips = 0;
-    double totalMult = 1.0;
+    int basePoints = 0;
+    double penaltyMult = 1.0;
     List<String> yakuList = [];
 
     // 1. 획득한 카드 분류
@@ -42,144 +46,193 @@ class ScoreCalculator {
     final animals = captured.where((c) => c.def.grade == CardGrade.animal).toList();
     final junks = captured.where((c) => c.def.grade == CardGrade.junk).toList();
 
-    // 2. 족보 판정 및 Chips/Mult 가산
-    
-    // --- 광 (Brights) ---
-    if (brights.length == 5) {
-      totalChips += 150;
-      totalMult += 10.0;
-      yakuList.add('오광');
-    } else if (brights.length == 4) {
-      totalChips += 40;
-      totalMult += 4.0;
-      yakuList.add('사광');
-    } else if (brights.length == 3) {
-      final hasRain = brights.any((c) => c.def.month == 12);
-      if (hasRain) {
-        totalChips += 20;
-        totalMult += 2.0;
-        yakuList.add('비삼광');
-      } else {
-        totalChips += 30;
-        totalMult += 3.0;
-        yakuList.add('삼광');
-      }
-    }
-
-    // --- 고도리 (Godori) ---
-    final birds = captured.where((c) => c.def.isBird).length;
-    if (birds == 3) {
-      totalChips += 50;
-      totalMult += 5.0;
-      yakuList.add('고도리');
-    }
-
-    // --- 띠 (Ribbons) ---
-    final redRibbons = captured.where((c) => c.def.ribbonType == RibbonType.red).length;
-    final blueRibbons = captured.where((c) => c.def.ribbonType == RibbonType.blue).length;
-    final grassRibbons = captured.where((c) => c.def.ribbonType == RibbonType.grass).length;
-
-    if (redRibbons == 3) {
-      totalChips += 30;
-      totalMult += 3.0;
-      yakuList.add('홍단');
-    }
-    if (blueRibbons == 3) {
-      totalChips += 30;
-      totalMult += 3.0;
-      yakuList.add('청단');
-    }
-    if (grassRibbons == 3) {
-      totalChips += 30;
-      totalMult += 3.0;
-      yakuList.add('초단');
-    }
-
-    if (ribbons.length >= 5) {
-      final extra = ribbons.length - 4;
-      totalChips += extra * 10;
-      totalMult += extra * 1.0;
-      yakuList.add('띠 ${ribbons.length}장');
-    }
-
-    // --- 동물 (Animals) ---
-    if (animals.length >= 5) {
-      final extra = animals.length - 4;
-      totalChips += extra * 10;
-      totalMult += extra * 1.0;
-      yakuList.add('동물 ${animals.length}장');
-    }
-
-    // --- 피 (Junks) ---
-    int junkCount = 0;
-    for (var j in junks) {
-      junkCount += j.def.doubleJunk ? 2 : 1;
-    }
-    if (junkCount >= 10) {
-      final extra = junkCount - 9;
-      totalChips += extra * 10;
-      totalMult += extra * 1.0;
-      yakuList.add('피 $junkCount장');
-    }
-
-    // --- 쓸어먹기 보너스 (sweep) ---
-    if (round.sweepCount > 0) {
-      totalChips += round.sweepCount * 20;
-      yakuList.add('쓸 ${round.sweepCount}회 (+${round.sweepCount * 20})');
-    }
-
-    // --- 연속타 보너스 ---
-    if (round.comboCount >= 3) {
-      totalChips += (round.comboCount ~/ 3) * 10;
-      yakuList.add('연속 ${round.comboCount}타 (+${(round.comboCount ~/ 3) * 10})');
-    }
-
-    // 3. 개별 카드 에디션 및 강화 효과 적용 (Balatro)
-    for (var card in captured) {
-      if (card.edition == Edition.foil) totalChips += 50;
-      if (card.edition == Edition.holographic) totalMult += 10.0;
-      if (card.edition == Edition.polychrome) totalMult *= 1.5;
-    }
-
-    // 4. 시너지 체인 평가 (Balatro 스타일)
-    final synergyResult = SynergyEvaluator.evaluate(
-      baseChips: totalChips,
-      baseMult: totalMult,
-      capturedCards: captured,
-      activeSkills: run.activeSkills,
-    );
-    
-    totalChips = synergyResult.chips;
-    totalMult = synergyResult.mult;
-    yakuList.addAll(synergyResult.log);
-
-    // 5. 고스톱 패널티 (박) 및 특수 배율 적용
-    // 광박: 패자(상대)가 광 0장 보유 중일 때 광으로 점수를 냈다면 x2
-    if (brights.isNotEmpty && round.opponentCaptured.where((c) => c.def.grade == CardGrade.bright).isEmpty) {
-      totalMult *= 2.0;
-      yakuList.add('광박 (x2.0)');
-    }
-    
-    // 피박: 패자(상대)가 피 6장 미만일 때 피로 점수를 냈다면 x2
+    // 상대 카드 분류
+    final oppBrights = round.opponentCaptured.where((c) => c.def.grade == CardGrade.bright).length;
+    final oppRibbons = round.opponentCaptured.where((c) => c.def.grade == CardGrade.ribbon).length;
+    final oppAnimals = round.opponentCaptured.where((c) => c.def.grade == CardGrade.animal).length;
     int oppJunkCount = 0;
     for (var j in round.opponentCaptured.where((c) => c.def.grade == CardGrade.junk)) {
       oppJunkCount += j.def.doubleJunk ? 2 : 1;
     }
-    if (junkCount >= 10 && oppJunkCount < 6 && oppJunkCount > 0) {
-      totalMult *= 2.0;
-      yakuList.add('피박 (x2.0)');
+
+    // 피 카운트 (쌍피 = 2장)
+    int junkCount = 0;
+    for (var j in junks) {
+      junkCount += j.def.doubleJunk ? 2 : 1;
     }
 
-    // 띠박: 상대가 띠 0장일 때
-    if (ribbons.isNotEmpty && round.opponentCaptured.where((c) => c.def.grade == CardGrade.ribbon).isEmpty) {
-      totalMult *= 2.0;
-      yakuList.add('띠박 (x2.0)');
+    // ═══════════════════════════════════
+    // 2. 족보 판정 (공식 고스톱 점수)
+    // ═══════════════════════════════════
+
+    // --- 광 (Brights) ---
+    final brightIds = brights.map((b) => b.def.id).toSet();
+    final hasRain = brightIds.contains('m12_bright');
+
+    if (brightIds.length == 5) {
+      basePoints += 15;
+      yakuList.add('⭐ 오광 (+15)');
+    } else if (brightIds.length == 4 && !hasRain) {
+      basePoints += 4;
+      yakuList.add('🌟 사광 (+4)');
+    } else if (brightIds.length == 4 && hasRain) {
+      // 비광 포함 4광 = 4점 (일부 룰에서)
+      basePoints += 4;
+      yakuList.add('🌧️ 비사광 (+4)');
+    } else if (brightIds.length == 3 && hasRain) {
+      basePoints += 2;
+      yakuList.add('🌧️ 비삼광 (+2)');
+    } else if (brightIds.length >= 3 && !hasRain) {
+      basePoints += 3;
+      yakuList.add('🌟 삼광 (+3)');
     }
+
+    // --- 고도리 (2월+4월+8월 새) ---
+    final birdMonths = captured
+        .where((c) => c.def.isBird)
+        .map((c) => c.def.month)
+        .toSet();
+    if (birdMonths.containsAll({2, 4, 8})) {
+      basePoints += 5;
+      yakuList.add('🐦 고도리 (+5)');
+    }
+
+    // --- 홍단 (1,2,3월 빨간 띠) ---
+    final redMonths = captured
+        .where((c) => c.def.ribbonType == RibbonType.red)
+        .map((c) => c.def.month)
+        .toSet();
+    if (redMonths.containsAll({1, 2, 3})) {
+      basePoints += 3;
+      yakuList.add('🎀 홍단 (+3)');
+    }
+
+    // --- 청단 (6,9,10월 파란 띠) ---
+    final blueMonths = captured
+        .where((c) => c.def.ribbonType == RibbonType.blue)
+        .map((c) => c.def.month)
+        .toSet();
+    if (blueMonths.containsAll({6, 9, 10})) {
+      basePoints += 3;
+      yakuList.add('💎 청단 (+3)');
+    }
+
+    // --- 초단 (4,5,7월 초록 띠) ---
+    final grassMonths = captured
+        .where((c) => c.def.ribbonType == RibbonType.grass)
+        .map((c) => c.def.month)
+        .toSet();
+    if (grassMonths.containsAll({4, 5, 7})) {
+      basePoints += 3;
+      yakuList.add('🌿 초단 (+3)');
+    }
+
+    // --- 띠 5장 이상 ---
+    if (ribbons.length >= 5) {
+      final pts = 1 + (ribbons.length - 5);
+      basePoints += pts;
+      yakuList.add('🎗️ 띠 ${ribbons.length}장 (+$pts)');
+    }
+
+    // --- 동물 (열끗) 5장 이상 ---
+    if (animals.length >= 5) {
+      final pts = 1 + (animals.length - 5);
+      basePoints += pts;
+      yakuList.add('🐾 동물 ${animals.length}장 (+$pts)');
+    }
+
+    // --- 피 10장 이상 ---
+    if (junkCount >= 10) {
+      final pts = 1 + (junkCount - 10);
+      basePoints += pts;
+      yakuList.add('🍂 피 $junkCount장 (+$pts)');
+    }
+
+    // --- 쓸어먹기 ---
+    if (round.sweepCount > 0) {
+      basePoints += round.sweepCount;
+      yakuList.add('🧹 쓸 ${round.sweepCount}회 (+${round.sweepCount})');
+    }
+
+    // ═══════════════════════════════════
+    // 3. 고(Go) 보너스
+    // ═══════════════════════════════════
+    final goCount = round.goCount;
+    if (goCount == 1) {
+      basePoints += 1;
+      yakuList.add('🔥 1고 (+1)');
+    } else if (goCount == 2) {
+      basePoints += 2;
+      yakuList.add('🔥 2고 (+2)');
+    } else if (goCount >= 3) {
+      // 3고부터 x2^(goCount-2)
+      final goMult = 1 << (goCount - 2); // 3고=x2, 4고=x4, 5고=x8...
+      penaltyMult *= goMult;
+      yakuList.add('🔥 ${goCount}고 (x$goMult)');
+    }
+
+    // ═══════════════════════════════════
+    // 4. 박 배율 (상대에게 페널티)
+    // ═══════════════════════════════════
+
+    // 광박: 내가 광 점수가 있는데, 상대가 광 0장
+    if (brights.isNotEmpty && oppBrights == 0) {
+      penaltyMult *= 2;
+      yakuList.add('💥 광박 (x2)');
+    }
+
+    // 피박: 내가 피 10장 이상, 상대가 피 7장 미만 (0장 제외)
+    if (junkCount >= 10 && oppJunkCount > 0 && oppJunkCount < 7) {
+      penaltyMult *= 2;
+      yakuList.add('🥊 피박 (x2)');
+    }
+
+    // 띠박: 내가 띠가 있는데, 상대 띠 0장
+    if (ribbons.isNotEmpty && oppRibbons == 0) {
+      penaltyMult *= 2;
+      yakuList.add('🎗️ 띠박 (x2)');
+    }
+
+    // 멍박: 내가 동물 7장 이상, 상대 동물 미달
+    if (animals.length >= 7) {
+      penaltyMult *= 2;
+      yakuList.add('🐾 멍박 (x2)');
+    }
+
+    // ═══════════════════════════════════
+    // 5. Roguelike 스킬 효과 (Balatro 요소)
+    // ═══════════════════════════════════
+    int bonusChips = 0;
+    double skillMult = 1.0;
+
+    // 개별 카드 에디션 효과
+    for (var card in captured) {
+      if (card.edition == Edition.foil) bonusChips += 5;
+      if (card.edition == Edition.holographic) bonusChips += 3;
+      if (card.edition == Edition.polychrome) skillMult *= 1.2;
+    }
+
+    // 시너지 체인 평가
+    final synergyResult = SynergyEvaluator.evaluate(
+      baseChips: bonusChips,
+      baseMult: skillMult,
+      capturedCards: captured,
+      activeSkills: run.activeSkills,
+    );
+
+    if (synergyResult.log.isNotEmpty) {
+      yakuList.addAll(synergyResult.log);
+    }
+
+    // 최종 계산: (기본 점수 + 스킬 보너스) × 박 배율 × 스킬 배율
+    final totalBase = basePoints + synergyResult.chips;
+    final totalMult = penaltyMult * synergyResult.mult;
+    final finalScore = (totalBase * totalMult).round();
 
     return ScoreResult(
-      baseChips: totalChips,
+      baseChips: basePoints,
       multiplier: totalMult,
-      finalScore: (totalChips * totalMult).floor(),
+      finalScore: finalScore < 0 ? 0 : finalScore,
       appliedYaku: yakuList,
     );
   }

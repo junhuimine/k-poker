@@ -225,34 +225,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
               children: [
                 Expanded(
                   flex: 3,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final maxH = constraints.maxHeight;
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: maxH),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // 상단 영역
-                              if (isGameStarted)
-                                _buildTopBar(gameState, strings),
-                              if (isGameStarted) _buildOpponentInfoBar(gameState),
-                              if (isGameStarted) _buildOpponentHand(gameState),
-                              if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
-                              // 중앙 필드
-                              if (isGameStarted) _buildFieldWithDeck(gameState),
-                              // 하단 영역
-                              if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
-                              if (isGameStarted) _buildScoreDashboard(gameState, strings),
-                              SizedBox(height: (4 * _scaleH).clamp(1, 6)),
-                              if (isGameStarted) _buildPlayerHand(gameState),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  child: Column(
+                    children: [
+                      // 상단 영역 (고정 높이, 비례 축소)
+                      if (isGameStarted)
+                        _buildTopBar(gameState, strings),
+                      if (isGameStarted) _buildOpponentInfoBar(gameState),
+                      if (isGameStarted) _buildOpponentHand(gameState),
+                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
+                      // 중앙 필드 (남은 공간 전부 차지)
+                      if (isGameStarted)
+                        Expanded(child: _buildFieldWithDeck(gameState)),
+                      // 하단 영역 (고정 높이, 비례 축소)
+                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
+                      if (isGameStarted) _buildScoreDashboard(gameState, strings),
+                      if (isGameStarted) _buildPlayerHand(gameState),
+                    ],
                   ),
                 ),
                 if (isGameStarted && _showSidePanel)
@@ -720,8 +708,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   // ─── 덱 더미 (플레이어 카드 크기와 동일) ────
   Widget _buildDeckPile(int remaining) {
-    const cardW = 72.0;
-    const cardH = 108.0;
+    final cardW = (72.0 * _scale).clamp(40, 80).toDouble();
+    final cardH = (108.0 * _scale).clamp(60, 120).toDouble();
 
     return Column(
       children: [
@@ -1650,8 +1638,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
     final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk).length;
 
-    // 수입 계산
-    final earnings = isWin ? state.playerScore * currency.pointValue * state.multiplier : -(run.money * 0.2);
+    // 수입 계산 (stake 기반 — game_providers와 동일)
+    final stageConfig = getStageConfig(run.stage);
+    final stageStake = stageConfig.getStake(currency.pointValue);
+    final earnings = isWin
+        ? (stageStake * (1 + state.goCount * 0.5))
+        : -stageStake;
 
     // ── 파산 시 게임오버 화면 ──
     if (isBankrupt) {
@@ -1659,8 +1651,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
         color: Colors.black.withValues(alpha: 0.92),
         child: Center(
           child: Container(
-            width: 380,
-            padding: const EdgeInsets.all(32),
+            constraints: BoxConstraints(maxWidth: _screenW * 0.85 > 380 ? 380 : _screenW * 0.85),
+            padding: EdgeInsets.all(_scale > 0.7 ? 28 : 16),
             decoration: BoxDecoration(
               color: const Color(0xFF161B22),
               borderRadius: BorderRadius.circular(24),
@@ -1727,8 +1719,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       color: Colors.black.withValues(alpha: 0.85),
       child: Center(
         child: Container(
-          width: 380,
-          padding: const EdgeInsets.all(28),
+          constraints: BoxConstraints(maxWidth: _screenW * 0.85 > 380 ? 380 : _screenW * 0.85),
+          padding: EdgeInsets.all(_scale > 0.7 ? 28 : 16),
           decoration: BoxDecoration(
             color: const Color(0xFF161B22),
             borderRadius: BorderRadius.circular(24),

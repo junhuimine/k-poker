@@ -201,6 +201,13 @@ class GameState extends _$GameState {
     AudioManager().goDeclare();
     ref.read(gameEventsProvider.notifier).addEvent('go', '🔥 고! 선언! (배율 증가)');
 
+    // AI 반응 대사
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final goLines = ai.dialogues['go'] ?? ['오호, 대담하네!'];
+    final goLine = goLines[state.goCount % goLines.length];
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$goLine"');
+
     state = state.copyWith(
       goCount: state.goCount + 1,
       multiplier: state.multiplier * 2.0,
@@ -216,6 +223,13 @@ class GameState extends _$GameState {
     ref.read(goStopPendingProvider.notifier).hide();
     AudioManager().stopDeclare();
     ref.read(gameEventsProvider.notifier).addEvent('stop', '🛑 스톱! 라운드 종료!');
+
+    // AI 반응 대사
+    final run = ref.read(runStateNotifierProvider);
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final stopLines = ai.dialogues['stop'] ?? ['흐음...'];
+    final stopLine = stopLines[DateTime.now().millisecond % stopLines.length];
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$stopLine"');
 
     state = state.copyWith(isFinished: true);
     _handleRoundEnd();
@@ -478,13 +492,23 @@ class GameState extends _$GameState {
     final goBonus = 1.0 + state.goCount * 0.5;
     final earnings = stake * goBonus;
 
+    // AI 반응 대사 (win/lose)
+    final ai = getAiForStage(run.stage, run.wins + run.losses);
     if (state.playerScore > state.opponentScore) {
-      // 승리!
+      // 플레이어 승리 → AI는 lose 대사
+      final loseLines = ai.dialogues['lose'] ?? ['다음엔 지지 않을 거야...'];
+      final loseLine = loseLines[DateTime.now().millisecond % loseLines.length];
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$loseLine"');
+      
       ref.read(runStateNotifierProvider.notifier).onWin(earnings, state.playerScore);
       ref.read(gameEventsProvider.notifier)
           .addEvent('round_end', '🏆 승리! +${currency.formatAmount(earnings)}');
     } else {
-      // 패배 — 판돈만큼 잃음
+      // 플레이어 패배 → AI는 win 대사
+      final winLines = ai.dialogues['win'] ?? ['내가 이겼다!'];
+      final winLine = winLines[DateTime.now().millisecond % winLines.length];
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$winLine"');
+      
       final penalty = stake;
       ref.read(runStateNotifierProvider.notifier).onLose(penalty);
       ref.read(gameEventsProvider.notifier)
