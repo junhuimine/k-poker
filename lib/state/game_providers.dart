@@ -145,14 +145,19 @@ class GameState extends _$GameState {
       return;
     }
 
-    // 5. 고/스톱 판정 (3점 이상일 때)
-    if (scoreResult.finalScore >= 3 && state.goCount == 0) {
+    // 5. 고/스톱 판정 (점수 3점 이상 달성 + 새 족보 추가되었을 때)
+    final prevPoints = state.goCount > 0 ? state.baseChips : 0; // 고 선언 후로도 점수 증가 시 재판정
+    if (scoreResult.finalScore >= 3 && scoreResult.baseChips > prevPoints) {
       ref.read(goStopPendingProvider.notifier).show();
       return;
     }
 
-    // 6. AI 턴 — GameScreen에서 애니메이션과 함께 처리
-    // (currentTurn == 'opponent' 상태를 UI가 감지)
+    // 6. AI 턴
+    if (state.currentTurn == 'opponent' && !state.isFinished) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!state.isFinished) _playAiTurn();
+      });
+    }
   }
 
   /// 폭탄! (같은 월 3장 한번에 내기)
@@ -184,14 +189,16 @@ class GameState extends _$GameState {
     }
 
     // 고/스톱 판정
-    if (scoreResult.finalScore >= 3 && state.goCount == 0) {
+    if (scoreResult.finalScore >= 3) {
       ref.read(goStopPendingProvider.notifier).show();
       return;
     }
 
     // AI 턴
-    if (state.currentTurn == 'opponent') {
-      Future.delayed(const Duration(milliseconds: 1200), () => _playAiTurn());
+    if (state.currentTurn == 'opponent' && !state.isFinished) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!state.isFinished) _playAiTurn();
+      });
     }
   }
 

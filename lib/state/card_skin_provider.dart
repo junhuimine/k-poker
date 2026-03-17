@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// 사용 가능한 스킨 목록
 enum CardSkin {
-  classic('Classic', 'assets/images/cards/card_back_classic.png', '🎴'),
+  original('Original', 'assets/images/cards/card_back.png', '🎴'),
+  classic('Classic', 'assets/images/cards/card_back_classic.png', '🌟'),
   midnight('Midnight', 'assets/images/cards/card_back_midnight.png', '🌙'),
   jade('Jade', 'assets/images/cards/card_back_jade.png', '💎'),
   sakura('Sakura', 'assets/images/cards/card_back_sakura.png', '🌸');
@@ -17,7 +18,7 @@ enum CardSkin {
 
 /// 현재 선택된 스킨 상태
 class CardSkinNotifier extends StateNotifier<CardSkin> {
-  CardSkinNotifier() : super(CardSkin.classic) {
+  CardSkinNotifier() : super(CardSkin.original) {
     _load();
   }
 
