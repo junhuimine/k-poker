@@ -492,12 +492,12 @@ class GameState extends _$GameState {
   void _handleRoundEnd() {
     final run = ref.read(runStateNotifierProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
-    final stageConfig = getStageConfig(run.stage);
-    final stake = stageConfig.getStake(currency.pointValue); // 스테이지 판돈
     
-    // 수입 계산: 판돈 × (1 + 고 횟수) — 밸런스 조정
-    final goBonus = 1.0 + state.goCount * 0.5;
-    final earnings = stake * goBonus;
+    // 수입 계산: 점수(baseChips) × 판돈 단위(pointValue) × 배율(multiplier)
+    // 공식 고스톱: 점수 × 판돈 = 수입
+    final baseScore = state.baseChips; // score_calculator에서 계산된 기본 점수
+    final mult = state.multiplier;     // 박 배율
+    final earnings = baseScore * currency.pointValue * mult;
 
     // AI 반응 대사 (win/lose)
     final ai = getAiForStage(run.stage, run.wins + run.losses);
@@ -516,7 +516,9 @@ class GameState extends _$GameState {
       final winLine = winLines[DateTime.now().millisecond % winLines.length];
       ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$winLine"');
       
-      final penalty = stake;
+      // 패배 시: 상대 점수 × 판돈 단위
+      final opScore = state.opponentScore > 0 ? state.opponentScore : 1;
+      final penalty = opScore * currency.pointValue;
       ref.read(runStateNotifierProvider.notifier).onLose(penalty);
       ref.read(gameEventsProvider.notifier)
           .addEvent('round_end', '💀 패배... -${currency.formatAmount(penalty)}');

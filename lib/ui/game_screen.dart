@@ -1647,12 +1647,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
     final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk).length;
 
-    // 수입 계산 (stake 기반 — game_providers와 동일)
-    final stageConfig = getStageConfig(run.stage);
-    final stageStake = stageConfig.getStake(currency.pointValue);
+    // 수입 계산 (game_providers._handleRoundEnd와 동일)
+    // 공식: 점수(baseChips) × 판돈 단위(pointValue) × 배율(multiplier)
+    final baseScore = state.baseChips;
+    final mult = state.multiplier;
     final earnings = isWin
-        ? (stageStake * (1 + state.goCount * 0.5))
-        : -stageStake;
+        ? baseScore * currency.pointValue * mult
+        : -(state.opponentScore > 0 ? state.opponentScore : 1) * currency.pointValue;
 
     // ── 파산 시 게임오버 화면 ──
     if (isBankrupt) {
@@ -1789,7 +1790,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('계산', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                          Text('${state.playerScore} × ${currency.formatAmount(currency.pointValue)} × ${state.multiplier.toStringAsFixed(1)}',
+                          Text('${state.baseChips.toInt()}점 × ${currency.formatAmount(currency.pointValue)}'
+                            '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
                             style: const TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
                       ),
