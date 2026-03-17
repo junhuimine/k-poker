@@ -31,6 +31,18 @@ class GameEngine {
     );
   }
 
+  /// 총통 감지: 핸드에 같은 월 카드 4장이 있으면 해당 월 반환
+  static int? getChongtongMonth(List<CardInstance> hand) {
+    final monthCount = <int, int>{};
+    for (final c in hand) {
+      monthCount[c.def.month] = (monthCount[c.def.month] ?? 0) + 1;
+    }
+    for (final entry in monthCount.entries) {
+      if (entry.value >= 4) return entry.key;
+    }
+    return null;
+  }
+
   /// 덱드로 전용 더미 CardDef
   static final CardDef _deckDrawDef = CardDef(
     id: 'deck_draw',

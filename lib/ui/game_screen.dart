@@ -864,6 +864,30 @@ class _GameScreenState extends ConsumerState<GameScreen>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            // 총통 버튼 (같은 월 4장 보유 시)
+            if (!_isDealing && state.currentTurn == 'player')
+              () {
+                final chongtongMonth = ref.read(gameStateProvider.notifier).getPlayerChongtong();
+                if (chongtongMonth == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8, bottom: 15),
+                  child: GestureDetector(
+                    onTap: () {
+                      ref.read(gameStateProvider.notifier).declareChongtong(chongtongMonth);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B00)]),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.6), blurRadius: 12)],
+                      ),
+                      child: Text('🎆 총통 ${chongtongMonth}월',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                );
+              }(),
             // 폭탄 버튼 (같은 월 3장 보유 시)
             if (bombMonth != null && !_isDealing && state.currentTurn == 'player')
               Padding(

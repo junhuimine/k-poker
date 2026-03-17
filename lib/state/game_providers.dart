@@ -86,6 +86,57 @@ class GameState extends _$GameState {
     ref.read(gameEventsProvider.notifier).addEvent('start', '🎴 새 라운드 시작!');
   }
 
+  /// 총통 감지 (핸드에 같은 월 4장)
+  int? getPlayerChongtong() => GameEngine.getChongtongMonth(state.playerHand);
+
+  /// 총통 선언! (같은 월 4장 즉시 획득 + 상대 피 2장 빼앗기 + 3배)
+  void declareChongtong(int month) {
+    if (state.isFinished || state.currentTurn != 'player') return;
+
+    // 핸드에서 해당 월 4장 추출
+    final chongtongCards = state.playerHand.where((c) => c.def.month == month).toList();
+    if (chongtongCards.length < 4) return;
+
+    // 바닥에서도 같은 월 제거 (있으면)
+    final fieldSameMonth = state.field.where((c) => c.def.month == month).toList();
+    final allCaptured = [...chongtongCards, ...fieldSameMonth];
+
+    // 상대 피 2장 빼앗기
+    final opJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
+    final stolenCount = opJunks.length >= 2 ? 2 : opJunks.length;
+    final stolenJunks = opJunks.take(stolenCount).toList();
+    
+    var newState = state.copyWith(
+      playerHand: state.playerHand.where((c) => c.def.month != month).toList(),
+      field: state.field.where((c) => c.def.month != month).toList(),
+      playerCaptured: [...state.playerCaptured, ...allCaptured, ...stolenJunks],
+      opponentCaptured: state.opponentCaptured.where((c) => !stolenJunks.contains(c)).toList(),
+      sweepCount: state.sweepCount + 1, // 총통 = 쓸 1회 추가
+    );
+
+    AudioManager().cardSweep();
+    ref.read(gameEventsProvider.notifier)
+        .addEvent('bomb', '🎆 총통! ${month}월 4장! 즉시 획득!${stolenCount > 0 ? ' + 피 ${stolenCount}장 빼앗기!' : ''}');
+    ref.read(yakuAnnounceProvider.notifier).announce('🎆 총통!');
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      ref.read(yakuAnnounceProvider.notifier).clear();
+    });
+
+    // 점수 업데이트
+    final run = ref.read(runStateNotifierProvider);
+    final scoreResult = ScoreCalculator.calculate(newState, run);
+    state = newState.copyWith(
+      playerScore: scoreResult.finalScore,
+      baseChips: scoreResult.baseChips,
+      multiplier: scoreResult.multiplier,
+    );
+
+    // 총통이면 무조건 3점 이상 → 고/스톱 선택
+    if (scoreResult.finalScore >= 3) {
+      ref.read(goStopPendingProvider.notifier).show();
+    }
+  }
+
   /// 카드 플레이 (플레이어)
   void playCard(CardInstance card, {CardInstance? selectedMatch}) {
     if (state.isFinished || state.currentTurn != 'player') return;
