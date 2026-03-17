@@ -6,7 +6,7 @@
     "background_color": "#0A0A0A",
     "theme_color": "#D4AF37",
     "description": "A roguelike Hwatu card game inspired by Balatro",
-    "orientation": "portrait-primary",
+    "orientation": "landscape",
     "prefer_related_applications": false,
     "icons": [
         {
