@@ -394,13 +394,32 @@ const Map<int, List<String>> stageAiMapping = {
   7: ['god'], // 신급 무한
 };
 
-/// 스테이지에서 AI 캐릭터 가져오기 (판 번호에 따라 교대)
-AiCharacter getAiForStage(int stage, int roundNumber) {
+/// 스테이지에서 AI 캐릭터 가져오기 (opponentIndex로 선택)
+AiCharacter getAiForStage(int stage, int opponentIndex) {
   final clampedStage = stage.clamp(1, 6);
   final aiIds = stageAiMapping[clampedStage]!;
-  final index = roundNumber % aiIds.length;
+  final index = opponentIndex.clamp(0, aiIds.length - 1);
   final aiId = aiIds[index];
   return allAiCharacters.firstWhere((c) => c.id == aiId);
+}
+
+/// AI 상대의 초기 자금 (stage + opponentIndex)
+/// 밸런싱: 플레이어가 누적 획득할 금액 ≈ 다음 스테이지 AI 자금
+double getOpponentFund(int stage, int opponentIndex, double pointValue) {
+  // 스테이지별 AI 1인당 기본 자금 (포인트 단위)
+  const baseFunds = <int, double>{
+    1: 50,     // ₩50,000: 동네 골목 — 아저씨/여우
+    2: 120,    // ₩120,000: 시장 판 — 유나/용
+    3: 300,    // ₩300,000: 카지노 — 미란/스님
+    4: 700,    // ₩700,000: 지하 도박장 — 한씨/여제
+    5: 1500,   // ₩1,500,000: 사원 — 하나/팬텀
+    6: 3000,   // ₩3,000,000: 신전 — 신급
+  };
+  final clampedStage = stage.clamp(1, 6);
+  final baseFund = baseFunds[clampedStage] ?? 50;
+  // 2번째 상대는 20% 더 강해요 (자금도 더 많음)
+  final multiplier = opponentIndex == 0 ? 1.0 : 1.2;
+  return baseFund * pointValue * multiplier;
 }
 
 /// 스테이지 설정

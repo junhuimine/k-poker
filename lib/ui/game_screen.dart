@@ -296,23 +296,29 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  // ─── 배경 (스테이지별 화투판 바닥) ────────────
+  // ─── 배경 (스테이지별 고퀄 이미지) ────────────
   Widget _buildDynamicBackground(int score) {
     final run = ref.watch(runStateNotifierProvider);
     final stageConfig = getStageConfig(run.stage);
     return Stack(
       children: [
-        // 화투판 바닥 (CustomPainter)
+        // 고퀄 배경 이미지
         Positioned.fill(
-          child: CustomPaint(
-            painter: _HwatuMatPainter(
-              baseColor: stageConfig.matColor,
-              accentColor: stageConfig.matAccent,
-              stage: stageConfig.stage,
+          child: Image.asset(
+            'assets/images/backgrounds/${stageConfig.bgFile}',
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [stageConfig.matColor, stageConfig.matColor.withValues(alpha: 0.8)],
+                ),
+              ),
             ),
           ),
         ),
-        // 부드러운 비네트 효과 (가장자리만 살짝 어두움)
+        // 가벼운 비네트 (가장자리만 살짝)
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -321,7 +327,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 radius: 1.2,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.25),
+                  Colors.black.withValues(alpha: 0.15),
                 ],
               ),
             ),
@@ -331,80 +337,131 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  // ─── 시작 오버레이 (5광 부채살) ─────────────
+  // ─── 시작 오버레이 (프리미엄 디자인) ─────────────
   Widget _buildStartOverlay(dynamic strings) {
-    // 5광 카드 ID
     const brightIds = ['m01_bright', 'm03_bright', 'm08_bright', 'm11_bright', 'm12_bright'];
-    const fanAngle = 0.18; // ~10도
+    const fanAngle = 0.18;
+    final run = ref.watch(runStateNotifierProvider);
+    final stageConfig = getStageConfig(run.stage);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
+    final currency = getCurrencyForLocale(run.currencyLocale);
     
     return Stack(
       children: [
         Container(
-          color: Colors.black54,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0D0D0D), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0D0D0D)],
+            ),
+          ),
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 5광 부채살 (앞면)
-                SizedBox(
-                  width: 320, height: 180,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      for (var i = 0; i < brightIds.length; i++)
-                        Positioned(
-                          bottom: 0,
-                          child: Transform.rotate(
-                            angle: (i - 2) * fanAngle,
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              width: 80, height: 120,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFFFD700), width: 2),
-                                boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 12)],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Image.asset(
-                                  'assets/images/cards/${brightIds[i]}.png',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF2A1A3A),
-                                    child: Center(child: Text('${i + 1}광', style: const TextStyle(color: Colors.white))),
+                // 5광 부채살 + 글로우
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.15), blurRadius: 60, spreadRadius: 20)],
+                  ),
+                  child: SizedBox(
+                    width: 320, height: 180,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        for (var i = 0; i < brightIds.length; i++)
+                          Positioned(
+                            bottom: 0,
+                            child: Transform.rotate(
+                              angle: (i - 2) * fanAngle,
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                width: 80, height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                                  boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.25), blurRadius: 12)],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.asset(
+                                    'assets/images/cards/${brightIds[i]}.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: const Color(0xFF2A1A3A),
+                                      child: Center(child: Text('${i + 1}광', style: const TextStyle(color: Colors.white))),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700)],
+                  ).createShader(bounds),
+                  child: const Text(
+                    'K-Poker',
+                    style: TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, letterSpacing: 6),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('화투 타짜의 도박', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16, letterSpacing: 4, fontWeight: FontWeight.w300)),
+                const SizedBox(height: 28),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('${stageConfig.emoji} ${stageConfig.nameKo}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      Text('${ai.emoji} ${ai.nameKo}', 
+                        style: const TextStyle(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('상대 자금: ${currency.formatAmount(run.opponentMoney)}',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'K-Poker',
-                  style: TextStyle(color: Color(0xFFFFD700), fontSize: 48, fontWeight: FontWeight.bold, letterSpacing: 4),
-                ),
-                const SizedBox(height: 8),
-                const Text('화투 타짜의 도박', style: TextStyle(color: Colors.white70, fontSize: 18, letterSpacing: 2)),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: _startGameWithDeal,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD700),
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                const SizedBox(height: 28),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFA500)]),
+                    boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 4))],
                   ),
-                  child: Text(strings.startGame),
+                  child: ElevatedButton(
+                    onPressed: _startGameWithDeal,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 2),
+                    ),
+                    child: Text(strings.startGame),
+                  ),
                 ),
+                const SizedBox(height: 16),
+                Text('💰 ${currency.formatAmount(run.money)}',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
               ],
             ),
           ),
         ),
-        // 우측 상단 설정 아이콘
         Positioned(
           top: 16, right: 16,
           child: SafeArea(
@@ -432,7 +489,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Widget _buildTopBar(dynamic state, dynamic strings) {
     final run = ref.watch(runStateNotifierProvider);
     final stageConfig = getStageConfig(run.stage);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -545,7 +602,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   /// 상대 캐릭터 정보 바 (이름 + 점수 + 말풍선 + 체력)
   Widget _buildOpponentInfoBar(dynamic state) {
     final run = ref.watch(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final events = ref.watch(gameEventsProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
     final stageConfig = getStageConfig(run.stage);

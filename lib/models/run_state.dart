@@ -15,7 +15,9 @@ class RunState with _$RunState {
     @Default(1) int stage,           // 현재 스테이지 (1~6+)
     @Default(0) int gold,            // 레거시 (호환용)
     @Default(50000) double money,    // 소지금 (화폐 기준)
-    @Default(0) double stageEarned,  // 현재 스테이지에서 번 금액
+    @Default(0) double stageEarned,  // 레거시 (호환용, 미사용)
+    @Default(0) int currentOpponentIndex, // 현재 상대 인덱스 (0 또는 1)
+    @Default(0) double opponentMoney,     // 현재 상대의 남은 자금
     @Default([]) List<String> activeSkillIds,     // 기술 ID 목록 (저장용)
     @Default([]) List<String> activeTalismanIds,  // 부적 ID 목록 (저장용)
     @Default(0) int wins,            // 총 승리

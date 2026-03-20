@@ -24,7 +24,11 @@ mixin _$RunState {
   int get gold => throw _privateConstructorUsedError; // 레거시 (호환용)
   double get money => throw _privateConstructorUsedError; // 소지금 (화폐 기준)
   double get stageEarned =>
-      throw _privateConstructorUsedError; // 현재 스테이지에서 번 금액
+      throw _privateConstructorUsedError; // 레거시 (호환용, 미사용)
+  int get currentOpponentIndex =>
+      throw _privateConstructorUsedError; // 현재 상대 인덱스 (0 또는 1)
+  double get opponentMoney =>
+      throw _privateConstructorUsedError; // 현재 상대의 남은 자금
   List<String> get activeSkillIds =>
       throw _privateConstructorUsedError; // 기술 ID 목록 (저장용)
   List<String> get activeTalismanIds =>
@@ -58,6 +62,8 @@ abstract class $RunStateCopyWith<$Res> {
       int gold,
       double money,
       double stageEarned,
+      int currentOpponentIndex,
+      double opponentMoney,
       List<String> activeSkillIds,
       List<String> activeTalismanIds,
       int wins,
@@ -88,6 +94,8 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
     Object? gold = null,
     Object? money = null,
     Object? stageEarned = null,
+    Object? currentOpponentIndex = null,
+    Object? opponentMoney = null,
     Object? activeSkillIds = null,
     Object? activeTalismanIds = null,
     Object? wins = null,
@@ -114,6 +122,14 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
       stageEarned: null == stageEarned
           ? _value.stageEarned
           : stageEarned // ignore: cast_nullable_to_non_nullable
+              as double,
+      currentOpponentIndex: null == currentOpponentIndex
+          ? _value.currentOpponentIndex
+          : currentOpponentIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      opponentMoney: null == opponentMoney
+          ? _value.opponentMoney
+          : opponentMoney // ignore: cast_nullable_to_non_nullable
               as double,
       activeSkillIds: null == activeSkillIds
           ? _value.activeSkillIds
@@ -168,6 +184,8 @@ abstract class _$$RunStateImplCopyWith<$Res>
       int gold,
       double money,
       double stageEarned,
+      int currentOpponentIndex,
+      double opponentMoney,
       List<String> activeSkillIds,
       List<String> activeTalismanIds,
       int wins,
@@ -196,6 +214,8 @@ class __$$RunStateImplCopyWithImpl<$Res>
     Object? gold = null,
     Object? money = null,
     Object? stageEarned = null,
+    Object? currentOpponentIndex = null,
+    Object? opponentMoney = null,
     Object? activeSkillIds = null,
     Object? activeTalismanIds = null,
     Object? wins = null,
@@ -222,6 +242,14 @@ class __$$RunStateImplCopyWithImpl<$Res>
       stageEarned: null == stageEarned
           ? _value.stageEarned
           : stageEarned // ignore: cast_nullable_to_non_nullable
+              as double,
+      currentOpponentIndex: null == currentOpponentIndex
+          ? _value.currentOpponentIndex
+          : currentOpponentIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      opponentMoney: null == opponentMoney
+          ? _value.opponentMoney
+          : opponentMoney // ignore: cast_nullable_to_non_nullable
               as double,
       activeSkillIds: null == activeSkillIds
           ? _value._activeSkillIds
@@ -271,6 +299,8 @@ class _$RunStateImpl extends _RunState {
       this.gold = 0,
       this.money = 50000,
       this.stageEarned = 0,
+      this.currentOpponentIndex = 0,
+      this.opponentMoney = 0,
       final List<String> activeSkillIds = const [],
       final List<String> activeTalismanIds = const [],
       this.wins = 0,
@@ -303,9 +333,17 @@ class _$RunStateImpl extends _RunState {
   @override
   @JsonKey()
   final double stageEarned;
-// 현재 스테이지에서 번 금액
+// 레거시 (호환용, 미사용)
+  @override
+  @JsonKey()
+  final int currentOpponentIndex;
+// 현재 상대 인덱스 (0 또는 1)
+  @override
+  @JsonKey()
+  final double opponentMoney;
+// 현재 상대의 남은 자금
   final List<String> _activeSkillIds;
-// 현재 스테이지에서 번 금액
+// 현재 상대의 남은 자금
   @override
   @JsonKey()
   List<String> get activeSkillIds {
@@ -364,7 +402,7 @@ class _$RunStateImpl extends _RunState {
 
   @override
   String toString() {
-    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale)';
+    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, currentOpponentIndex: $currentOpponentIndex, opponentMoney: $opponentMoney, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale)';
   }
 
   @override
@@ -377,6 +415,10 @@ class _$RunStateImpl extends _RunState {
             (identical(other.money, money) || other.money == money) &&
             (identical(other.stageEarned, stageEarned) ||
                 other.stageEarned == stageEarned) &&
+            (identical(other.currentOpponentIndex, currentOpponentIndex) ||
+                other.currentOpponentIndex == currentOpponentIndex) &&
+            (identical(other.opponentMoney, opponentMoney) ||
+                other.opponentMoney == opponentMoney) &&
             const DeepCollectionEquality()
                 .equals(other._activeSkillIds, _activeSkillIds) &&
             const DeepCollectionEquality()
@@ -403,6 +445,8 @@ class _$RunStateImpl extends _RunState {
       gold,
       money,
       stageEarned,
+      currentOpponentIndex,
+      opponentMoney,
       const DeepCollectionEquality().hash(_activeSkillIds),
       const DeepCollectionEquality().hash(_activeTalismanIds),
       wins,
@@ -435,6 +479,8 @@ abstract class _RunState extends RunState {
       final int gold,
       final double money,
       final double stageEarned,
+      final int currentOpponentIndex,
+      final double opponentMoney,
       final List<String> activeSkillIds,
       final List<String> activeTalismanIds,
       final int wins,
@@ -456,7 +502,11 @@ abstract class _RunState extends RunState {
   @override
   double get money; // 소지금 (화폐 기준)
   @override
-  double get stageEarned; // 현재 스테이지에서 번 금액
+  double get stageEarned; // 레거시 (호환용, 미사용)
+  @override
+  int get currentOpponentIndex; // 현재 상대 인덱스 (0 또는 1)
+  @override
+  double get opponentMoney; // 현재 상대의 남은 자금
   @override
   List<String> get activeSkillIds; // 기술 ID 목록 (저장용)
   @override

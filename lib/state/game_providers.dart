@@ -148,7 +148,7 @@ class GameState extends _$GameState {
     // 2. 매칭 피드백 이벤트 + SFX
     final newCaptured = nextState.playerCaptured.length - prevCaptured;
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     var modifiedNextState = nextState;
 
     if (newCaptured > 0) {
@@ -258,7 +258,7 @@ class GameState extends _$GameState {
 
     // AI 반응 대사
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final bombLines = ai.dialogues['bomb_react'] ?? ['앗!'];
     ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${bombLines[DateTime.now().millisecond % bombLines.length]}"');
 
@@ -303,7 +303,7 @@ class GameState extends _$GameState {
 
     // AI 반응 대사 (고 횟수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final isFear = state.goCount >= 2; // 3고 이상 (현재 count 2일때 선언하면 3고가 됨)
     final goLines = isFear 
         ? (ai.dialogues['player_go_fear'] ?? ['안돼!'])
@@ -333,7 +333,7 @@ class GameState extends _$GameState {
 
     // AI 반응 대사 (점수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final isBig = state.playerScore >= 10;
     final stopLines = isBig 
         ? (ai.dialogues['player_stop_big'] ?? ['너무하네!'])
@@ -348,7 +348,7 @@ class GameState extends _$GameState {
   /// AI가 어떤 카드를 낼지 선택만 반환 (애니메이션용)
   CardInstance? getAiChoice() {
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
 
     // 폭탄 체크
     if (ai.matchPriority >= 0.7) {
@@ -384,7 +384,7 @@ class GameState extends _$GameState {
   /// AI 턴 처리 (UI에서 애니메이션 후 호출)
   void playAiCard(CardInstance card) {
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
 
     final prevCaptured = state.opponentCaptured.length;
     final nextState = GameEngine.playTurn(state, card);
@@ -470,7 +470,7 @@ class GameState extends _$GameState {
     if (state.isFinished || state.currentTurn != 'opponent') return;
 
     final run = ref.read(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
 
     // AI 폭탄 체크: 높은 난이도 AI만 폭탄 사용
     if (ai.matchPriority >= 0.7) {
@@ -622,7 +622,7 @@ class GameState extends _$GameState {
     final earnings = baseScore * currency.pointValue * mult;
 
     // AI 반응 대사 (win/lose)
-    final ai = getAiForStage(run.stage, run.wins + run.losses);
+    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     if (state.playerScore > state.opponentScore) {
       // 플레이어 승리 → AI는 lose 대사
       final loseLines = ai.dialogues['lose'] ?? ['다음엔 지지 않을 거야...'];
@@ -672,34 +672,47 @@ class RunStateNotifier extends _$RunStateNotifier {
   void newGame(String locale) {
     final currency = getCurrencyForLocale(locale);
     final initialMoney = stageConfigs[0].stakeMultiplier * currency.pointValue * 5; // 판돈 5배
+    final firstOpponentFund = getOpponentFund(1, 0, currency.pointValue);
     state = RunState(
       stage: 1,
       money: initialMoney,
       currencyLocale: locale,
+      currentOpponentIndex: 0,
+      opponentMoney: firstOpponentFund,
     );
     _autoSave();
   }
 
-  /// 승리 시 정산
+  /// 승리 시 정산 — 상대 자금 차감, 0 이하면 다음 상대/스테이지
   void onWin(double earnings, int score) {
     final newMoney = state.money + earnings;
-    final stageConfig = getStageConfig(state.stage);
     final currency = getCurrencyForLocale(state.currencyLocale);
-    final stake = stageConfig.getStake(currency.pointValue);
-    final newStageEarned = state.stageEarned + earnings;
+    final newOpponentMoney = state.opponentMoney - earnings;
 
-    // 스테이지 클리어 판정
     int newStage = state.stage;
-    double resetEarned = newStageEarned;
-    if (newStageEarned >= stake) {
-      newStage = state.stage + 1;
-      resetEarned = 0;
+    int newOpIdx = state.currentOpponentIndex;
+    double nextOpMoney = newOpponentMoney;
+
+    if (newOpponentMoney <= 0) {
+      // 상대 탈락!
+      final aiIds = stageAiMapping[state.stage.clamp(1, 6)]!;
+      if (newOpIdx + 1 < aiIds.length) {
+        // 같은 스테이지 다음 상대
+        newOpIdx = newOpIdx + 1;
+        nextOpMoney = getOpponentFund(state.stage, newOpIdx, currency.pointValue);
+      } else {
+        // 스테이지 클리어! → 다음 스테이지
+        newStage = state.stage + 1;
+        newOpIdx = 0;
+        nextOpMoney = getOpponentFund(newStage, 0, currency.pointValue);
+      }
     }
 
     state = state.copyWith(
       money: newMoney,
-      stageEarned: resetEarned,
       stage: newStage,
+      currentOpponentIndex: newOpIdx,
+      opponentMoney: nextOpMoney,
       wins: state.wins + 1,
       winStreak: state.winStreak + 1,
       highestScore: score > state.highestScore ? score : state.highestScore,
@@ -709,11 +722,13 @@ class RunStateNotifier extends _$RunStateNotifier {
     _autoSave();
   }
 
-  /// 패배 시 정산
+  /// 패배 시 정산 — 상대 자금 증가
   void onLose(double penalty) {
     final newMoney = (state.money - penalty).clamp(0, double.infinity);
+    final newOpponentMoney = state.opponentMoney + penalty;
     state = state.copyWith(
       money: newMoney.toDouble(),
+      opponentMoney: newOpponentMoney,
       losses: state.losses + 1,
       winStreak: 0,
       moneyHistory: [...state.moneyHistory, newMoney.toDouble()],

@@ -12,6 +12,9 @@ _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
       gold: (json['gold'] as num?)?.toInt() ?? 0,
       money: (json['money'] as num?)?.toDouble() ?? 50000,
       stageEarned: (json['stageEarned'] as num?)?.toDouble() ?? 0,
+      currentOpponentIndex:
+          (json['currentOpponentIndex'] as num?)?.toInt() ?? 0,
+      opponentMoney: (json['opponentMoney'] as num?)?.toDouble() ?? 0,
       activeSkillIds: (json['activeSkillIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -38,6 +41,8 @@ Map<String, dynamic> _$$RunStateImplToJson(_$RunStateImpl instance) =>
       'gold': instance.gold,
       'money': instance.money,
       'stageEarned': instance.stageEarned,
+      'currentOpponentIndex': instance.currentOpponentIndex,
+      'opponentMoney': instance.opponentMoney,
       'activeSkillIds': instance.activeSkillIds,
       'activeTalismanIds': instance.activeTalismanIds,
       'wins': instance.wins,
