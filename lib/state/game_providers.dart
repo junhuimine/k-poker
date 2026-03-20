@@ -230,6 +230,12 @@ class GameState extends _$GameState {
 
     // 6. AI 턴
     if (state.currentTurn == 'opponent' && !state.isFinished) {
+      // AI 핸드가 비면 나가리 처리
+      if (state.opponentHand.isEmpty) {
+        state = state.copyWith(isFinished: true);
+        _handleRoundEnd();
+        return;
+      }
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!state.isFinished) _playAiTurn();
       });
@@ -277,6 +283,12 @@ class GameState extends _$GameState {
 
     // AI 턴
     if (state.currentTurn == 'opponent' && !state.isFinished) {
+      // AI 핸드가 비면 나가리 처리
+      if (state.opponentHand.isEmpty) {
+        state = state.copyWith(isFinished: true);
+        _handleRoundEnd();
+        return;
+      }
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!state.isFinished) _playAiTurn();
       });
@@ -516,7 +528,12 @@ class GameState extends _$GameState {
     }
     bestCard ??= state.opponentHand.isNotEmpty ? state.opponentHand.first : null;
 
-    if (bestCard == null) return;
+    if (bestCard == null) {
+      // AI 핸드가 비어서 카드를 낼 수 없음 → 나가리
+      state = state.copyWith(isFinished: true);
+      _handleRoundEnd();
+      return;
+    }
 
     final prevCaptured = state.opponentCaptured.length;
     final nextState = GameEngine.playTurn(state, bestCard);

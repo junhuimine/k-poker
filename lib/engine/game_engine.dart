@@ -224,11 +224,13 @@ class GameEngine {
     );
 
     // 7. 종료 체크 (나가리 포함)
+    // 양쪽 핸드가 모두 비면 → 라운드 종료
     if (newState.playerHand.isEmpty && newState.opponentHand.isEmpty) {
       newState = newState.copyWith(isFinished: true);
     }
-    // 덱이 비고 양쪽 핸드도 비면 나가리
-    if (newState.deck.isEmpty && newState.playerHand.isEmpty && newState.opponentHand.isEmpty) {
+    // 한쪽 핸드가 비고 덱도 비면 → 나가리 (더 이상 진행 불가)
+    else if (newState.deck.isEmpty &&
+        (newState.playerHand.isEmpty || newState.opponentHand.isEmpty)) {
       newState = newState.copyWith(isFinished: true);
     }
 
@@ -354,6 +356,9 @@ class GameEngine {
 
     // 10. 종료 체크
     if (newState.playerHand.isEmpty && newState.opponentHand.isEmpty) {
+      newState = newState.copyWith(isFinished: true);
+    } else if (newState.deck.isEmpty &&
+        (newState.playerHand.isEmpty || newState.opponentHand.isEmpty)) {
       newState = newState.copyWith(isFinished: true);
     }
 

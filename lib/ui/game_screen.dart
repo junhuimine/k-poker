@@ -296,24 +296,35 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  // ─── 배경 (스테이지별 이미지) ────────────
+  // ─── 배경 (스테이지별 화투판 바닥) ────────────
   Widget _buildDynamicBackground(int score) {
     final run = ref.watch(runStateNotifierProvider);
     final stageConfig = getStageConfig(run.stage);
     return Stack(
       children: [
-        // 스테이지 배경 이미지
+        // 화투판 바닥 (CustomPainter)
         Positioned.fill(
-          child: Image.asset(
-            'assets/images/backgrounds/${stageConfig.bgFile}',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0A0A0A)),
+          child: CustomPaint(
+            painter: _HwatuMatPainter(
+              baseColor: stageConfig.matColor,
+              accentColor: stageConfig.matAccent,
+              stage: stageConfig.stage,
+            ),
           ),
         ),
-        // 어둡게 오버레이 (카드 가독성)
+        // 부드러운 비네트 효과 (가장자리만 살짝 어두움)
         Positioned.fill(
-          child: Container(
-            color: Colors.black.withValues(alpha: 0.5),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.2,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.25),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -1101,12 +1112,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // AI가 카드 선택
     final aiCard = ref.read(gameStateProvider.notifier).getAiChoice();
     if (aiCard == null) {
-      // 폭탄이거나 카드 없음 — 기존 로직으로 fallback
-      ref.read(gameStateProvider.notifier).playAiCard(
-        ref.read(gameStateProvider).opponentHand.isNotEmpty
-          ? ref.read(gameStateProvider).opponentHand.first
-          : ref.read(gameStateProvider).playerHand.first,
-      );
+      // AI 핸드가 비었거나 폭탄 → 안전하게 처리
+      final opHand = ref.read(gameStateProvider).opponentHand;
+      if (opHand.isEmpty) {
+        // 핸드가 비면 나가리 — providers에서 이미 처리됨
+        return;
+      }
+      // 폭탄 등 기존 로직으로 fallback
+      ref.read(gameStateProvider.notifier).playAiCard(opHand.first);
       return;
     }
 
@@ -1927,4 +1940,81 @@ class _DealTarget {
   final String area; // 'field', 'opponent', 'player'
   final int index;
   _DealTarget(this.area, this.index);
+}
+
+/// 화투판 바닥 패턴 페인터 (스테이지별 다른 질감)
+class _HwatuMatPainter extends CustomPainter {
+  final Color baseColor;
+  final Color accentColor;
+  final int stage;
+
+  _HwatuMatPainter({
+    required this.baseColor,
+    required this.accentColor,
+    required this.stage,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 1. 바닥 기본 색상
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = baseColor,
+    );
+
+    // 2. 스테이지별 패턴
+    final accentPaint = Paint()
+      ..color = accentColor.withValues(alpha: 0.3)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    final spacing = stage <= 2 ? 28.0 : (stage <= 4 ? 36.0 : 44.0);
+
+    // 격자 무늬 (돗자리/펠트/다다미 느낌)
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        accentPaint,
+      );
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width, y),
+        accentPaint,
+      );
+    }
+
+    // 3. 테두리 장식 (화투판 가장자리)
+    final borderPaint = Paint()
+      ..color = accentColor.withValues(alpha: 0.6)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke;
+
+    final borderRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(8, 8, size.width - 16, size.height - 16),
+      const Radius.circular(16),
+    );
+    canvas.drawRRect(borderRect, borderPaint);
+
+    // 4. 미세한 그라데이션 질감 (중앙이 약간 밝게)
+    final centerGlow = Paint()
+      ..shader = RadialGradient(
+        center: Alignment.center,
+        radius: 0.8,
+        colors: [
+          baseColor.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.04),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.4, 1.0],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), centerGlow);
+  }
+
+  @override
+  bool shouldRepaint(_HwatuMatPainter oldDelegate) {
+    return oldDelegate.baseColor != baseColor || oldDelegate.stage != stage;
+  }
 }

@@ -2,6 +2,8 @@
 ///
 /// 국가별 화폐, 스테이지별 판돈, AI 11명(남6/여4/신급1) 정의
 
+import 'dart:ui' show Color;
+
 /// 국가별 화폐 설정
 class CurrencyConfig {
   final String locale;     // 'ko', 'en', 'ja', 'zh', 'es' 등
@@ -408,7 +410,9 @@ class StageConfig {
   final String nameKo;
   final String emoji;
   final double stakeMultiplier; // 시작 판돈 배율 (점당금액 기준)
-  final String bgFile;          // 배경 이미지 파일명
+  final String bgFile;          // 배경 이미지 파일명 (레거시)
+  final Color matColor;         // 화투판 바닥 기본 색상
+  final Color matAccent;        // 화투판 패턴/테두리 액센트
 
   const StageConfig({
     required this.stage,
@@ -417,6 +421,8 @@ class StageConfig {
     required this.emoji,
     required this.stakeMultiplier,
     required this.bgFile,
+    required this.matColor,
+    required this.matAccent,
   });
 
   /// 이 스테이지의 판돈 계산
@@ -425,12 +431,24 @@ class StageConfig {
 
 /// 6스테이지 + 신급 무한 (판돈: ₩5만 → ₩1억)
 const List<StageConfig> stageConfigs = [
-  StageConfig(stage: 1, name: 'Alley',       nameKo: '동네 골목',     emoji: '🏠', stakeMultiplier: 50,     bgFile: 'bg_stage1.png'),
-  StageConfig(stage: 2, name: 'Market',      nameKo: '시장 판',       emoji: '🏪', stakeMultiplier: 200,    bgFile: 'bg_stage2.png'),
-  StageConfig(stage: 3, name: 'Casino',      nameKo: '도시 카지노',   emoji: '🏨', stakeMultiplier: 1000,   bgFile: 'bg_stage3.png'),
-  StageConfig(stage: 4, name: 'Underground', nameKo: '지하 도박장',   emoji: '🌃', stakeMultiplier: 5000,   bgFile: 'bg_stage4.png'),
-  StageConfig(stage: 5, name: 'Temple',      nameKo: '꽃패의 사원',   emoji: '⛩️', stakeMultiplier: 20000,  bgFile: 'bg_stage5.png'),
-  StageConfig(stage: 6, name: 'Shrine',      nameKo: '도박의 신전',   emoji: '🌌', stakeMultiplier: 100000, bgFile: 'bg_stage6.png'),
+  // 1. 동네 골목 — 연두색 돗자리 느낌
+  StageConfig(stage: 1, name: 'Alley',       nameKo: '동네 골목',     emoji: '🏠', stakeMultiplier: 50,     bgFile: 'bg_stage1.png',
+    matColor: Color(0xFF2D5A27), matAccent: Color(0xFF3A7233)),
+  // 2. 시장 판 — 따뜻한 갈색 나무판
+  StageConfig(stage: 2, name: 'Market',      nameKo: '시장 판',       emoji: '🏪', stakeMultiplier: 200,    bgFile: 'bg_stage2.png',
+    matColor: Color(0xFF5C3A1E), matAccent: Color(0xFF7A4F2B)),
+  // 3. 도시 카지노 — 짙은 녹색 펠트
+  StageConfig(stage: 3, name: 'Casino',      nameKo: '도시 카지노',   emoji: '🏨', stakeMultiplier: 1000,   bgFile: 'bg_stage3.png',
+    matColor: Color(0xFF1B4332), matAccent: Color(0xFF245A42)),
+  // 4. 지하 도박장 — 어두운 네이비
+  StageConfig(stage: 4, name: 'Underground', nameKo: '지하 도박장',   emoji: '🌃', stakeMultiplier: 5000,   bgFile: 'bg_stage4.png',
+    matColor: Color(0xFF1A2744), matAccent: Color(0xFF243556)),
+  // 5. 꽃패의 사원 — 적갈색 다다미
+  StageConfig(stage: 5, name: 'Temple',      nameKo: '꽃패의 사원',   emoji: '⛩️', stakeMultiplier: 20000,  bgFile: 'bg_stage5.png',
+    matColor: Color(0xFF5C2E2E), matAccent: Color(0xFF7A3D3D)),
+  // 6. 도박의 신전 — 보라/금색
+  StageConfig(stage: 6, name: 'Shrine',      nameKo: '도박의 신전',   emoji: '🌌', stakeMultiplier: 100000, bgFile: 'bg_stage6.png',
+    matColor: Color(0xFF2E1A47), matAccent: Color(0xFF3D2460)),
 ];
 
 /// 스테이지 설정 가져오기 (신급 무한은 stage 6 재사용 + 판돈 증가)
@@ -446,5 +464,7 @@ StageConfig getStageConfig(int stage) {
     emoji: '🌌',
     stakeMultiplier: godStage.stakeMultiplier * (1.0 + loopCount * 0.5),
     bgFile: 'bg_stage6.png',
+    matColor: godStage.matColor,
+    matAccent: godStage.matAccent,
   );
 }
