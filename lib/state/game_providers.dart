@@ -675,6 +675,16 @@ class RunStateNotifier extends _$RunStateNotifier {
     return false;
   }
 
+  /// 상대 자금이 0이면 현재 스테이지에 맞게 보정
+  void fixOpponentMoney() {
+    if (state.opponentMoney <= 0) {
+      final currency = getCurrencyForLocale(state.currencyLocale);
+      final fund = getOpponentFund(state.stage, state.currentOpponentIndex, currency.pointValue);
+      state = state.copyWith(opponentMoney: fund);
+      _autoSave();
+    }
+  }
+
   /// 새 게임 시작
   void newGame(String locale) {
     final currency = getCurrencyForLocale(locale);

@@ -346,6 +346,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final currency = getCurrencyForLocale(run.currencyLocale);
     
+    // 상대 자금이 0이면 즉시 보정 (레거시 세이브 또는 async 로드 전)
+    var displayOpponentMoney = run.opponentMoney;
+    if (displayOpponentMoney <= 0) {
+      displayOpponentMoney = getOpponentFund(run.stage, run.currentOpponentIndex, currency.pointValue);
+      // 상태도 같이 보정 (다음 빌드부터 정상값)
+      Future.microtask(() {
+        ref.read(runStateNotifierProvider.notifier).fixOpponentMoney();
+      });
+    }
+    
     return Stack(
       children: [
         Container(
@@ -430,7 +440,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       Text('${ai.emoji} ${ai.nameKo}', 
                         style: const TextStyle(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text('상대 자금: ${currency.formatAmount(run.opponentMoney)}',
+                      Text('상대 자금: ${currency.formatAmount(displayOpponentMoney)}',
                         style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
                     ],
                   ),
