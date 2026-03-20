@@ -658,11 +658,18 @@ class RunStateNotifier extends _$RunStateNotifier {
   @override
   RunState build() => const RunState();
 
-  /// 저장된 게임 불러오기
+  /// 저장된 게임 불러오기 (레거시 세이브 마이그레이션 포함)
   Future<bool> loadGame() async {
     final saved = await GameSaveManager.load();
     if (saved != null) {
-      state = saved;
+      // 레거시 세이브: opponentMoney가 0이면 현재 스테이지에 맞게 초기화
+      if (saved.opponentMoney <= 0) {
+        final currency = getCurrencyForLocale(saved.currencyLocale);
+        final fund = getOpponentFund(saved.stage, saved.currentOpponentIndex, currency.pointValue);
+        state = saved.copyWith(opponentMoney: fund);
+      } else {
+        state = saved;
+      }
       return true;
     }
     return false;
