@@ -75,7 +75,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // 앱 시작 시 저장된 게임 자동 불러오기
     if (!_loadAttempted) {
       _loadAttempted = true;
-      ref.read(runStateNotifierProvider.notifier).loadGame();
+      ref.read(runStateNotifierProvider.notifier).loadGame().then((_) {
+        // 로드 후 상대 자금 보정
+        ref.read(runStateNotifierProvider.notifier).fixOpponentMoney();
+      });
     }
   }
 
@@ -346,14 +349,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final currency = getCurrencyForLocale(run.currencyLocale);
     
-    // 상대 자금이 0이면 즉시 보정 (레거시 세이브 또는 async 로드 전)
+    // 상대 자금이 0이면 표시용 값은 즉시 계산 (상태 변경은 didChangeDependencies에서)
     var displayOpponentMoney = run.opponentMoney;
     if (displayOpponentMoney <= 0) {
       displayOpponentMoney = getOpponentFund(run.stage, run.currentOpponentIndex, currency.pointValue);
-      // 상태도 같이 보정 (다음 빌드부터 정상값)
-      Future.microtask(() {
-        ref.read(runStateNotifierProvider.notifier).fixOpponentMoney();
-      });
     }
     
     return Stack(
