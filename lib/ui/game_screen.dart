@@ -318,7 +318,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
           if (isGoStopPending)
             GoStopOverlay(
               strings: strings,
-              onGo: () async => ref.read(gameStateProvider.notifier).declareGo(),
+              onGo: () async {
+                ref.read(gameStateProvider.notifier).declareGo();
+                final st = ref.read(gameStateProvider);
+                if (st.currentTurn == 'opponent' && !st.isFinished) {
+                  await Future.delayed(const Duration(milliseconds: 1000));
+                  if (mounted) _executeAiTurn();
+                }
+              },
               onStop: () => ref.read(gameStateProvider.notifier).declareStop(),
             ),
 

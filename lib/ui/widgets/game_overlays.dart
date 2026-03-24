@@ -416,13 +416,16 @@ class GoStopOverlay extends ConsumerWidget {
                     : '${'🔥' * (state.goCount + 1)} ${state.goCount + 1}고! 추가 점수!',
                 style: const TextStyle(color: Color(0xFFFFD700), fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 6),
               Text(
                 state.goCount == 0
-                    ? '고 → 배율 2배 | 지면 2배 손해'
-                    : '현재 배율 ${state.multiplier.toInt()}배 → 고 시 ${(state.multiplier * 2).toInt()}배!',
+                    ? '고(1고) → +1점 추가 | 스톱 시 즉시 승리'
+                    : state.goCount == 1
+                        ? '고(2고) → +2점 추가 | 스톱 시 즉시 승리'
+                        : state.goCount == 2
+                            ? '고(3고) → 점수 2배 폭증! | 스톱 시 즉시 승리'
+                            : '현재 배율 ${state.multiplier.toInt()}배 → 고 시 ${(state.multiplier * 2).toInt()}배!',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: const TextStyle(color: Colors.white54, fontSize: 13),
               ),
               const SizedBox(height: 16),
               Row(
