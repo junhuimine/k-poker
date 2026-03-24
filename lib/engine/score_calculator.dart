@@ -181,18 +181,24 @@ class ScoreCalculator {
     // ═══════════════════════════════════
     // 3. 고(Go) 보너스
     // ═══════════════════════════════════
+    // 전통 고스톱: n고 = +n점, 3고부터 추가로 x2^(n-2) 배율
     final goCount = round.goCount;
-    if (goCount == 1) {
-      basePoints += 1;
-      yakuList.add('🔥 1고 (+1)');
-    } else if (goCount == 2) {
-      basePoints += 2;
-      yakuList.add('🔥 2고 (+2)');
-    } else if (goCount >= 3) {
-      // 3고부터 x2^(goCount-2)
-      final goMult = 1 << (goCount - 2); // 3고=x2, 4고=x4, 5고=x8...
-      penaltyMult *= goMult;
-      yakuList.add('🔥 ${goCount}고 (x$goMult)');
+    if (goCount >= 1) {
+      basePoints += goCount;
+      if (goCount >= 3) {
+        final goMult = 1 << (goCount - 2); // 3고=x2, 4고=x4, 5고=x8...
+        penaltyMult *= goMult;
+        yakuList.add('🔥 ${goCount}고 (+$goCount점, x$goMult)');
+
+        // T-001 [단골손님] 부적: 3고 이상 시 0.5~2.0배 추가 산정
+        if (run.ownedTalismanIds.contains('T-001')) {
+          final bonusMult = (0.5 + (0.5 * (goCount - 3))).clamp(0.5, 2.0);
+          penaltyMult *= bonusMult;
+          yakuList.add('🤝 단골손님 (x$bonusMult)');
+        }
+      } else {
+        yakuList.add('🔥 ${goCount}고 (+$goCount)');
+      }
     }
 
     // ═══════════════════════════════════
@@ -205,8 +211,8 @@ class ScoreCalculator {
       yakuList.add('💥 광박 (x2)');
     }
 
-    // 피박: 내가 피 10장 이상, 상대가 피 7장 미만 (0장 제외)
-    if (junkCount >= 10 && oppJunkCount > 0 && oppJunkCount < 7) {
+    // 피박: 내가 피 10장 이상, 상대가 피 7장 미만 (0장 포함)
+    if (junkCount >= 10 && oppJunkCount < 7) {
       penaltyMult *= 2;
       yakuList.add('🥊 피박 (x2)');
     }
@@ -226,15 +232,9 @@ class ScoreCalculator {
     // ═══════════════════════════════════
     // 5. Roguelike 스킬 효과 (Balatro 요소)
     // ═══════════════════════════════════
+    // 에디션 효과는 SynergyEvaluator에서 일괄 처리 (이중적용 방지)
     int bonusChips = 0;
     double skillMult = 1.0;
-
-    // 개별 카드 에디션 효과
-    for (var card in captured) {
-      if (card.edition == Edition.foil) bonusChips += 5;
-      if (card.edition == Edition.holographic) bonusChips += 3;
-      if (card.edition == Edition.polychrome) skillMult *= 1.2;
-    }
 
     // 시너지 체인 평가
     final synergyResult = SynergyEvaluator.evaluate(
@@ -250,7 +250,14 @@ class ScoreCalculator {
 
     // 최종 계산: (기본 점수 + 스킬 보너스) × 박 배율 × 스킬 배율
     final totalBase = basePoints + synergyResult.chips;
-    final totalMult = penaltyMult * synergyResult.mult;
+    double totalMult = penaltyMult * synergyResult.mult;
+
+    // P-003 [잭팟 티켓] 소모품: 승리 시 무조건 최종 5배
+    if (run.equippedRoundItemIds.contains('P-003')) {
+      totalMult *= 5.0;
+      yakuList.add('🎫 잭팟 티켓 5배 뻥튀기! (x5.0)');
+    }
+
     final finalScore = (totalBase * totalMult).round();
 
     return ScoreResult(

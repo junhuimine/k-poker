@@ -15,8 +15,8 @@ class AudioManager {
 
   double _bgmVolume = 0.5;
   double _sfxVolume = 0.7;
-  bool _bgmMuted = true;
-  bool _sfxMuted = true;
+  bool _bgmMuted = false;
+  bool _sfxMuted = false;
 
   double get bgmVolume => _bgmVolume;
   double get sfxVolume => _sfxVolume;

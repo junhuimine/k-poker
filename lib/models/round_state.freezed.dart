@@ -40,7 +40,24 @@ mixin _$RoundState {
   bool get isSweep => throw _privateConstructorUsedError; // 싹쓸이 여부
   int get comboCount =>
       throw _privateConstructorUsedError; // 연속 매칭 성공 횟수 (쪽/따닥 등)
-  int get sweepCount => throw _privateConstructorUsedError;
+  int get sweepCount => throw _privateConstructorUsedError; // 쓸어먹기 횟수
+// 연뻑/삼뻑 추적
+  int get playerPpeokCount =>
+      throw _privateConstructorUsedError; // 플레이어 연속 뻑 횟수
+  int get opponentPpeokCount =>
+      throw _privateConstructorUsedError; // AI 연속 뻑 횟수
+// 마지막 특수 이벤트 (UI 애니메이션 트리거)
+  String get lastSpecialEvent =>
+      throw _privateConstructorUsedError; // 'ppeok', 'chok', 'tadak', 'sweep', 'chok_sweep', 'ppeok_eat', 'self_ppeok', 'double_ppeok', 'triple_ppeok', 'bomb', ''
+  int get lastStolenPiCount =>
+      throw _privateConstructorUsedError; // 이번 턴에 뺏은 피 개수
+// 뻑 추적 (자뻑 판정용)
+  String get lastPpeokOwner =>
+      throw _privateConstructorUsedError; // 뻑 낸 사람 ('player' or 'opponent' or '')
+  int get lastPpeokMonth =>
+      throw _privateConstructorUsedError; // 뻑 난 월 (0 = 없음)
+// 아이템 효과 추적용
+  bool get mentalGuardUsed => throw _privateConstructorUsedError;
 
   /// Serializes this RoundState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -76,7 +93,14 @@ abstract class $RoundStateCopyWith<$Res> {
       double multiplier,
       bool isSweep,
       int comboCount,
-      int sweepCount});
+      int sweepCount,
+      int playerPpeokCount,
+      int opponentPpeokCount,
+      String lastSpecialEvent,
+      int lastStolenPiCount,
+      String lastPpeokOwner,
+      int lastPpeokMonth,
+      bool mentalGuardUsed});
 }
 
 /// @nodoc
@@ -112,6 +136,13 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
     Object? isSweep = null,
     Object? comboCount = null,
     Object? sweepCount = null,
+    Object? playerPpeokCount = null,
+    Object? opponentPpeokCount = null,
+    Object? lastSpecialEvent = null,
+    Object? lastStolenPiCount = null,
+    Object? lastPpeokOwner = null,
+    Object? lastPpeokMonth = null,
+    Object? mentalGuardUsed = null,
   }) {
     return _then(_value.copyWith(
       deck: null == deck
@@ -186,6 +217,34 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
           ? _value.sweepCount
           : sweepCount // ignore: cast_nullable_to_non_nullable
               as int,
+      playerPpeokCount: null == playerPpeokCount
+          ? _value.playerPpeokCount
+          : playerPpeokCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      opponentPpeokCount: null == opponentPpeokCount
+          ? _value.opponentPpeokCount
+          : opponentPpeokCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastSpecialEvent: null == lastSpecialEvent
+          ? _value.lastSpecialEvent
+          : lastSpecialEvent // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastStolenPiCount: null == lastStolenPiCount
+          ? _value.lastStolenPiCount
+          : lastStolenPiCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastPpeokOwner: null == lastPpeokOwner
+          ? _value.lastPpeokOwner
+          : lastPpeokOwner // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastPpeokMonth: null == lastPpeokMonth
+          ? _value.lastPpeokMonth
+          : lastPpeokMonth // ignore: cast_nullable_to_non_nullable
+              as int,
+      mentalGuardUsed: null == mentalGuardUsed
+          ? _value.mentalGuardUsed
+          : mentalGuardUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -216,7 +275,14 @@ abstract class _$$RoundStateImplCopyWith<$Res>
       double multiplier,
       bool isSweep,
       int comboCount,
-      int sweepCount});
+      int sweepCount,
+      int playerPpeokCount,
+      int opponentPpeokCount,
+      String lastSpecialEvent,
+      int lastStolenPiCount,
+      String lastPpeokOwner,
+      int lastPpeokMonth,
+      bool mentalGuardUsed});
 }
 
 /// @nodoc
@@ -250,6 +316,13 @@ class __$$RoundStateImplCopyWithImpl<$Res>
     Object? isSweep = null,
     Object? comboCount = null,
     Object? sweepCount = null,
+    Object? playerPpeokCount = null,
+    Object? opponentPpeokCount = null,
+    Object? lastSpecialEvent = null,
+    Object? lastStolenPiCount = null,
+    Object? lastPpeokOwner = null,
+    Object? lastPpeokMonth = null,
+    Object? mentalGuardUsed = null,
   }) {
     return _then(_$RoundStateImpl(
       deck: null == deck
@@ -324,6 +397,34 @@ class __$$RoundStateImplCopyWithImpl<$Res>
           ? _value.sweepCount
           : sweepCount // ignore: cast_nullable_to_non_nullable
               as int,
+      playerPpeokCount: null == playerPpeokCount
+          ? _value.playerPpeokCount
+          : playerPpeokCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      opponentPpeokCount: null == opponentPpeokCount
+          ? _value.opponentPpeokCount
+          : opponentPpeokCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastSpecialEvent: null == lastSpecialEvent
+          ? _value.lastSpecialEvent
+          : lastSpecialEvent // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastStolenPiCount: null == lastStolenPiCount
+          ? _value.lastStolenPiCount
+          : lastStolenPiCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      lastPpeokOwner: null == lastPpeokOwner
+          ? _value.lastPpeokOwner
+          : lastPpeokOwner // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastPpeokMonth: null == lastPpeokMonth
+          ? _value.lastPpeokMonth
+          : lastPpeokMonth // ignore: cast_nullable_to_non_nullable
+              as int,
+      mentalGuardUsed: null == mentalGuardUsed
+          ? _value.mentalGuardUsed
+          : mentalGuardUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -349,7 +450,14 @@ class _$RoundStateImpl implements _RoundState {
       this.multiplier = 1.0,
       this.isSweep = false,
       this.comboCount = 0,
-      this.sweepCount = 0})
+      this.sweepCount = 0,
+      this.playerPpeokCount = 0,
+      this.opponentPpeokCount = 0,
+      this.lastSpecialEvent = '',
+      this.lastStolenPiCount = 0,
+      this.lastPpeokOwner = '',
+      this.lastPpeokMonth = 0,
+      this.mentalGuardUsed = false})
       : _deck = deck,
         _field = field,
         _playerHand = playerHand,
@@ -456,10 +564,42 @@ class _$RoundStateImpl implements _RoundState {
   @override
   @JsonKey()
   final int sweepCount;
+// 쓸어먹기 횟수
+// 연뻑/삼뻑 추적
+  @override
+  @JsonKey()
+  final int playerPpeokCount;
+// 플레이어 연속 뻑 횟수
+  @override
+  @JsonKey()
+  final int opponentPpeokCount;
+// AI 연속 뻑 횟수
+// 마지막 특수 이벤트 (UI 애니메이션 트리거)
+  @override
+  @JsonKey()
+  final String lastSpecialEvent;
+// 'ppeok', 'chok', 'tadak', 'sweep', 'chok_sweep', 'ppeok_eat', 'self_ppeok', 'double_ppeok', 'triple_ppeok', 'bomb', ''
+  @override
+  @JsonKey()
+  final int lastStolenPiCount;
+// 이번 턴에 뺏은 피 개수
+// 뻑 추적 (자뻑 판정용)
+  @override
+  @JsonKey()
+  final String lastPpeokOwner;
+// 뻑 낸 사람 ('player' or 'opponent' or '')
+  @override
+  @JsonKey()
+  final int lastPpeokMonth;
+// 뻑 난 월 (0 = 없음)
+// 아이템 효과 추적용
+  @override
+  @JsonKey()
+  final bool mentalGuardUsed;
 
   @override
   String toString() {
-    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount)';
+    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount, playerPpeokCount: $playerPpeokCount, opponentPpeokCount: $opponentPpeokCount, lastSpecialEvent: $lastSpecialEvent, lastStolenPiCount: $lastStolenPiCount, lastPpeokOwner: $lastPpeokOwner, lastPpeokMonth: $lastPpeokMonth, mentalGuardUsed: $mentalGuardUsed)';
   }
 
   @override
@@ -498,31 +638,53 @@ class _$RoundStateImpl implements _RoundState {
             (identical(other.comboCount, comboCount) ||
                 other.comboCount == comboCount) &&
             (identical(other.sweepCount, sweepCount) ||
-                other.sweepCount == sweepCount));
+                other.sweepCount == sweepCount) &&
+            (identical(other.playerPpeokCount, playerPpeokCount) ||
+                other.playerPpeokCount == playerPpeokCount) &&
+            (identical(other.opponentPpeokCount, opponentPpeokCount) ||
+                other.opponentPpeokCount == opponentPpeokCount) &&
+            (identical(other.lastSpecialEvent, lastSpecialEvent) ||
+                other.lastSpecialEvent == lastSpecialEvent) &&
+            (identical(other.lastStolenPiCount, lastStolenPiCount) ||
+                other.lastStolenPiCount == lastStolenPiCount) &&
+            (identical(other.lastPpeokOwner, lastPpeokOwner) ||
+                other.lastPpeokOwner == lastPpeokOwner) &&
+            (identical(other.lastPpeokMonth, lastPpeokMonth) ||
+                other.lastPpeokMonth == lastPpeokMonth) &&
+            (identical(other.mentalGuardUsed, mentalGuardUsed) ||
+                other.mentalGuardUsed == mentalGuardUsed));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_deck),
-      const DeepCollectionEquality().hash(_field),
-      const DeepCollectionEquality().hash(_playerHand),
-      const DeepCollectionEquality().hash(_opponentHand),
-      const DeepCollectionEquality().hash(_playerCaptured),
-      const DeepCollectionEquality().hash(_opponentCaptured),
-      currentTurn,
-      turnNumber,
-      goCount,
-      opponentGoCount,
-      playerScore,
-      opponentScore,
-      isFinished,
-      baseChips,
-      multiplier,
-      isSweep,
-      comboCount,
-      sweepCount);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        const DeepCollectionEquality().hash(_deck),
+        const DeepCollectionEquality().hash(_field),
+        const DeepCollectionEquality().hash(_playerHand),
+        const DeepCollectionEquality().hash(_opponentHand),
+        const DeepCollectionEquality().hash(_playerCaptured),
+        const DeepCollectionEquality().hash(_opponentCaptured),
+        currentTurn,
+        turnNumber,
+        goCount,
+        opponentGoCount,
+        playerScore,
+        opponentScore,
+        isFinished,
+        baseChips,
+        multiplier,
+        isSweep,
+        comboCount,
+        sweepCount,
+        playerPpeokCount,
+        opponentPpeokCount,
+        lastSpecialEvent,
+        lastStolenPiCount,
+        lastPpeokOwner,
+        lastPpeokMonth,
+        mentalGuardUsed
+      ]);
 
   /// Create a copy of RoundState
   /// with the given fields replaced by the non-null parameter values.
@@ -559,7 +721,14 @@ abstract class _RoundState implements RoundState {
       final double multiplier,
       final bool isSweep,
       final int comboCount,
-      final int sweepCount}) = _$RoundStateImpl;
+      final int sweepCount,
+      final int playerPpeokCount,
+      final int opponentPpeokCount,
+      final String lastSpecialEvent,
+      final int lastStolenPiCount,
+      final String lastPpeokOwner,
+      final int lastPpeokMonth,
+      final bool mentalGuardUsed}) = _$RoundStateImpl;
 
   factory _RoundState.fromJson(Map<String, dynamic> json) =
       _$RoundStateImpl.fromJson;
@@ -599,7 +768,26 @@ abstract class _RoundState implements RoundState {
   @override
   int get comboCount; // 연속 매칭 성공 횟수 (쪽/따닥 등)
   @override
-  int get sweepCount;
+  int get sweepCount; // 쓸어먹기 횟수
+// 연뻑/삼뻑 추적
+  @override
+  int get playerPpeokCount; // 플레이어 연속 뻑 횟수
+  @override
+  int get opponentPpeokCount; // AI 연속 뻑 횟수
+// 마지막 특수 이벤트 (UI 애니메이션 트리거)
+  @override
+  String
+      get lastSpecialEvent; // 'ppeok', 'chok', 'tadak', 'sweep', 'chok_sweep', 'ppeok_eat', 'self_ppeok', 'double_ppeok', 'triple_ppeok', 'bomb', ''
+  @override
+  int get lastStolenPiCount; // 이번 턴에 뺏은 피 개수
+// 뻑 추적 (자뻑 판정용)
+  @override
+  String get lastPpeokOwner; // 뻑 낸 사람 ('player' or 'opponent' or '')
+  @override
+  int get lastPpeokMonth; // 뻑 난 월 (0 = 없음)
+// 아이템 효과 추적용
+  @override
+  bool get mentalGuardUsed;
 
   /// Create a copy of RoundState
   /// with the given fields replaced by the non-null parameter values.

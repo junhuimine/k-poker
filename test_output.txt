@@ -1,0 +1,34 @@
+00:00 +0: loading D:/02_PROJECT/08_k-poker/test/stage_transition_test.dart
+00:00 +0: 스테이지별 AI 캐릭터 매핑 Stage 1 Op0 = 김 아저씨
+00:00 +1: 스테이지별 AI 캐릭터 매핑 Stage 1 Op1 = 여우 수진
+00:00 +2: 스테이지별 AI 캐릭터 매핑 Stage 2 Op0 = 꽃집 유나
+00:00 +3: 스테이지별 AI 캐릭터 매핑 Stage 2 Op1 = 용남이
+00:00 +4: 스테이지별 AI 캐릭터 매핑 Stage 3 Op0 = 여왕벌 미란
+00:00 +5: 스테이지별 AI 캐릭터 매핑 Stage 3 Op1 = 무심 스님
+00:00 +6: 스테이지별 AI 캐릭터 매핑 Stage 4 Op0 = 그림자 한
+00:00 +7: 스테이지별 AI 캐릭터 매핑 Stage 4 Op1 = 황후
+00:00 +8: 스테이지별 AI 캐릭터 매핑 Stage 5 Op0 = 꽃무녀 하나
+00:00 +9: 스테이지별 AI 캐릭터 매핑 Stage 5 Op1 = 유령
+00:00 +10: 스테이지별 AI 캐릭터 매핑 Stage 6 Op0 = 사신
+00:00 +11: 스테이지별 AI 캐릭터 매핑 Stage 6 Op1 = 신녀
+00:00 +12: 스테이지별 AI 캐릭터 매핑 Stage 7 = 도박의 신
+00:00 +13: 스테이지별 AI 캐릭터 매핑 Stage 8+ = 도박의 신 (무한)
+00:00 +14: 상대 자금 Stage 1 Op0 = ₩50,000
+00:00 +15: 상대 자금 Stage 1 Op1 = ₩60,000 (1.2x)
+00:00 +16: 상대 자금 Stage 6 Op0 = ₩3,000,000
+00:00 +17: 상대 자금 Stage 7 (신급) = ₩7,500,000
+00:00 +18: 상대 자금 Stage 8 (신급+2) > Stage 7
+00:00 +19: 스테이지 전환 시뮬레이션 상대 자금 0 → 다음 상대/스테이지 전환
+00:00 +19 -1: 스테이지 전환 시뮬레이션 상대 자금 0 → 다음 상대/스테이지 전환 [E]
+  Expected: a value greater than or equal to <7>
+    Actual: <4>
+     Which: is not a value greater than or equal to <7>
+  스테이지 7(도박의 신)에 도달해야 함
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\stage_transition_test.dart 97:7                main.<fn>.<fn>
+  
+00:00 +19 -1: StageConfig Stage 1~6 설정 정상
+00:00 +20 -1: StageConfig Stage 7+ (신급 무한) 설정
+00:00 +21 -1: Some tests failed.

@@ -82,14 +82,16 @@ class GameState extends _$GameState {
   void startGame() {
     ref.read(gameEventsProvider.notifier).clear();
     ref.read(goStopPendingProvider.notifier).hide();
-    state = GameEngine.createInitialState();
+    final runState = ref.read(runStateNotifierProvider);
+    state = GameEngine.createInitialState(run: runState);
     ref.read(gameEventsProvider.notifier).addEvent('start', '🎴 새 라운드 시작!');
   }
 
   /// 총통 감지 (핸드에 같은 월 4장)
   int? getPlayerChongtong() => GameEngine.getChongtongMonth(state.playerHand);
 
-  /// 총통 선언! (같은 월 4장 즉시 획득 + 상대 피 2장 빼앗기 + 3배)
+  /// 총통 선언! (전통 규칙: 즉시 종료 + 기본 3점)
+  /// 같은 월 4장을 핸드에 보유한 경우 선언 가능
   void declareChongtong(int month) {
     if (state.isFinished || state.currentTurn != 'player') return;
 
@@ -97,43 +99,55 @@ class GameState extends _$GameState {
     final chongtongCards = state.playerHand.where((c) => c.def.month == month).toList();
     if (chongtongCards.length < 4) return;
 
-    // 바닥에서도 같은 월 제거 (있으면)
-    final fieldSameMonth = state.field.where((c) => c.def.month == month).toList();
-    final allCaptured = [...chongtongCards, ...fieldSameMonth];
-
-    // 상대 피 2장 빼앗기
-    final opJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
-    final stolenCount = opJunks.length >= 2 ? 2 : opJunks.length;
-    final stolenJunks = opJunks.take(stolenCount).toList();
-    
+    // 전통 규칙: 즉시 게임 종료, 기본 3점 획득
     var newState = state.copyWith(
       playerHand: state.playerHand.where((c) => c.def.month != month).toList(),
-      field: state.field.where((c) => c.def.month != month).toList(),
-      playerCaptured: [...state.playerCaptured, ...allCaptured, ...stolenJunks],
-      opponentCaptured: state.opponentCaptured.where((c) => !stolenJunks.contains(c)).toList(),
-      sweepCount: state.sweepCount + 1, // 총통 = 쓸 1회 추가
+      playerCaptured: [...state.playerCaptured, ...chongtongCards],
+      playerScore: 3,
+      isFinished: true,
     );
 
     AudioManager().cardSweep();
     ref.read(gameEventsProvider.notifier)
-        .addEvent('bomb', '🎆 총통! ${month}월 4장! 즉시 획득!${stolenCount > 0 ? ' + 피 ${stolenCount}장 빼앗기!' : ''}');
-    ref.read(yakuAnnounceProvider.notifier).announce('🎆 총통!');
+        .addEvent('bomb', '🎆 총통! ${month}월 4장! 즉시 승리! (+3점)');
+    ref.read(yakuAnnounceProvider.notifier).announce('chongtong');
     Future.delayed(const Duration(milliseconds: 2000), () {
       ref.read(yakuAnnounceProvider.notifier).clear();
     });
 
-    // 점수 업데이트
-    final run = ref.read(runStateNotifierProvider);
-    final scoreResult = ScoreCalculator.calculate(newState, run);
-    state = newState.copyWith(
-      playerScore: scoreResult.finalScore,
-      baseChips: scoreResult.baseChips,
-      multiplier: scoreResult.multiplier,
-    );
+    state = newState;
+    _handleRoundEnd();
+  }
 
-    // 총통이면 무조건 3점 이상 → 고/스톱 선택
-    if (scoreResult.finalScore >= 3) {
-      ref.read(goStopPendingProvider.notifier).show();
+  /// 인게임 액티브 스킬 사용 타겟 로직 구현
+  void useActiveSkill(String skillId) {
+    if (state.isFinished) return;
+
+    if (skillId == 'S-003') { 
+      // [덱 셔플] 필드 + 덱 합쳐서 다시 깔기
+      final pool = [...state.field, ...state.deck]..shuffle();
+      final fieldSize = state.field.length;
+      state = state.copyWith(
+        field: pool.sublist(0, fieldSize),
+        deck: pool.sublist(fieldSize),
+      );
+      ref.read(gameEventsProvider.notifier).addEvent('skill', '🌪️ [덱 셔플] 발동! 필드와 덱을 재배열했습니다!');
+    } else if (skillId == 'S-002') {
+      // [스나이퍼] 상대방이 획득한 피(Junk) 1장을 훔침 (없으면 실패)
+      final opJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
+      if (opJunks.isNotEmpty) {
+        final target = opJunks.last;
+        state = state.copyWith(
+          opponentCaptured: state.opponentCaptured.where((c) => c != target).toList(),
+          playerCaptured: [...state.playerCaptured, target],
+        );
+        ref.read(gameEventsProvider.notifier).addEvent('skill', '🎯 [스나이퍼] 발동! 상대 피 1장을 탈취했습니다!');
+      } else {
+        ref.read(gameEventsProvider.notifier).addEvent('skill', '🎯 [스나이퍼] 상대방에게 뺏을 수 있는 피가 없습니다!');
+      }
+    } else if (skillId == 'S-001') {
+      // [전용 조커] 이벤트성
+      ref.read(gameEventsProvider.notifier).addEvent('skill', '🃏 [전용 조커] 강력한 다음 턴을 준비합니다!');
     }
   }
 
@@ -143,7 +157,8 @@ class GameState extends _$GameState {
 
     // 1. 플레이어 턴 실행
     final prevCaptured = state.playerCaptured.length;
-    final nextState = GameEngine.playTurn(state, card, selectedMatch: selectedMatch);
+    final run = ref.read(runStateNotifierProvider);
+    final nextState = GameEngine.playTurn(state, card, selectedMatch: selectedMatch, run: run);
 
     // 2. 매칭 피드백 이벤트 + SFX
     final newCaptured = nextState.playerCaptured.length - prevCaptured;
@@ -151,47 +166,31 @@ class GameState extends _$GameState {
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     var modifiedNextState = nextState;
 
-    if (newCaptured > 0) {
+    // 특수 이벤트 처리 (엔진 v2.0 lastSpecialEvent 기반)
+    final specialEvent = modifiedNextState.lastSpecialEvent;
+    final stolenPi = modifiedNextState.lastStolenPiCount;
+
+    if (specialEvent.isNotEmpty) {
+      _announceSpecialEvent(specialEvent, stolenPi, ai);
+    } else if (newCaptured > 0) {
       AudioManager().cardMatch();
       final hasBright = modifiedNextState.playerCaptured.any((c) => c.def.grade == CardGrade.bright && !state.playerCaptured.contains(c));
       if (hasBright) AudioManager().brightCapture();
       ref.read(gameEventsProvider.notifier)
           .addEvent('match', '✅ ${card.def.nameKo} → $newCaptured장 획득!');
-      
+
       final lines = ai.dialogues['player_match'] ?? ['흥!'];
       ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
     } else {
       ref.read(gameEventsProvider.notifier)
           .addEvent('miss', '❌ ${card.def.nameKo} → 매칭 실패');
-      
+
       final lines = ai.dialogues['player_miss'] ?? ['쯧쯧'];
       ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
     }
 
-    // 쓸(sweep) 감지 및 피 뺏기
-    if (modifiedNextState.sweepCount > state.sweepCount || (modifiedNextState.field.isEmpty && newCaptured > 0)) {
-      AudioManager().cardSweep();
-      
-      // 상대 피 1장 빼앗기 로직
-      final opJunks = modifiedNextState.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
-      String sweepText = '🌊 쓸! 바닥을 쓸었다!';
-      if (opJunks.isNotEmpty) {
-        final stolenJunk = opJunks.first;
-        modifiedNextState = modifiedNextState.copyWith(
-          sweepCount: modifiedNextState.sweepCount == state.sweepCount ? modifiedNextState.sweepCount + 1 : modifiedNextState.sweepCount,
-          playerCaptured: [...modifiedNextState.playerCaptured, stolenJunk],
-          opponentCaptured: modifiedNextState.opponentCaptured.where((c) => c != stolenJunk).toList(),
-        );
-        sweepText += ' + 상대 피 빼앗기!';
-      }
-      ref.read(gameEventsProvider.notifier).addEvent('sweep', sweepText);
-      
-      // AI 쓸 반응 대사
-      final sweepLines = ai.dialogues['sweep_react'] ?? ['내 피...!'];
-      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${sweepLines[DateTime.now().millisecond % sweepLines.length]}"');
-    }
-
-    // 3. 점수 업데이트
+    // 3. 점수 업데이트 (이전 baseChips 저장 필요 — 고/스톱 판정용)
+    final prevBaseChips = state.baseChips;
     final prevYaku = state.playerScore > 0
         ? ScoreCalculator.calculate(state, run).appliedYaku
         : <String>[];
@@ -215,31 +214,95 @@ class GameState extends _$GameState {
       }
     }
 
+    // 삼뻑으로 인한 즉시 종료 체크
+    if (specialEvent == 'triple_ppeok') {
+      state = state.copyWith(isFinished: true);
+      _handleRoundEnd();
+      return;
+    }
+
     // 4. 게임 종료 체크
     if (state.isFinished) {
       _handleRoundEnd();
       return;
     }
 
-    // 5. 고/스톱 판정 (점수 3점 이상 달성 + 새 족보 추가되었을 때)
-    final prevPoints = state.goCount > 0 ? state.baseChips : 0; // 고 선언 후로도 점수 증가 시 재판정
+    // 5. 고/스톱 판정 (점수 3점 이상 + baseChips가 이전보다 증가했을 때)
+    final prevPoints = state.goCount > 0 ? prevBaseChips : 0;
     if (scoreResult.finalScore >= 3 && scoreResult.baseChips > prevPoints) {
       ref.read(goStopPendingProvider.notifier).show();
       return;
     }
 
-    // 6. AI 턴
+    // 6. AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
     if (state.currentTurn == 'opponent' && !state.isFinished) {
-      // AI 핸드가 비면 나가리 처리
       if (state.opponentHand.isEmpty) {
         state = state.copyWith(isFinished: true);
         _handleRoundEnd();
         return;
       }
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (!state.isFinished) _playAiTurn();
-      });
     }
+  }
+
+  /// 특수 이벤트 알림 처리
+  void _announceSpecialEvent(String event, int stolenPi, dynamic ai) {
+    String text;
+
+    switch (event) {
+      case 'ppeok':
+        AudioManager().cardMatch();
+        text = '💥 뻑! 아무것도 먹지 못하고 바닥에 쌓인다!';
+        break;
+      case 'double_ppeok':
+        AudioManager().cardSweep();
+        text = '🔥🔥 연뻑!! +3점 획득!';
+        break;
+      case 'triple_ppeok':
+        AudioManager().cardSweep();
+        text = '🔥🔥🔥 삼뻑!!! 즉시 승리!!!';
+        break;
+      case 'chok':
+        AudioManager().cardMatch();
+        text = '✌️ 쪽!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        break;
+      case 'chok_sweep':
+        AudioManager().cardSweep();
+        text = '✌️🌊 쪽 + 쓸! 상대 피 ${stolenPi}장 빼앗기!';
+        break;
+      case 'tadak':
+        AudioManager().cardMatch();
+        text = '⚡ 따닥!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        break;
+      case 'sweep':
+        AudioManager().cardSweep();
+        text = '🌊 쓸!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        break;
+      case 'ppeok_eat':
+        AudioManager().cardSweep();
+        text = '💥 뻑 먹기! 4장 전부 획득!${stolenPi > 0 ? ' + 피 ${stolenPi}장 빼앗기!' : ''}';
+        break;
+      case 'self_ppeok':
+        AudioManager().cardSweep();
+        text = '💥🔥 자뻑! 4장 전부 획득! + 피 ${stolenPi}장 빼앗기!';
+        break;
+      case 'bomb':
+        AudioManager().cardSweep();
+        text = '💣 폭탄!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        break;
+      default:
+        return;
+    }
+
+    ref.read(gameEventsProvider.notifier).addEvent(event, text);
+    ref.read(yakuAnnounceProvider.notifier).announce(event); // 엔진 이벤트 코드 그대로 전달
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      ref.read(yakuAnnounceProvider.notifier).clear();
+    });
+
+    // AI 반응 대사
+    final reactKey = event.contains('ppeok') ? 'sweep_react' : 'player_match';
+    final lines = ai.dialogues[reactKey] ?? ['...'];
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
   }
 
   /// 폭탄! (같은 월 3장 한번에 내기)
@@ -281,7 +344,7 @@ class GameState extends _$GameState {
       return;
     }
 
-    // AI 턴
+    // AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
     if (state.currentTurn == 'opponent' && !state.isFinished) {
       // AI 핸드가 비면 나가리 처리
       if (state.opponentHand.isEmpty) {
@@ -289,9 +352,13 @@ class GameState extends _$GameState {
         _handleRoundEnd();
         return;
       }
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (!state.isFinished) _playAiTurn();
-      });
+      // UI에서 _executeAiTurn을 호출하게 됨
+    }
+
+    // 안전장치: 양쪽 핸드가 모두 비면 나가리
+    if (state.playerHand.isEmpty && state.opponentHand.isEmpty && !state.isFinished) {
+      state = state.copyWith(isFinished: true);
+      _handleRoundEnd();
     }
   }
 
@@ -315,13 +382,13 @@ class GameState extends _$GameState {
 
     ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$goLine"');
 
+    // 고 배율은 ScoreCalculator에서만 처리 (이중적용 방지)
     state = state.copyWith(
       goCount: state.goCount + 1,
-      multiplier: state.multiplier * 2.0,
     );
 
     if (state.currentTurn == 'opponent') {
-      Future.delayed(const Duration(milliseconds: 1200), () => _playAiTurn());
+      // UI의 Go 버튼 쪽에서 _triggerAiTurnIfNeeded()를 호출하도록 위임
     }
   }
 
@@ -387,7 +454,7 @@ class GameState extends _$GameState {
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
 
     final prevCaptured = state.opponentCaptured.length;
-    final nextState = GameEngine.playTurn(state, card);
+    final nextState = GameEngine.playTurn(state, card, run: run);
     final newCaptured = nextState.opponentCaptured.length - prevCaptured;
 
     if (newCaptured > 0) {
@@ -410,11 +477,12 @@ class GameState extends _$GameState {
 
     state = nextState;
 
-    // AI 점수 계산
+    // AI 점수 계산 (AI의 고 횟수 반영)
     final aiRun = ref.read(runStateNotifierProvider);
     final aiScoreState = nextState.copyWith(
       playerCaptured: nextState.opponentCaptured,
       opponentCaptured: nextState.playerCaptured,
+      goCount: nextState.opponentGoCount,
     );
     final aiResult = ScoreCalculator.calculate(aiScoreState, aiRun);
     state = state.copyWith(opponentScore: aiResult.finalScore);
@@ -536,7 +604,8 @@ class GameState extends _$GameState {
     }
 
     final prevCaptured = state.opponentCaptured.length;
-    final nextState = GameEngine.playTurn(state, bestCard);
+    final run = ref.read(runStateNotifierProvider);
+    final nextState = GameEngine.playTurn(state, bestCard, run: run);
     final newCaptured = nextState.opponentCaptured.length - prevCaptured;
 
     if (newCaptured > 0) {
@@ -560,11 +629,12 @@ class GameState extends _$GameState {
 
     state = nextState;
 
-    // AI 점수 계산 (상대 시점)
+    // AI 점수 계산 (상대 시점 — AI의 고 횟수 반영)
     final aiRun = ref.read(runStateNotifierProvider);
     final aiScoreState = nextState.copyWith(
       playerCaptured: nextState.opponentCaptured,
       opponentCaptured: nextState.playerCaptured,
+      goCount: nextState.opponentGoCount,
     );
     final aiResult = ScoreCalculator.calculate(aiScoreState, aiRun);
     state = state.copyWith(opponentScore: aiResult.finalScore);
@@ -693,6 +763,7 @@ class RunStateNotifier extends _$RunStateNotifier {
     state = RunState(
       stage: 1,
       money: initialMoney,
+      gold: 10000, // TODO: 개발 테스트용 지급
       currencyLocale: locale,
       currentOpponentIndex: 0,
       opponentMoney: firstOpponentFund,
@@ -735,13 +806,25 @@ class RunStateNotifier extends _$RunStateNotifier {
       highestScore: score > state.highestScore ? score : state.highestScore,
       highestMoney: newMoney > state.highestMoney ? newMoney : state.highestMoney,
       moneyHistory: [...state.moneyHistory, newMoney],
+      equippedRoundItemIds: const [], // 장착된 1회용 아이템 소멸
     );
     _autoSave();
   }
 
   /// 패배 시 정산 — 상대 자금 증가
   void onLose(double penalty) {
-    final newMoney = (state.money - penalty).clamp(0, double.infinity);
+    if (state.isFinished) return; // Wait, actually isFinished doesn't matter here
+    
+    // P-002 [안전모] 파산 방지 로직
+    final currency = getCurrencyForLocale(state.currencyLocale);
+    final minStake = currency.pointValue * 3; // 3점 금액 (파산 기준선)
+    double newMoney = (state.money - penalty).clamp(0, double.infinity);
+    
+    if (newMoney <= minStake && state.equippedRoundItemIds.contains('P-002')) {
+      // 파산 위기 탈출! (최소 판돈 + 10점의 부조금 지급)
+      newMoney = minStake + (currency.pointValue * 10);
+    }
+
     final newOpponentMoney = state.opponentMoney + penalty;
     state = state.copyWith(
       money: newMoney.toDouble(),
@@ -749,6 +832,7 @@ class RunStateNotifier extends _$RunStateNotifier {
       losses: state.losses + 1,
       winStreak: 0,
       moneyHistory: [...state.moneyHistory, newMoney.toDouble()],
+      equippedRoundItemIds: const [], // 장착된 1회용 아이템 소멸
     );
     _autoSave();
   }
@@ -766,27 +850,62 @@ class RunStateNotifier extends _$RunStateNotifier {
     newGame(state.currencyLocale);
   }
 
-  /// 금화 추가 (레거시 호환)
+  /// 금화 획득 (출석/광고 보상)
   void addGold(int amount) {
     state = state.copyWith(gold: state.gold + amount);
+    _autoSave();
   }
 
-  /// 기술 구매
-  void buySkill(String skillId, double cost) {
-    if (state.money < cost) return;
+  /// 1. 인게임 액티브 스킬 구매 (재화 소모 및 인벤토리 증가)
+  void buyActiveSkill(String itemId, int cost) {
+    if (state.gold < cost) return;
+    final Map<String, int> newInv = Map.from(state.inventorySkills);
+    newInv[itemId] = (newInv[itemId] ?? 0) + 1;
+    state = state.copyWith(gold: state.gold - cost, inventorySkills: newInv);
+    _autoSave();
+  }
+
+  /// 2. 라운드 장착 소모품 구매
+  void buyPreRoundItem(String itemId, int cost) {
+    if (state.gold < cost) return;
+    final Map<String, int> newInv = Map.from(state.inventoryRoundItems);
+    newInv[itemId] = (newInv[itemId] ?? 0) + 1;
+    state = state.copyWith(gold: state.gold - cost, inventoryRoundItems: newInv);
+    _autoSave();
+  }
+
+  /// 3. 영구 부적 구매 (중복 구매 불가)
+  void buyPassiveTalisman(String itemId, int cost) {
+    if (state.gold < cost) return;
+    if (state.ownedTalismanIds.contains(itemId)) return;
     state = state.copyWith(
-      activeSkillIds: [...state.activeSkillIds, skillId],
-      money: state.money - cost,
+      gold: state.gold - cost,
+      ownedTalismanIds: [...state.ownedTalismanIds, itemId],
     );
     _autoSave();
   }
 
-  /// 부적 구매
-  void buyTalisman(String talismanId, double cost) {
-    if (state.money < cost) return;
+  /// 인게임 액티브 스킬 소모
+  void consumeActiveSkill(String itemId) {
+    final count = state.inventorySkills[itemId] ?? 0;
+    if (count <= 0) return;
+    final Map<String, int> newInv = Map.from(state.inventorySkills);
+    newInv[itemId] = count - 1;
+    state = state.copyWith(inventorySkills: newInv);
+    _autoSave();
+  }
+
+  /// 라운드 장착 (대기실에서 장착 슬롯으로 이동)
+  void equipRoundItem(String itemId) {
+    if (state.equippedRoundItemIds.contains(itemId)) return;
+    final count = state.inventoryRoundItems[itemId] ?? 0;
+    if (count <= 0) return;
+    
+    final Map<String, int> newInv = Map.from(state.inventoryRoundItems);
+    newInv[itemId] = count - 1;
     state = state.copyWith(
-      activeTalismanIds: [...state.activeTalismanIds, talismanId],
-      money: state.money - cost,
+      inventoryRoundItems: newInv,
+      equippedRoundItemIds: [...state.equippedRoundItemIds, itemId],
     );
     _autoSave();
   }

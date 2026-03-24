@@ -18,6 +18,7 @@ _$CardDefImpl _$$CardDefImplFromJson(Map<String, dynamic> json) =>
               RibbonType.none,
       doubleJunk: json['doubleJunk'] as bool? ?? false,
       isBird: json['isBird'] as bool? ?? false,
+      isBonus: json['isBonus'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$CardDefImplToJson(_$CardDefImpl instance) =>
@@ -30,6 +31,7 @@ Map<String, dynamic> _$$CardDefImplToJson(_$CardDefImpl instance) =>
       'ribbonType': _$RibbonTypeEnumMap[instance.ribbonType]!,
       'doubleJunk': instance.doubleJunk,
       'isBird': instance.isBird,
+      'isBonus': instance.isBonus,
     };
 
 const _$CardGradeEnumMap = {

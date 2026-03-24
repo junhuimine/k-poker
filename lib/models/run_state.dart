@@ -18,8 +18,15 @@ class RunState with _$RunState {
     @Default(0) double stageEarned,  // 레거시 (호환용, 미사용)
     @Default(0) int currentOpponentIndex, // 현재 상대 인덱스 (0 또는 1)
     @Default(0) double opponentMoney,     // 현재 상대의 남은 자금
-    @Default([]) List<String> activeSkillIds,     // 기술 ID 목록 (저장용)
-    @Default([]) List<String> activeTalismanIds,  // 부적 ID 목록 (저장용)
+    @Default([]) List<String> activeSkillIds,     // 레거시 호환용
+    @Default([]) List<String> activeTalismanIds,  // 레거시 호환용
+
+    // 신규 상점 아이템 시스템 스키마
+    @Default({}) Map<String, int> inventorySkills,      // 인게임 액티브(즉발성) 스킬 보유량
+    @Default({}) Map<String, int> inventoryRoundItems,  // 라운드 장착(시작전 세팅) 소모품 보유량
+    @Default([]) List<String> equippedRoundItemIds,     // 이번 라운드에 장착된 소모품 ID
+    @Default([]) List<String> ownedTalismanIds,         // 영구 보유 중인 패시브 부적 ID 목록
+
     @Default(0) int wins,            // 총 승리
     @Default(0) int losses,          // 총 패배
     @Default(0) int winStreak,       // 연승 카운터

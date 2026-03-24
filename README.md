@@ -12,7 +12,7 @@
 
 ```bash
 # 1. Flutter 프로젝트 생성
-cd E:\08_k-poker
+cd D:\02_PROJECT\08_k-poker
 flutter create --org com.kpoker --project-name k_poker .
 
 # 2. 종속성 설치
@@ -44,5 +44,5 @@ lib/
 
 ## 프로젝트 이력
 
-원래 `E:\07_hwatu-tazza` (React/TypeScript)에서 시작하여 Flutter로 전환한 독립 프로젝트입니다.
+원래 `D:\02_PROJECT\07_hwatu-tazza` (React/TypeScript)에서 시작하여 Flutter로 전환한 독립 프로젝트입니다.
 게임 로직(매칭, 점수, 고스톱)은 1:1 포팅되었으며, UI만 Flutter로 새로 설계했습니다.

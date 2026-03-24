@@ -28,8 +28,15 @@ class CurrencyConfig {
     if (amount >= 100000000) {
       return '$symbol${(amount / 100000000).toStringAsFixed(0)}억';
     }
-    if (amount >= 10000 && locale == 'ko') {
-      return '$symbol${(amount / 10000).toStringAsFixed(0)}만';
+    // 한국어: 만/천 단위 정확 표시 (₩5만 3천)
+    if (locale == 'ko' && amount >= 10000) {
+      final man = (amount / 10000).floor();      // 만 단위
+      final remainder = (amount % 10000).round();
+      final cheon = (remainder / 1000).floor();   // 천 단위
+      if (cheon > 0) {
+        return '$symbol${man}만 ${cheon}천';
+      }
+      return '$symbol${man}만';
     }
     if (amount >= 1000000) {
       return '$symbol${(amount / 1000000).toStringAsFixed(1)}M';
@@ -396,6 +403,10 @@ const Map<int, List<String>> stageAiMapping = {
 
 /// 스테이지에서 AI 캐릭터 가져오기 (opponentIndex로 선택)
 AiCharacter getAiForStage(int stage, int opponentIndex) {
+  // stage 7+ = 도박의 신 (무한 반복)
+  if (stage >= 7) {
+    return allAiCharacters.firstWhere((c) => c.id == 'god');
+  }
   final clampedStage = stage.clamp(1, 6);
   final aiIds = stageAiMapping[clampedStage]!;
   final index = opponentIndex.clamp(0, aiIds.length - 1);
@@ -406,6 +417,11 @@ AiCharacter getAiForStage(int stage, int opponentIndex) {
 /// AI 상대의 초기 자금 (stage + opponentIndex)
 /// 밸런싱: 플레이어가 누적 획득할 금액 ≈ 다음 스테이지 AI 자금
 double getOpponentFund(int stage, int opponentIndex, double pointValue) {
+  // stage 7+ = 도박의 신 (무한 반복, 점점 강해짐)
+  if (stage >= 7) {
+    final loopCount = stage - 6;
+    return 5000 * pointValue * (1.0 + loopCount * 0.5);
+  }
   // 스테이지별 AI 1인당 기본 자금 (포인트 단위)
   const baseFunds = <int, double>{
     1: 50,     // ₩50,000: 동네 골목 — 아저씨/여우

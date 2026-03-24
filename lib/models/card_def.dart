@@ -32,6 +32,7 @@ class CardDef with _$CardDef {
     @Default(RibbonType.none) RibbonType ribbonType,
     @Default(false) bool doubleJunk,
     @Default(false) bool isBird,
+    @Default(false) bool isBonus, // 보너스 쌍피 (조커) 카드
   }) = _CardDef;
 
   factory CardDef.fromJson(Map<String, dynamic> json) => _$CardDefFromJson(json);

@@ -77,12 +77,16 @@ final List<CardDef> allCards = [
   const CardDef(id: 'm12_animal', month: 12, grade: CardGrade.animal, name: 'Willow Swallow', nameKo: '버들 제비'),
   const CardDef(id: 'm12_ribbon', month: 12, grade: CardGrade.ribbon, name: 'Willow Ribbon', nameKo: '버들 띠', ribbonType: RibbonType.plain),
   const CardDef(id: 'm12_double', month: 12, grade: CardGrade.junk, name: 'Willow Double Junk', nameKo: '버들 쌍피', doubleJunk: true),
+
+  // ─── 보너스 쌍피 (조커) 2장 ───
+  const CardDef(id: 'bonus_1', month: 13, grade: CardGrade.junk, name: 'Bonus Double Junk 1', nameKo: '보너스 쌍피 1', doubleJunk: true, isBonus: true),
+  const CardDef(id: 'bonus_2', month: 13, grade: CardGrade.junk, name: 'Bonus Double Junk 2', nameKo: '보너스 쌍피 2', doubleJunk: true, isBonus: true),
 ];
 
 /// 총 카드 수
-const int totalCards = 48;
+const int totalCards = 50;
 
-/// 딜링 규칙
+/// 딜링 규칙 (50장: 바닥 8, 플레이어 10, 상대 10, 덱 22)
 const int handSize = 10;
 const int fieldSize = 8;
 

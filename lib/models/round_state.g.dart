@@ -44,6 +44,13 @@ _$RoundStateImpl _$$RoundStateImplFromJson(Map<String, dynamic> json) =>
       isSweep: json['isSweep'] as bool? ?? false,
       comboCount: (json['comboCount'] as num?)?.toInt() ?? 0,
       sweepCount: (json['sweepCount'] as num?)?.toInt() ?? 0,
+      playerPpeokCount: (json['playerPpeokCount'] as num?)?.toInt() ?? 0,
+      opponentPpeokCount: (json['opponentPpeokCount'] as num?)?.toInt() ?? 0,
+      lastSpecialEvent: json['lastSpecialEvent'] as String? ?? '',
+      lastStolenPiCount: (json['lastStolenPiCount'] as num?)?.toInt() ?? 0,
+      lastPpeokOwner: json['lastPpeokOwner'] as String? ?? '',
+      lastPpeokMonth: (json['lastPpeokMonth'] as num?)?.toInt() ?? 0,
+      mentalGuardUsed: json['mentalGuardUsed'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$RoundStateImplToJson(_$RoundStateImpl instance) =>
@@ -66,4 +73,11 @@ Map<String, dynamic> _$$RoundStateImplToJson(_$RoundStateImpl instance) =>
       'isSweep': instance.isSweep,
       'comboCount': instance.comboCount,
       'sweepCount': instance.sweepCount,
+      'playerPpeokCount': instance.playerPpeokCount,
+      'opponentPpeokCount': instance.opponentPpeokCount,
+      'lastSpecialEvent': instance.lastSpecialEvent,
+      'lastStolenPiCount': instance.lastStolenPiCount,
+      'lastPpeokOwner': instance.lastPpeokOwner,
+      'lastPpeokMonth': instance.lastPpeokMonth,
+      'mentalGuardUsed': instance.mentalGuardUsed,
     };

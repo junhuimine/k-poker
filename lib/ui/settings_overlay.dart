@@ -192,32 +192,67 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
   }
 
   Widget _buildVolumeRow(String label, double volume, bool muted, ValueChanged<double> onChanged, VoidCallback onMute) {
-    return Row(
+    final displayPercent = (volume * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: onMute,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: Text(muted ? '🔇' : '🔊', style: const TextStyle(fontSize: 20)),
-          ),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: onMute,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: muted ? Colors.red.withValues(alpha: 0.15) : Colors.blue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(muted ? '🔇' : (volume > 0.6 ? '🔊' : volume > 0.3 ? '🔉' : '🔈'),
+                  style: const TextStyle(fontSize: 22)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: muted ? Colors.red.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                muted ? 'OFF' : '$displayPercent%',
+                style: TextStyle(
+                  color: muted ? Colors.redAccent : Colors.blueAccent,
+                  fontSize: 13, fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        const Spacer(),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 140,
+          height: 32,
           child: SliderTheme(
             data: SliderThemeData(
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              trackHeight: 4,
-              activeTrackColor: muted ? Colors.grey : Colors.blueAccent,
-              inactiveTrackColor: Colors.white12,
-              thumbColor: muted ? Colors.grey : Colors.blueAccent,
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+              trackHeight: 6,
+              activeTrackColor: muted ? Colors.grey.shade600 : Colors.blueAccent,
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
+              thumbColor: muted ? Colors.grey : Colors.white,
+              overlayColor: Colors.blueAccent.withValues(alpha: 0.2),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
             ),
             child: Slider(
               value: volume,
-              onChanged: muted ? null : onChanged,
+              onChanged: (v) {
+                // 뮤트 상태에서 슬라이더 움직이면 자동으로 뮤트 해제
+                if (muted) onMute();
+                onChanged(v);
+              },
+              // SFX일 때 슬라이더 놓으면 테스트 사운드 재생
+              onChangeEnd: label.contains('효과음') ? (_) => _audio.cardPlay() : null,
             ),
           ),
         ),

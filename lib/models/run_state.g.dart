@@ -23,6 +23,23 @@ _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      inventorySkills: (json['inventorySkills'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toInt()),
+          ) ??
+          const {},
+      inventoryRoundItems:
+          (json['inventoryRoundItems'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(k, (e as num).toInt()),
+              ) ??
+              const {},
+      equippedRoundItemIds: (json['equippedRoundItemIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      ownedTalismanIds: (json['ownedTalismanIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       wins: (json['wins'] as num?)?.toInt() ?? 0,
       losses: (json['losses'] as num?)?.toInt() ?? 0,
       winStreak: (json['winStreak'] as num?)?.toInt() ?? 0,
@@ -45,6 +62,10 @@ Map<String, dynamic> _$$RunStateImplToJson(_$RunStateImpl instance) =>
       'opponentMoney': instance.opponentMoney,
       'activeSkillIds': instance.activeSkillIds,
       'activeTalismanIds': instance.activeTalismanIds,
+      'inventorySkills': instance.inventorySkills,
+      'inventoryRoundItems': instance.inventoryRoundItems,
+      'equippedRoundItemIds': instance.equippedRoundItemIds,
+      'ownedTalismanIds': instance.ownedTalismanIds,
       'wins': instance.wins,
       'losses': instance.losses,
       'winStreak': instance.winStreak,

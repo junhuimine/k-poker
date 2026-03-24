@@ -30,9 +30,18 @@ mixin _$RunState {
   double get opponentMoney =>
       throw _privateConstructorUsedError; // 현재 상대의 남은 자금
   List<String> get activeSkillIds =>
-      throw _privateConstructorUsedError; // 기술 ID 목록 (저장용)
+      throw _privateConstructorUsedError; // 레거시 호환용
   List<String> get activeTalismanIds =>
-      throw _privateConstructorUsedError; // 부적 ID 목록 (저장용)
+      throw _privateConstructorUsedError; // 레거시 호환용
+// 신규 상점 아이템 시스템 스키마
+  Map<String, int> get inventorySkills =>
+      throw _privateConstructorUsedError; // 인게임 액티브(즉발성) 스킬 보유량
+  Map<String, int> get inventoryRoundItems =>
+      throw _privateConstructorUsedError; // 라운드 장착(시작전 세팅) 소모품 보유량
+  List<String> get equippedRoundItemIds =>
+      throw _privateConstructorUsedError; // 이번 라운드에 장착된 소모품 ID
+  List<String> get ownedTalismanIds =>
+      throw _privateConstructorUsedError; // 영구 보유 중인 패시브 부적 ID 목록
   int get wins => throw _privateConstructorUsedError; // 총 승리
   int get losses => throw _privateConstructorUsedError; // 총 패배
   int get winStreak => throw _privateConstructorUsedError; // 연승 카운터
@@ -66,6 +75,10 @@ abstract class $RunStateCopyWith<$Res> {
       double opponentMoney,
       List<String> activeSkillIds,
       List<String> activeTalismanIds,
+      Map<String, int> inventorySkills,
+      Map<String, int> inventoryRoundItems,
+      List<String> equippedRoundItemIds,
+      List<String> ownedTalismanIds,
       int wins,
       int losses,
       int winStreak,
@@ -98,6 +111,10 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
     Object? opponentMoney = null,
     Object? activeSkillIds = null,
     Object? activeTalismanIds = null,
+    Object? inventorySkills = null,
+    Object? inventoryRoundItems = null,
+    Object? equippedRoundItemIds = null,
+    Object? ownedTalismanIds = null,
     Object? wins = null,
     Object? losses = null,
     Object? winStreak = null,
@@ -138,6 +155,22 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
       activeTalismanIds: null == activeTalismanIds
           ? _value.activeTalismanIds
           : activeTalismanIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      inventorySkills: null == inventorySkills
+          ? _value.inventorySkills
+          : inventorySkills // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
+      inventoryRoundItems: null == inventoryRoundItems
+          ? _value.inventoryRoundItems
+          : inventoryRoundItems // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
+      equippedRoundItemIds: null == equippedRoundItemIds
+          ? _value.equippedRoundItemIds
+          : equippedRoundItemIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      ownedTalismanIds: null == ownedTalismanIds
+          ? _value.ownedTalismanIds
+          : ownedTalismanIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
       wins: null == wins
           ? _value.wins
@@ -188,6 +221,10 @@ abstract class _$$RunStateImplCopyWith<$Res>
       double opponentMoney,
       List<String> activeSkillIds,
       List<String> activeTalismanIds,
+      Map<String, int> inventorySkills,
+      Map<String, int> inventoryRoundItems,
+      List<String> equippedRoundItemIds,
+      List<String> ownedTalismanIds,
       int wins,
       int losses,
       int winStreak,
@@ -218,6 +255,10 @@ class __$$RunStateImplCopyWithImpl<$Res>
     Object? opponentMoney = null,
     Object? activeSkillIds = null,
     Object? activeTalismanIds = null,
+    Object? inventorySkills = null,
+    Object? inventoryRoundItems = null,
+    Object? equippedRoundItemIds = null,
+    Object? ownedTalismanIds = null,
     Object? wins = null,
     Object? losses = null,
     Object? winStreak = null,
@@ -258,6 +299,22 @@ class __$$RunStateImplCopyWithImpl<$Res>
       activeTalismanIds: null == activeTalismanIds
           ? _value._activeTalismanIds
           : activeTalismanIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      inventorySkills: null == inventorySkills
+          ? _value._inventorySkills
+          : inventorySkills // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
+      inventoryRoundItems: null == inventoryRoundItems
+          ? _value._inventoryRoundItems
+          : inventoryRoundItems // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>,
+      equippedRoundItemIds: null == equippedRoundItemIds
+          ? _value._equippedRoundItemIds
+          : equippedRoundItemIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      ownedTalismanIds: null == ownedTalismanIds
+          ? _value._ownedTalismanIds
+          : ownedTalismanIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
       wins: null == wins
           ? _value.wins
@@ -303,6 +360,10 @@ class _$RunStateImpl extends _RunState {
       this.opponentMoney = 0,
       final List<String> activeSkillIds = const [],
       final List<String> activeTalismanIds = const [],
+      final Map<String, int> inventorySkills = const {},
+      final Map<String, int> inventoryRoundItems = const {},
+      final List<String> equippedRoundItemIds = const [],
+      final List<String> ownedTalismanIds = const [],
       this.wins = 0,
       this.losses = 0,
       this.winStreak = 0,
@@ -312,6 +373,10 @@ class _$RunStateImpl extends _RunState {
       this.currencyLocale = 'ko'})
       : _activeSkillIds = activeSkillIds,
         _activeTalismanIds = activeTalismanIds,
+        _inventorySkills = inventorySkills,
+        _inventoryRoundItems = inventoryRoundItems,
+        _equippedRoundItemIds = equippedRoundItemIds,
+        _ownedTalismanIds = ownedTalismanIds,
         _moneyHistory = moneyHistory,
         super._();
 
@@ -352,9 +417,9 @@ class _$RunStateImpl extends _RunState {
     return EqualUnmodifiableListView(_activeSkillIds);
   }
 
-// 기술 ID 목록 (저장용)
+// 레거시 호환용
   final List<String> _activeTalismanIds;
-// 기술 ID 목록 (저장용)
+// 레거시 호환용
   @override
   @JsonKey()
   List<String> get activeTalismanIds {
@@ -364,7 +429,56 @@ class _$RunStateImpl extends _RunState {
     return EqualUnmodifiableListView(_activeTalismanIds);
   }
 
-// 부적 ID 목록 (저장용)
+// 레거시 호환용
+// 신규 상점 아이템 시스템 스키마
+  final Map<String, int> _inventorySkills;
+// 레거시 호환용
+// 신규 상점 아이템 시스템 스키마
+  @override
+  @JsonKey()
+  Map<String, int> get inventorySkills {
+    if (_inventorySkills is EqualUnmodifiableMapView) return _inventorySkills;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_inventorySkills);
+  }
+
+// 인게임 액티브(즉발성) 스킬 보유량
+  final Map<String, int> _inventoryRoundItems;
+// 인게임 액티브(즉발성) 스킬 보유량
+  @override
+  @JsonKey()
+  Map<String, int> get inventoryRoundItems {
+    if (_inventoryRoundItems is EqualUnmodifiableMapView)
+      return _inventoryRoundItems;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_inventoryRoundItems);
+  }
+
+// 라운드 장착(시작전 세팅) 소모품 보유량
+  final List<String> _equippedRoundItemIds;
+// 라운드 장착(시작전 세팅) 소모품 보유량
+  @override
+  @JsonKey()
+  List<String> get equippedRoundItemIds {
+    if (_equippedRoundItemIds is EqualUnmodifiableListView)
+      return _equippedRoundItemIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_equippedRoundItemIds);
+  }
+
+// 이번 라운드에 장착된 소모품 ID
+  final List<String> _ownedTalismanIds;
+// 이번 라운드에 장착된 소모품 ID
+  @override
+  @JsonKey()
+  List<String> get ownedTalismanIds {
+    if (_ownedTalismanIds is EqualUnmodifiableListView)
+      return _ownedTalismanIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_ownedTalismanIds);
+  }
+
+// 영구 보유 중인 패시브 부적 ID 목록
   @override
   @JsonKey()
   final int wins;
@@ -402,7 +516,7 @@ class _$RunStateImpl extends _RunState {
 
   @override
   String toString() {
-    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, currentOpponentIndex: $currentOpponentIndex, opponentMoney: $opponentMoney, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale)';
+    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, currentOpponentIndex: $currentOpponentIndex, opponentMoney: $opponentMoney, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, inventorySkills: $inventorySkills, inventoryRoundItems: $inventoryRoundItems, equippedRoundItemIds: $equippedRoundItemIds, ownedTalismanIds: $ownedTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale)';
   }
 
   @override
@@ -423,6 +537,14 @@ class _$RunStateImpl extends _RunState {
                 .equals(other._activeSkillIds, _activeSkillIds) &&
             const DeepCollectionEquality()
                 .equals(other._activeTalismanIds, _activeTalismanIds) &&
+            const DeepCollectionEquality()
+                .equals(other._inventorySkills, _inventorySkills) &&
+            const DeepCollectionEquality()
+                .equals(other._inventoryRoundItems, _inventoryRoundItems) &&
+            const DeepCollectionEquality()
+                .equals(other._equippedRoundItemIds, _equippedRoundItemIds) &&
+            const DeepCollectionEquality()
+                .equals(other._ownedTalismanIds, _ownedTalismanIds) &&
             (identical(other.wins, wins) || other.wins == wins) &&
             (identical(other.losses, losses) || other.losses == losses) &&
             (identical(other.winStreak, winStreak) ||
@@ -439,23 +561,28 @@ class _$RunStateImpl extends _RunState {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      stage,
-      gold,
-      money,
-      stageEarned,
-      currentOpponentIndex,
-      opponentMoney,
-      const DeepCollectionEquality().hash(_activeSkillIds),
-      const DeepCollectionEquality().hash(_activeTalismanIds),
-      wins,
-      losses,
-      winStreak,
-      highestScore,
-      highestMoney,
-      const DeepCollectionEquality().hash(_moneyHistory),
-      currencyLocale);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        stage,
+        gold,
+        money,
+        stageEarned,
+        currentOpponentIndex,
+        opponentMoney,
+        const DeepCollectionEquality().hash(_activeSkillIds),
+        const DeepCollectionEquality().hash(_activeTalismanIds),
+        const DeepCollectionEquality().hash(_inventorySkills),
+        const DeepCollectionEquality().hash(_inventoryRoundItems),
+        const DeepCollectionEquality().hash(_equippedRoundItemIds),
+        const DeepCollectionEquality().hash(_ownedTalismanIds),
+        wins,
+        losses,
+        winStreak,
+        highestScore,
+        highestMoney,
+        const DeepCollectionEquality().hash(_moneyHistory),
+        currencyLocale
+      ]);
 
   /// Create a copy of RunState
   /// with the given fields replaced by the non-null parameter values.
@@ -483,6 +610,10 @@ abstract class _RunState extends RunState {
       final double opponentMoney,
       final List<String> activeSkillIds,
       final List<String> activeTalismanIds,
+      final Map<String, int> inventorySkills,
+      final Map<String, int> inventoryRoundItems,
+      final List<String> equippedRoundItemIds,
+      final List<String> ownedTalismanIds,
       final int wins,
       final int losses,
       final int winStreak,
@@ -508,9 +639,18 @@ abstract class _RunState extends RunState {
   @override
   double get opponentMoney; // 현재 상대의 남은 자금
   @override
-  List<String> get activeSkillIds; // 기술 ID 목록 (저장용)
+  List<String> get activeSkillIds; // 레거시 호환용
   @override
-  List<String> get activeTalismanIds; // 부적 ID 목록 (저장용)
+  List<String> get activeTalismanIds; // 레거시 호환용
+// 신규 상점 아이템 시스템 스키마
+  @override
+  Map<String, int> get inventorySkills; // 인게임 액티브(즉발성) 스킬 보유량
+  @override
+  Map<String, int> get inventoryRoundItems; // 라운드 장착(시작전 세팅) 소모품 보유량
+  @override
+  List<String> get equippedRoundItemIds; // 이번 라운드에 장착된 소모품 ID
+  @override
+  List<String> get ownedTalismanIds; // 영구 보유 중인 패시브 부적 ID 목록
   @override
   int get wins; // 총 승리
   @override

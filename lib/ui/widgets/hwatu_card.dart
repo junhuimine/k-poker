@@ -34,6 +34,8 @@ String getCardFeatureLabel(CardDef def) {
           return '띠';
       }
     case CardGrade.junk:
+      if (def.isBonus) return '쌍피';
+      if (def.doubleJunk) return '쌍피';
       return '피';
   }
 }
@@ -85,8 +87,9 @@ class HwatuCard extends StatefulWidget {
   State<HwatuCard> createState() => _HwatuCardState();
 }
 
-class _HwatuCardState extends State<HwatuCard> {
+class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMixin {
   bool _isHovered = false;
+  bool _isPressed = false;
 
   Color get _borderColor => gradeBorderColors[widget.card.def.grade] ?? Colors.grey;
 
@@ -97,14 +100,20 @@ class _HwatuCardState extends State<HwatuCard> {
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onExit: (_) => setState(() { _isHovered = false; _isPressed = false; }),
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap?.call();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutBack,
           transform: Matrix4.identity()
-            ..setTranslationRaw(0.0, _isHovered ? -12.0 : (widget.isSelected ? -8.0 : 0.0), 0.0),
+            ..setTranslationRaw(0.0, _isPressed ? -4.0 : (_isHovered ? -15.0 : (widget.isSelected ? -10.0 : 0.0)), 0.0)
+            ..scale(_isPressed ? 0.94 : (_isHovered ? 1.05 : 1.0)),
           width: width,
           height: height,
           decoration: BoxDecoration(
@@ -208,7 +217,7 @@ class _HwatuCardState extends State<HwatuCard> {
           errorBuilder: (_, __, ___) => Container(
             color: Colors.grey[800],
             child: Center(
-              child: Text('${widget.card.def.month}월', style: const TextStyle(color: Colors.white, fontSize: 12)),
+              child: Text(widget.card.def.isBonus ? '쌍피' : '${widget.card.def.month}월', style: const TextStyle(color: Colors.white, fontSize: 12)),
             ),
           ),
         ),
@@ -218,17 +227,17 @@ class _HwatuCardState extends State<HwatuCard> {
           left: 3,
           top: 3,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            padding: EdgeInsets.symmetric(horizontal: width < 50 ? 2 : 5, vertical: width < 50 ? 1 : 2),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.75),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: _borderColor.withValues(alpha: 0.6), width: 1),
             ),
             child: Text(
-              '${widget.card.def.month}월',
+              widget.card.def.isBonus ? '쌍피' : '${widget.card.def.month}월',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: width * 0.14,
+                fontSize: (width * 0.18).clamp(10.0, 18.0),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -257,7 +266,7 @@ class _HwatuCardState extends State<HwatuCard> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: width * 0.14,
+                fontSize: (width * 0.18).clamp(10.0, 18.0),
                 fontWeight: FontWeight.bold,
                 shadows: const [Shadow(color: Colors.black, blurRadius: 4)],
               ),

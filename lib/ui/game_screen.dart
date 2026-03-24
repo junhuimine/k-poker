@@ -10,13 +10,18 @@ import '../state/card_skin_provider.dart';
 import '../engine/game_engine.dart';
 import '../state/audio_manager.dart';
 import '../i18n/locale_provider.dart';
+import '../engine/card_matcher.dart';
 import '../models/card_def.dart';
 import '../data/stage_config.dart';
+import '../data/item_library.dart';
 import 'widgets/hwatu_card.dart';
 import 'widgets/card_animation_overlay.dart';
 import 'settings_overlay.dart';
 import 'tutorial_overlay.dart';
 import 'shop_screen.dart';
+import 'widgets/side_panel.dart';
+import 'widgets/game_overlays.dart';
+import 'widgets/special_event_effect.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -40,6 +45,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
   // 카드 선택 상태 (같은 월 2장 이상일 때)
   CardInstance? _pendingPlayedCard;
   List<CardInstance> _selectableFieldCards = [];
+
+  // 필드 카드의 동적 렌더링 위치(RenderBox) 추적용 키 맵
+  final Map<CardInstance, GlobalKey> _fieldCardKeys = {};
 
   // 설정/튜토리얼 오버레이
   bool _showSettings = false;
@@ -233,7 +241,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     children: [
                       // 상단 영역: 상대 정보 + 뒷면 핸드 + 상대 획득 카드
                       if (isGameStarted) _buildTopBar(gameState, strings),
-                      if (isGameStarted) _buildOpponentInfoBar(gameState),
                       if (isGameStarted) _buildOpponentHand(gameState),
                       if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
                       
@@ -248,7 +255,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ),
                 ),
                 if (isGameStarted && _showSidePanel)
-                  _buildSidePanel(gameState, events),
+                  GameSidePanel(state: gameState, events: events),
               ],
             ),
           ),
@@ -263,25 +270,61 @@ class _GameScreenState extends ConsumerState<GameScreen>
             ),
 
           if (!isGameStarted && !gameState.isFinished)
-            _buildStartOverlay(strings),
+            GameStartOverlay(
+              strings: strings,
+              onStart: _startGameWithDeal,
+              onSettings: () => setState(() => _showSettings = true),
+              onTutorial: () => setState(() => _showTutorial = true),
+            ),
 
           // 같은 월 2장 이상 선택 오버레이
           if (_selectableFieldCards.isNotEmpty)
-            _buildCardSelectOverlay(),
+            CardSelectOverlay(
+               selectableFieldCards: _selectableFieldCards,
+               onSelect: (CardInstance fc) {
+                 if (_pendingPlayedCard != null) {
+                   _executePlay(_pendingPlayedCard!, targetFieldCard: fc);
+                 }
+               },
+               onCancel: () {
+                 setState(() {
+                   _pendingPlayedCard = null;
+                   _selectableFieldCards = [];
+                 });
+               },
+            ),
 
           if (isGoStopPending)
-            _buildGoStopOverlay(strings),
+            GoStopOverlay(
+              strings: strings,
+              onGo: () async => ref.read(gameStateProvider.notifier).declareGo(),
+              onStop: () => ref.read(gameStateProvider.notifier).declareStop(),
+            ),
 
           // AI 고/스톱 화면 중앙 애니메이션
           if (aiGoStopAnnounce != null)
-            _buildAiGoStopAnimation(aiGoStopAnnounce),
+            AiGoStopAnimation(announce: aiGoStopAnnounce),
 
           // 족보 달성 알림 (#4)
           if (ref.watch(yakuAnnounceProvider) != null)
-            _buildYakuAnnounce(ref.watch(yakuAnnounceProvider)!),
+            SpecialEventEffect(
+              key: ValueKey('effect_${ref.watch(yakuAnnounceProvider)}'),
+              eventType: ref.watch(yakuAnnounceProvider)!,
+            ),
 
           if (gameState.isFinished)
-            _buildRoundEndOverlay(gameState, strings),
+            RoundEndOverlay(
+              state: gameState,
+              strings: strings,
+              screenW: _screenW,
+              scale: _scale,
+              onNextRound: () => _startGameWithDeal(),
+              onShop: () => setState(() => _showShop = true),
+              onRestart: () async {
+                await ref.read(runStateNotifierProvider.notifier).restartRun();
+                _startGameWithDeal();
+              },
+            ),
 
           // 설정 오버레이
           if (_showSettings)
@@ -290,6 +333,23 @@ class _GameScreenState extends ConsumerState<GameScreen>
           // 상점 오버레이 (#5)
           if (_showShop)
             ShopScreen(onClose: () => setState(() => _showShop = false)),
+
+          // ── 액티브 스킬 플로팅 버튼 ──
+          if (!gameState.isFinished &&
+              gameState.currentTurn == 'player' &&
+              !isGoStopPending &&
+              ref.watch(runStateNotifierProvider).inventorySkills.values.any((c) => c > 0))
+            Positioned(
+              right: 16,
+              bottom: 150, // 플레이어 핸드 우측 상단
+              child: FloatingActionButton.extended(
+                heroTag: 'use_skill_fab',
+                backgroundColor: Colors.blueAccent.withValues(alpha: 0.8),
+                onPressed: () => _showSkillSelectDialog(context, ref),
+                icon: const Icon(Icons.flash_on, color: Colors.amber),
+                label: const Text('스킬발동', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
 
           // 튜토리얼 오버레이
           if (_showTutorial)
@@ -341,158 +401,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   // ─── 시작 오버레이 (프리미엄 디자인) ─────────────
-  Widget _buildStartOverlay(dynamic strings) {
-    const brightIds = ['m01_bright', 'm03_bright', 'm08_bright', 'm11_bright', 'm12_bright'];
-    const fanAngle = 0.18;
-    final run = ref.watch(runStateNotifierProvider);
-    final stageConfig = getStageConfig(run.stage);
-    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
-    final currency = getCurrencyForLocale(run.currencyLocale);
-    
-    // 상대 자금이 0이면 표시용 값은 즉시 계산 (상태 변경은 didChangeDependencies에서)
-    var displayOpponentMoney = run.opponentMoney;
-    if (displayOpponentMoney <= 0) {
-      displayOpponentMoney = getOpponentFund(run.stage, run.currentOpponentIndex, currency.pointValue);
-    }
-    
-    return Stack(
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF0D0D0D), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0D0D0D)],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 5광 부채살 + 글로우
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.15), blurRadius: 60, spreadRadius: 20)],
-                  ),
-                  child: SizedBox(
-                    width: 320, height: 180,
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        for (var i = 0; i < brightIds.length; i++)
-                          Positioned(
-                            bottom: 0,
-                            child: Transform.rotate(
-                              angle: (i - 2) * fanAngle,
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                width: 80, height: 120,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
-                                  boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.25), blurRadius: 12)],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Image.asset(
-                                    'assets/images/cards/${brightIds[i]}.png',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: const Color(0xFF2A1A3A),
-                                      child: Center(child: Text('${i + 1}광', style: const TextStyle(color: Colors.white))),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700)],
-                  ).createShader(bounds),
-                  child: const Text(
-                    'K-Poker',
-                    style: TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, letterSpacing: 6),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text('화투 타짜의 도박', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16, letterSpacing: 4, fontWeight: FontWeight.w300)),
-                const SizedBox(height: 28),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text('${stageConfig.emoji} ${stageConfig.nameKo}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      Text('${ai.emoji} ${ai.nameKo}', 
-                        style: const TextStyle(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('상대 자금: ${currency.formatAmount(displayOpponentMoney)}',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFA500)]),
-                    boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 4))],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _startGameWithDeal,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 2),
-                    ),
-                    child: Text(strings.startGame),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text('💰 ${currency.formatAmount(run.money)}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          top: 16, right: 16,
-          child: SafeArea(
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => setState(() => _showTutorial = true),
-                  icon: const Text('❓', style: TextStyle(fontSize: 20)),
-                  tooltip: '도움말',
-                ),
-                IconButton(
-                  onPressed: () => setState(() => _showSettings = true),
-                  icon: const Text('⚙️', style: TextStyle(fontSize: 20)),
-                  tooltip: '설정',
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   // ─── 상단 바 (왼쪽: AI 캐릭터, 오른쪽: 이번 판 점수) ─────────
   Widget _buildTopBar(dynamic state, dynamic strings) {
@@ -609,114 +518,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   /// 상대 캐릭터 정보 바 (이름 + 점수 + 말풍선 + 체력)
-  Widget _buildOpponentInfoBar(dynamic state) {
-    final run = ref.watch(runStateNotifierProvider);
-    final ai = getAiForStage(run.stage, run.currentOpponentIndex);
-    final events = ref.watch(gameEventsProvider);
-    final currency = getCurrencyForLocale(run.currencyLocale);
-    final stageConfig = getStageConfig(run.stage);
-    
-    // 상대 체력 계산 (목표 금액 - 내가 달성한 금액)
-    final stake = stageConfig.getStake(currency.pointValue);
-    final currentEarned = run.stageEarned;
-    final oppMoneyLeft = (stake - currentEarned).clamp(0.0, double.infinity);
-    final hpRatio = (oppMoneyLeft / stake).clamp(0.0, 1.0);
-    
-    // 최근 AI 대사 찾기
-    String? latestDialogue;
-    for (int i = events.length - 1; i >= 0 && i > events.length - 4; i--) {
-      if (events[i].type == 'ai_talk') {
-        latestDialogue = events[i].message.replaceAll(RegExp(r'^💬 .{1,2} '), '');
-        break;
-      }
-    }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              // AI 캐릭터 이모지 + 이름
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(ai.emoji, style: const TextStyle(fontSize: 18)),
-                    const SizedBox(width: 6),
-                    Text(ai.nameKo, style: const TextStyle(
-                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 상대 점수
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  '${state.opponentScore}점',
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(width: 10),
-              // 남아있는 적 판돈 (HP)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('남은 자금: ${currency.formatAmount(oppMoneyLeft)}', 
-                      style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                    const SizedBox(height: 2),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: hpRatio,
-                        backgroundColor: Colors.red.withValues(alpha: 0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          hpRatio > 0.5 ? Colors.redAccent : (hpRatio > 0.2 ? Colors.orange : Colors.yellow)
-                        ),
-                        minHeight: 6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // AI 말풍선 (아래로 분리)
-          if (latestDialogue != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                ),
-                child: Text(
-                  latestDialogue,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   // ─── 상대 핸드 (카드 뒷면) ─────────
   Widget _buildOpponentHand(dynamic state) {
@@ -900,7 +702,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
               spacing: 5, runSpacing: 5, alignment: WrapAlignment.center,
               children: [
                 for (var i = 0; i < count && i < state.field.length; i++)
-                  HwatuCard(card: state.field[i], size: _fieldCardSize, isField: true),
+                  HwatuCard(
+                    key: _fieldCardKeys[state.field[i]] ??= GlobalKey(),
+                    card: state.field[i],
+                    size: _fieldCardSize,
+                    isField: true,
+                  ),
               ],
             ),
     );
@@ -1070,15 +877,30 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   /// 순차 애니메이션 시퀀스로 카드 플레이
-  void _executePlay(CardInstance card) async {
+  void _executePlay(CardInstance card, {CardInstance? targetFieldCard}) async {
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
     final random = Random();
     final state = ref.read(gameStateProvider);
 
-    // 매칭 카드 위치 계산 (필드 중앙 영역)
-    final fieldCenterX = screenW * 0.45;
-    final fieldCenterY = screenH * 0.38;
+    // 매칭 카드 위치 계산 (기본 필드 중앙)
+    double targetX = screenW * 0.45;
+    double targetY = screenH * 0.38;
+
+    // 타겟 카드 실제 화면 위치(RenderBox) 추적
+    final matchable = findMatchableCards(card, state.field);
+    if (matchable.isNotEmpty) {
+      final actualTarget = targetFieldCard ?? matchable.first;
+      final key = _fieldCardKeys[actualTarget];
+      if (key != null && key.currentContext != null) {
+        final box = key.currentContext!.findRenderObject() as RenderBox?;
+        if (box != null) {
+          final position = box.localToGlobal(Offset.zero);
+          targetX = position.dx;
+          targetY = position.dy;
+        }
+      }
+    }
 
     setState(() {
       _pendingPlayedCard = null;
@@ -1091,7 +913,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
         FlyingCard(
           card: card,
           from: Offset(screenW * 0.35, screenH - 140),
-          to: Offset(fieldCenterX, fieldCenterY),
+          to: Offset(targetX, targetY),
           startAngle: -0.15 + random.nextDouble() * 0.1,
           endAngle: 0.12 + random.nextDouble() * 0.08, // 기울어져 착지
           duration: const Duration(milliseconds: 350),
@@ -1104,7 +926,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     if (!mounted) return;
 
     // 게임 로직 실행
-    ref.read(gameStateProvider.notifier).playCard(card);
+    ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
 
     await Future.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
@@ -1117,7 +939,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           FlyingCard(
             card: updatedState.deck.isNotEmpty ? updatedState.deck.first : card,
             from: const Offset(50, 280),  // 덱 위치
-            to: Offset(fieldCenterX + 40, fieldCenterY + 10),
+            to: Offset(targetX + 40, targetY + 10),
             startAngle: 0.1,
             endAngle: -0.1 + random.nextDouble() * 0.08,
             duration: const Duration(milliseconds: 350),
@@ -1141,7 +963,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           _flyingCards = [
             FlyingCard(
               card: afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i],
-              from: Offset(fieldCenterX + (i * 15), fieldCenterY),
+              from: Offset(targetX + (i * 15), targetY),
               to: Offset(screenW * 0.3 + (i * 25), screenH - 200), // 내 획득 영역
               startAngle: 0.05,
               endAngle: 0.0,
@@ -1190,8 +1012,25 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
 
     final prevState = ref.read(gameStateProvider);
-    final fieldCenterX = screenW * 0.45;
-    final fieldCenterY = screenH * 0.38;
+    
+    // 매칭 카드 위치 계산 (기본 필드 중앙)
+    double targetX = screenW * 0.45;
+    double targetY = screenH * 0.38;
+
+    // AI 카드 타겟의 실제 화면 위치 추적
+    final matchable = findMatchableCards(aiCard, prevState.field);
+    if (matchable.isNotEmpty) {
+      final actualTarget = matchable.first; // AI는 자동 타겟(가장 앞의 같은 월)을 사용
+      final key = _fieldCardKeys[actualTarget];
+      if (key != null && key.currentContext != null) {
+        final box = key.currentContext!.findRenderObject() as RenderBox?;
+        if (box != null) {
+          final position = box.localToGlobal(Offset.zero);
+          targetX = position.dx;
+          targetY = position.dy;
+        }
+      }
+    }
 
     // ── STEP 1: AI 카드 → 필드로 던짐 ──
     setState(() {
@@ -1199,7 +1038,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
         FlyingCard(
           card: aiCard,
           from: Offset(screenW * 0.45, 30),  // 상대 핸드 영역 (상단)
-          to: Offset(fieldCenterX, fieldCenterY),
+          to: Offset(targetX, targetY),
           startAngle: 0.1 + random.nextDouble() * 0.1,
           endAngle: -0.08 + random.nextDouble() * 0.06,
           duration: const Duration(milliseconds: 400),
@@ -1225,7 +1064,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           FlyingCard(
             card: updatedState.deck.isNotEmpty ? updatedState.deck.first : aiCard,
             from: const Offset(50, 280),
-            to: Offset(fieldCenterX + 40, fieldCenterY + 10),
+            to: Offset(targetX + 40, targetY + 10),
             startAngle: 0.1,
             endAngle: -0.1 + random.nextDouble() * 0.08,
             duration: const Duration(milliseconds: 350),
@@ -1249,7 +1088,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           _flyingCards = [
             FlyingCard(
               card: afterState.opponentCaptured[afterState.opponentCaptured.length - newCaptured + i],
-              from: Offset(fieldCenterX + (i * 15), fieldCenterY),
+              from: Offset(targetX + (i * 15), targetY),
               to: Offset(screenW * 0.3 + (i * 25), 90),  // 상대 획득 영역 (상단)
               startAngle: 0.05,
               endAngle: 0.0,
@@ -1362,642 +1201,101 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   // ─── 사이드 패널 ─────────────
-  Widget _buildSidePanel(dynamic state, List<GameEvent> events) {
-    final run = ref.watch(runStateNotifierProvider);
-    final currency = getCurrencyForLocale(run.currencyLocale);
-
-    return Container(
-      width: 220,
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.6),
-        border: Border(left: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-      ),
-      child: Column(
-        children: [
-          // 내 정보 요약 블록
-          Container(
-            padding: const EdgeInsets.all(12),
-            color: Colors.blueAccent.withValues(alpha: 0.1),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('👤 My Info', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
-                    if (run.winStreak > 0)
-                      Text('🔥${run.winStreak}연승', style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text('💰 ${currency.formatAmount(run.money)}', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('현재 점수', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
-                    Text('${state.playerScore}점 × ${state.multiplier.toStringAsFixed(1)}배', style: const TextStyle(color: Colors.cyanAccent, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: Color(0xFF30363D), height: 1),
-          // 족보 달성 표시
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: _buildYakuProgress(state),
-          ),
-          Divider(color: Colors.white.withValues(alpha: 0.1)),
-          Expanded(
-            child: ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(6),
-              itemCount: events.length,
-              itemBuilder: (_, i) {
-                final event = events[events.length - 1 - i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _eventColor(event.type).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      event.message,
-                      style: TextStyle(color: _eventColor(event.type), fontSize: 11),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
 
-  Color _eventColor(String type) {
-    switch (type) {
-      case 'match': return Colors.greenAccent;
-      case 'miss': return Colors.grey;
-      case 'go': return Colors.orangeAccent;
-      case 'stop': return Colors.redAccent;
-      case 'ai_play': return Colors.cyanAccent;
-      case 'round_end': return Colors.yellowAccent;
-      default: return Colors.white70;
-    }
-  }
+
+
 
   // ─── 고/스톱 오버레이 ─────────
 
   // ─── 카드 선택 오버레이 (같은 월 2장) ─────
-  Widget _buildCardSelectOverlay() {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.7),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A2E),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.cyan.withValues(alpha: 0.6), width: 2),
-            boxShadow: [BoxShadow(color: Colors.cyan.withValues(alpha: 0.3), blurRadius: 20)],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🎯 먹을 카드를 선택하세요', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('같은 월 카드가 ${_selectableFieldCards.length}장 있습니다', style: const TextStyle(color: Colors.white54, fontSize: 14)),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (var fc in _selectableFieldCards)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          // 선택된 카드로 플레이
-                          if (_pendingPlayedCard != null) {
-                            _executePlay(_pendingPlayedCard!);
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.cyan, width: 2),
-                            boxShadow: [BoxShadow(color: Colors.cyan.withValues(alpha: 0.4), blurRadius: 12)],
-                          ),
-                          child: HwatuCard(card: fc, size: 90),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() {
-                  _pendingPlayedCard = null;
-                  _selectableFieldCards = [];
-                }),
-                child: const Text('취소', style: TextStyle(color: Colors.white54, fontSize: 14)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   /// #4 족보 달성 알림 (화면 중앙 황금 플래시)
-  Widget _buildYakuAnnounce(String yaku) {
-    // 족보별 이모지 매핑
-    const yakuEmoji = {
-      '오광': '🌟', '사광': '⭐', '삼광': '✨', '비삼광': '🌧️',
-      '홍단': '🔴', '청단': '🔵', '초단': '🟢',
-      '고도리': '🐦', '오끗': '🦌',
-      '쓸': '🌊',
-    };
 
-    final emoji = yakuEmoji[yaku] ?? '🎴';
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.elasticOut,
-      builder: (context, value, child) {
-        return IgnorePointer(
-          child: Center(
-            child: Transform.scale(
-              scale: value,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0x99000000), Color(0xBB1A1A2E)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFFFD700), width: 3),
-                  boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.6), blurRadius: 40, spreadRadius: 8)],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 50)),
-                    const SizedBox(height: 8),
-                    Text(yaku, style: const TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 36,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 6,
-                      shadows: [
-                        Shadow(color: Color(0xFFFFD700), blurRadius: 20),
-                        Shadow(color: Colors.black, blurRadius: 6),
-                      ],
-                    )),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   /// #7 족보 진행도 (사이드 패널 하단용)
-  Widget _buildYakuProgress(dynamic state) {
-    final captured = state.playerCaptured as List<CardInstance>;
-    final brights = captured.where((c) => c.def.grade == CardGrade.bright).length;
-    final animals = captured.where((c) => c.def.grade == CardGrade.animal).length;
-    final redRibbons = captured.where((c) => c.def.ribbonType == RibbonType.red).length;
-    final blueRibbons = captured.where((c) => c.def.ribbonType == RibbonType.blue).length;
-    final grassRibbons = captured.where((c) => c.def.ribbonType == RibbonType.grass).length;
-    final junks = captured.where((c) => c.def.grade == CardGrade.junk).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('📊 족보', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        _yakuBar('⭐ 광', brights, 3, Colors.amber),
-        _yakuBar('🔴 홍단', redRibbons, 3, Colors.red),
-        _yakuBar('🔵 청단', blueRibbons, 3, Colors.blue),
-        _yakuBar('🟢 초단', grassRibbons, 3, Colors.green),
-        _yakuBar('🦌 열끗', animals, 5, Colors.cyan),
-        _yakuBar('🃏 피', junks, 10, Colors.grey),
-      ],
-    );
-  }
 
-  Widget _yakuBar(String name, int current, int target, Color color) {
-    final ratio = (current / target).clamp(0.0, 1.0);
-    final isComplete = current >= target;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
-      child: Row(
-        children: [
-          SizedBox(width: 60, child: Text(name, style: TextStyle(
-            color: isComplete ? color : Colors.white54, fontSize: 10,
-            fontWeight: isComplete ? FontWeight.bold : FontWeight.normal,
-          ))),
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: ratio,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isComplete ? color : color.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 30, child: Text('$current/$target', textAlign: TextAlign.right,
-            style: TextStyle(color: isComplete ? color : Colors.white38, fontSize: 9))),
-        ],
-      ),
-    );
-  }
+
 
   // ─── 고/스톱 오버레이 (기존) ─────────
   /// AI 고/스톱 화면 중앙 빨간 글자 애니메이션
-  Widget _buildAiGoStopAnimation(String announce) {
-    final isStop = announce == 'stop';
-    final goCount = isStop ? 0 : int.tryParse(announce.replaceAll('go_', '')) ?? 1;
 
-    final emoji = isStop ? '🛑' : '🔥';
-    final text = isStop ? '스톱!' : '고! ×$goCount';
-    final color = isStop ? Colors.white : const Color(0xFFFF2200);
-    final bgColor = isStop
-        ? Colors.blueGrey.withValues(alpha: 0.8)
-        : Colors.red.withValues(alpha: 0.3);
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.elasticOut,
-      builder: (context, value, child) {
-        return Container(
-          color: Colors.black.withValues(alpha: 0.4 * value),
-          child: Center(
-            child: Transform.scale(
-              scale: value,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isStop ? Colors.white : const Color(0xFFFF4500),
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isStop ? Colors.white : Colors.red).withValues(alpha: 0.5),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('🤖 AI', style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    )),
-                    const SizedBox(height: 8),
-                    Text(emoji, style: const TextStyle(fontSize: 60)),
-                    const SizedBox(height: 12),
-                    Text(text, style: TextStyle(
-                      color: color,
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4,
-                      shadows: [
-                        Shadow(color: color.withValues(alpha: 0.8), blurRadius: 20),
-                        Shadow(color: color.withValues(alpha: 0.5), blurRadius: 40),
-                        const Shadow(color: Colors.black, blurRadius: 6),
-                      ],
-                    )),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
-  Widget _buildGoStopOverlay(dynamic strings) {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.7),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A2E),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFFFD700), width: 2),
-            boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 30, spreadRadius: 5)],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🔥', style: TextStyle(fontSize: 60)),
-              const SizedBox(height: 16),
-              const Text('3점 달성!', style: TextStyle(color: Color(0xFFFFD700), fontSize: 28, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('고를 외치면 배율이 2배!\n하지만 지면 2배로 잃는다...', textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 14)),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => ref.read(gameStateProvider.notifier).declareGo(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Text(strings.goDecision, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: () => ref.read(gameStateProvider.notifier).declareStop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade700,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Text(strings.stopDecision, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // ─── 라운드 종료 오버레이 (개선) ──────
-  Widget _buildRoundEndOverlay(dynamic state, dynamic strings) {
-    final isWin = state.playerScore > state.opponentScore;
-    final run = ref.watch(runStateNotifierProvider);
-    final currency = getCurrencyForLocale(run.currencyLocale);
-    final isBankrupt = !isWin && ref.read(runStateNotifierProvider.notifier).isBankrupt;
-    
-    // 족보 분석
-    final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
-    final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
-    final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
-    final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk).length;
 
-    // 수입 계산 (game_providers._handleRoundEnd와 동일)
-    // 공식: 점수(baseChips) × 판돈 단위(pointValue) × 배율(multiplier)
-    final baseScore = state.baseChips;
-    final mult = state.multiplier;
-    final earnings = isWin
-        ? baseScore * currency.pointValue * mult
-        : -(state.opponentScore > 0 ? state.opponentScore : 1) * currency.pointValue;
 
-    // ── 파산 시 게임오버 화면 ──
-    if (isBankrupt) {
-      return Container(
-        color: Colors.black.withValues(alpha: 0.92),
-        child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: _screenW * 0.85 > 380 ? 380 : _screenW * 0.85),
-            padding: EdgeInsets.all(_scale > 0.7 ? 28 : 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF161B22),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.redAccent, width: 3),
-              boxShadow: [BoxShadow(color: Colors.red.withValues(alpha: 0.4), blurRadius: 40, spreadRadius: 5)],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('💸', style: TextStyle(fontSize: 64)),
-                const SizedBox(height: 12),
-                const Text('파산!', style: TextStyle(
-                  color: Colors.redAccent, fontSize: 36, fontWeight: FontWeight.bold,
-                  shadows: [Shadow(color: Colors.red, blurRadius: 20)],
-                )),
-                const SizedBox(height: 8),
-                const Text('소지금이 바닥났습니다...', style: TextStyle(color: Colors.white54, fontSize: 16)),
-                const SizedBox(height: 20),
 
-                // 최종 성적
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Column(
-                    children: [
-                      _gameOverStatRow('🏆 총 승리', '${run.wins}승'),
-                      _gameOverStatRow('💀 총 패배', '${run.losses}패'),
-                      _gameOverStatRow('🔥 최고 연승', '${run.winStreak}연승'),
-                      _gameOverStatRow('⭐ 최고 점수', '${run.highestScore}점'),
-                      _gameOverStatRow('💰 최고 소지금', currency.formatExact(run.highestMoney)),
-                      _gameOverStatRow('📍 도달 스테이지', '스테이지 ${run.stage}'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
 
-                // 재시작 버튼
-                ElevatedButton(
-                  onPressed: () async {
-                    await ref.read(runStateNotifierProvider.notifier).restartRun();
-                    _startGameWithDeal();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD700),
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('🔄 처음부터 다시', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
 
-    // ── 일반 라운드 종료 화면 ──
-    return Container(
-      color: Colors.black.withValues(alpha: 0.85),
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: _screenW * 0.85 > 380 ? 380 : _screenW * 0.85),
-          padding: EdgeInsets.all(_scale > 0.7 ? 28 : 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF161B22),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, width: 2),
-            boxShadow: [BoxShadow(color: (isWin ? Colors.amber : Colors.red).withValues(alpha: 0.3), blurRadius: 30)],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(isWin ? '🏆' : '💀', style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 8),
-              Text(isWin ? '승리!' : '패배...',
-                style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+  void _showSkillSelectDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final run = ref.watch(runStateNotifierProvider);
+            final availableSkills = run.inventorySkills.entries.where((e) => e.value > 0).toList();
 
-              // 족보 상세
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _resultBadge('🌟', '$pBright', '광'),
-                    _resultBadge('🐾', '$pAnimal', '동물'),
-                    _resultBadge('🎀', '$pRibbon', '띠'),
-                    _resultBadge('🍂', '$pJunk', '피'),
-                    if (state.sweepCount > 0)
-                      _resultBadge('🧹', '${state.sweepCount}', '쓸'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // 수입 계산 과정
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('점수', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                        Text('${state.playerScore} vs ${state.opponentScore}',
-                          style: const TextStyle(color: Colors.white, fontSize: 13)),
-                      ],
-                    ),
-                    if (isWin) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('계산', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                          Text('${state.baseChips.toInt()}점 × ${currency.formatAmount(currency.pointValue)}'
-                            '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        ],
-                      ),
-                    ],
-                    const Divider(color: Color(0xFF30363D), height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(isWin ? '💰 수입' : '💸 손실',
-                          style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
-                        Text(isWin ? '+${currency.formatAmount(earnings)}' : currency.formatAmount(earnings),
-                          style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (state.goCount > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text('🔥 Go ×${state.goCount}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16)),
-                ),
-              const SizedBox(height: 16),
-
-              // 버튼: 상점/다음 라운드
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1A1A2E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
                 children: [
-                  if (isWin)
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _showShop = true;
-                        });
-                      },
-                      icon: const Text('🛒'),
-                      label: const Text('상점'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Color(0xFF30363D)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
-                    ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _startGameWithDeal,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFD700),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Text(isWin ? '다음 라운드 →' : '재도전!',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
+                  Icon(Icons.flash_on, color: Colors.amber),
+                  SizedBox(width: 8),
+                  Text('액티브 스킬 사용', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _gameOverStatRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _resultBadge(String emoji, String value, String label) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
-      ],
+              content: SizedBox(
+                width: 320,
+                child: availableSkills.isEmpty 
+                  ? const Padding(padding: EdgeInsets.all(16.0), child: Text('사용 가능한 스킬이 없습니다.', style: TextStyle(color: Colors.white70)))
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: availableSkills.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (ctx, idx) {
+                        final skillId = availableSkills[idx].key;
+                        final count = availableSkills[idx].value;
+                        final itemInfo = findItemById(skillId);
+                        
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          tileColor: Colors.blueAccent.withValues(alpha: 0.1),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          leading: Text(itemInfo?.emoji ?? '⚡', style: const TextStyle(fontSize: 28)),
+                          title: Text(itemInfo?.nameKo ?? skillId, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: Text('잔여: $count회', style: const TextStyle(color: Colors.white54)),
+                          trailing: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(ctx).pop();
+                              ref.read(gameStateProvider.notifier).useActiveSkill(skillId);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            child: const Text('사용', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        );
+                      },
+                    ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('닫기', style: TextStyle(color: Colors.white54)),
+                )
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -1,11 +1,13 @@
-/// 🎴 K-Poker — 상점 UI
+/// 🎴 K-Poker — 신규 상점 UI (3분류 아이템)
 ///
-/// 기술/부적 구매, 카드 강화
+/// 1. 인게임 액티브 스킬 (장착 제한 없음, 소모품)
+/// 2. 라운드 장착 (1회용, 시작 전 슬롯 장착)
+/// 3. 영구 부적 (보유 시 자동 상시 적용)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/skills.dart';
-import '../data/stage_config.dart';
+import '../data/item_library.dart';
+import '../models/run_state.dart';
 import '../state/game_providers.dart';
 
 class ShopScreen extends ConsumerWidget {
@@ -16,17 +18,12 @@ class ShopScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final run = ref.watch(runStateNotifierProvider);
-    final currency = getCurrencyForLocale(run.currencyLocale);
-
-    // 스테이지에 따라 상점 아이템 필터링
-    final availableSkills = _getAvailableSkills(run.stage, run.activeSkillIds);
-    final availableTalismans = _getAvailableTalismans(run.activeTalismanIds);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D1117),
       body: Column(
         children: [
-          // 상점 헤더
+          // ── 상점 헤더 ──
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -39,19 +36,19 @@ class ShopScreen extends ConsumerWidget {
               children: [
                 const Text('🛒', style: TextStyle(fontSize: 28)),
                 const SizedBox(width: 12),
-                const Text('타짜 상점', style: TextStyle(color: Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.bold)),
+                const Text('비밀 상점', style: TextStyle(color: Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                // 소지금 표시
+                // 골드 표시
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
+                    color: Colors.amber.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.green),
+                    border: Border.all(color: Colors.amber),
                   ),
                   child: Text(
-                    '💰 ${currency.formatExact(run.money)}',
-                    style: const TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                    '🪙 ${run.gold} G',
+                    style: const TextStyle(color: Colors.amberAccent, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -63,46 +60,39 @@ class ShopScreen extends ConsumerWidget {
             ),
           ),
 
-          // 상점 내용
+          // ── 상점 캐러셀 컨텐츠 ──
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── 기술 섹션 ──
-                  const Text('🃏 타짜 기술', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text('장착 중: ${run.activeSkillIds.length}/5', style: const TextStyle(color: Colors.white54)),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: availableSkills.map((skill) => _buildSkillCard(
-                      ref, skill, currency, run,
-                    )).toList(),
+                  _buildSectionTitle('⚡ 인게임 액티브 스킬 (소모품)', '게임 중 턴을 소모하지 않고 원할 때 발동!'),
+                  _buildHorizontalList(
+                    items: shopActiveSkills,
+                    itemBuilder: (context, item) => _buildActiveSkillCard(ref, run, item as ActiveSkill),
                   ),
-
                   const SizedBox(height: 32),
 
-                  // ── 부적 섹션 ──
-                  const Text('🧿 부적', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text('장착 중: ${run.activeTalismanIds.length}/3', style: const TextStyle(color: Colors.white54)),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: availableTalismans.map((t) => _buildTalismanCard(
-                      ref, t, currency, run,
-                    )).toList(),
+                  _buildSectionTitle('🛡️ 라운드 장착 (일회성)', '이번 판 시작 전에 미리 장비! (판 종료 시 소멸)'),
+                  _buildHorizontalList(
+                    items: shopPreRoundItems,
+                    itemBuilder: (context, item) => _buildPreRoundCard(ref, run, item as PreRoundItem),
                   ),
+                  const SizedBox(height: 32),
+
+                  _buildSectionTitle('📜 영구 부적 (패시브)', '한 번 사두면 평생 자동 적용!'),
+                  _buildHorizontalList(
+                    items: shopPassiveTalismans,
+                    itemBuilder: (context, item) => _buildPassiveCard(ref, run, item as PassiveTalisman),
+                  ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
           ),
 
-          // 하단: 다음 라운드 버튼
+          // ── 하단 버튼 ──
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -118,7 +108,7 @@ class ShopScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('다음 라운드 →', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: const Text('쇼핑 종료 / 대기실로 →', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -127,131 +117,166 @@ class ShopScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSkillCard(WidgetRef ref, SkillDef skill, CurrencyConfig currency, dynamic run) {
-    final isOwned = run.activeSkillIds.contains(skill.id);
-    final canAfford = run.money >= skill.shopCost * currency.pointValue * 10;
-    final isFull = run.activeSkillIds.length >= 5;
+  Widget _buildSectionTitle(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
 
-    Color borderColor;
-    Color bgColor;
-    switch (skill.rarity) {
-      case SkillRarity.common:
-        borderColor = Colors.green; bgColor = Colors.green.withValues(alpha: 0.1);
-      case SkillRarity.rare:
-        borderColor = Colors.blue; bgColor = Colors.blue.withValues(alpha: 0.1);
-      case SkillRarity.epic:
-        borderColor = Colors.purple; bgColor = Colors.purple.withValues(alpha: 0.1);
-      case SkillRarity.legendary:
-        borderColor = const Color(0xFFFFD700); bgColor = const Color(0xFFFFD700).withValues(alpha: 0.1);
-    }
+  Widget _buildHorizontalList({required List<BaseItemDef> items, required Widget Function(BuildContext, BaseItemDef) itemBuilder}) {
+    return SizedBox(
+      height: 220,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (context, index) => itemBuilder(context, items[index]),
+      ),
+    );
+  }
 
+  // 1. 액티브 스킬 (파란색 계열)
+  Widget _buildActiveSkillCard(WidgetRef ref, RunState run, ActiveSkill item) {
+    final count = run.inventorySkills[item.id] ?? 0;
+    final canAfford = run.gold >= item.shopCost;
+
+    return _ItemCardImpl(
+      item: item,
+      themeColor: Colors.blueAccent,
+      statusText: count > 0 ? '보유량: $count개' : null,
+      onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyActiveSkill(item.id, item.shopCost) : null,
+    );
+  }
+
+  // 2. 라운드 장착품 (초록색 계열)
+  Widget _buildPreRoundCard(WidgetRef ref, RunState run, PreRoundItem item) {
+    final count = run.inventoryRoundItems[item.id] ?? 0;
+    final isEquipped = run.equippedRoundItemIds.contains(item.id);
+    final canAfford = run.gold >= item.shopCost;
+
+    return _ItemCardImpl(
+      item: item,
+      themeColor: Colors.greenAccent,
+      statusText: isEquipped ? '✅ 장착 완료' : (count > 0 ? '보유량: $count개' : null),
+      onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyPreRoundItem(item.id, item.shopCost) : null,
+      extraAction: (count > 0 && !isEquipped) ? () => ref.read(runStateNotifierProvider.notifier).equipRoundItem(item.id) : null,
+      extraActionLabel: '장착하기',
+    );
+  }
+
+  // 3. 영구 부적 (황금색 계열)
+  Widget _buildPassiveCard(WidgetRef ref, RunState run, PassiveTalisman item) {
+    final isOwned = run.ownedTalismanIds.contains(item.id);
+    final canAfford = run.gold >= item.shopCost;
+
+    return _ItemCardImpl(
+      item: item,
+      themeColor: Colors.amber,
+      statusText: isOwned ? '✅ 영구 보유 중' : null,
+      onBuy: (!isOwned && canAfford) ? () => ref.read(runStateNotifierProvider.notifier).buyPassiveTalisman(item.id, item.shopCost) : null,
+      overrideButtonText: isOwned ? '구매 완료' : null,
+    );
+  }
+}
+
+class _ItemCardImpl extends StatelessWidget {
+  final BaseItemDef item;
+  final Color themeColor;
+  final String? statusText;
+  final VoidCallback? onBuy;
+  final VoidCallback? extraAction;
+  final String? extraActionLabel;
+  final String? overrideButtonText;
+
+  const _ItemCardImpl({
+    required this.item,
+    required this.themeColor,
+    this.statusText,
+    this.onBuy,
+    this.extraAction,
+    this.extraActionLabel,
+    this.overrideButtonText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: 200,
+      width: 160,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isOwned ? borderColor.withValues(alpha: 0.2) : bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isOwned ? borderColor : borderColor.withValues(alpha: 0.5), width: isOwned ? 2 : 1),
+        color: themeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: themeColor.withValues(alpha: 0.5), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(skill.emoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 6),
-              Expanded(child: Text(skill.nameKo, style: TextStyle(color: borderColor, fontSize: 14, fontWeight: FontWeight.bold))),
+              Text(item.emoji, style: const TextStyle(fontSize: 24)),
+              const Spacer(),
+              Text(item.id, style: TextStyle(color: themeColor.withValues(alpha: 0.7), fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(skill.description, style: const TextStyle(color: Colors.white70, fontSize: 11)),
           const SizedBox(height: 8),
-          if (isOwned)
-            const Text('✅ 장착됨', style: TextStyle(color: Colors.greenAccent, fontSize: 12))
-          else
-            ElevatedButton(
-              onPressed: (canAfford && !isFull) ? () {
-                final cost = skill.shopCost * currency.pointValue * 10;
-                ref.read(runStateNotifierProvider.notifier).buySkill(skill.id, cost);
-              } : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: borderColor, foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 30),
+          Text(item.nameKo, style: TextStyle(color: themeColor, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1),
+          const SizedBox(height: 4),
+          Expanded(
+            child: Text(item.description, style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.3), maxLines: 5, overflow: TextOverflow.ellipsis),
+          ),
+          if (statusText != null) ...[
+            const SizedBox(height: 4),
+            Text(statusText!, style: TextStyle(color: themeColor, fontSize: 12, fontWeight: FontWeight.bold)),
+          ],
+          const SizedBox(height: 8),
+          if (extraAction != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 28,
+              child: ElevatedButton(
+                onPressed: extraAction,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeColor, foregroundColor: Colors.black,
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: Text(extraActionLabel ?? '사용', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+          SizedBox(
+            width: double.infinity,
+            height: 32,
+            child: OutlinedButton(
+              onPressed: onBuy,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: onBuy == null ? Colors.white24 : themeColor),
+                padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text(
-                currency.formatAmount(skill.shopCost * currency.pointValue * 10),
-                style: const TextStyle(fontSize: 12),
+                overrideButtonText ?? '${item.shopCost} G 구매',
+                style: TextStyle(
+                  color: onBuy == null ? Colors.white54 : themeColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTalismanCard(WidgetRef ref, Talisman talisman, CurrencyConfig currency, dynamic run) {
-    final isOwned = run.activeTalismanIds.contains(talisman.id);
-    final canAfford = run.money >= talisman.shopCost * currency.pointValue * 10;
-    final isFull = run.activeTalismanIds.length >= 3;
-
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isOwned ? Colors.amber.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isOwned ? Colors.amber : Colors.amber.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(talisman.emoji, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 6),
-              Expanded(child: Text(talisman.nameKo, style: const TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold))),
-            ],
           ),
-          const SizedBox(height: 4),
-          Text(talisman.description, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-          const SizedBox(height: 8),
-          if (isOwned)
-            const Text('✅ 장착됨', style: TextStyle(color: Colors.greenAccent, fontSize: 12))
-          else
-            ElevatedButton(
-              onPressed: (canAfford && !isFull) ? () {
-                final cost = talisman.shopCost * currency.pointValue * 10;
-                ref.read(runStateNotifierProvider.notifier).buyTalisman(talisman.id, cost);
-              } : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber, foregroundColor: Colors.black,
-                minimumSize: const Size(double.infinity, 30),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text(
-                currency.formatAmount(talisman.shopCost * currency.pointValue * 10),
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
         ],
       ),
     );
-  }
-
-  List<SkillDef> _getAvailableSkills(int stage, List<String> owned) {
-    // 스테이지에 따라 등급 필터링
-    return allSkills.where((s) {
-      if (owned.contains(s.id)) return true; // 이미 소유한 건 항상 표시
-      switch (s.rarity) {
-        case SkillRarity.common: return true;
-        case SkillRarity.rare: return stage >= 2;
-        case SkillRarity.epic: return stage >= 3;
-        case SkillRarity.legendary: return stage >= 5;
-      }
-    }).toList();
-  }
-
-  List<Talisman> _getAvailableTalismans(List<String> owned) {
-    return allTalismans;
   }
 }

@@ -28,6 +28,7 @@ mixin _$CardDef {
   RibbonType get ribbonType => throw _privateConstructorUsedError;
   bool get doubleJunk => throw _privateConstructorUsedError;
   bool get isBird => throw _privateConstructorUsedError;
+  bool get isBonus => throw _privateConstructorUsedError;
 
   /// Serializes this CardDef to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +52,8 @@ abstract class $CardDefCopyWith<$Res> {
       String nameKo,
       RibbonType ribbonType,
       bool doubleJunk,
-      bool isBird});
+      bool isBird,
+      bool isBonus});
 }
 
 /// @nodoc
@@ -77,6 +79,7 @@ class _$CardDefCopyWithImpl<$Res, $Val extends CardDef>
     Object? ribbonType = null,
     Object? doubleJunk = null,
     Object? isBird = null,
+    Object? isBonus = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -111,6 +114,10 @@ class _$CardDefCopyWithImpl<$Res, $Val extends CardDef>
           ? _value.isBird
           : isBird // ignore: cast_nullable_to_non_nullable
               as bool,
+      isBonus: null == isBonus
+          ? _value.isBonus
+          : isBonus // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -130,7 +137,8 @@ abstract class _$$CardDefImplCopyWith<$Res> implements $CardDefCopyWith<$Res> {
       String nameKo,
       RibbonType ribbonType,
       bool doubleJunk,
-      bool isBird});
+      bool isBird,
+      bool isBonus});
 }
 
 /// @nodoc
@@ -154,6 +162,7 @@ class __$$CardDefImplCopyWithImpl<$Res>
     Object? ribbonType = null,
     Object? doubleJunk = null,
     Object? isBird = null,
+    Object? isBonus = null,
   }) {
     return _then(_$CardDefImpl(
       id: null == id
@@ -188,6 +197,10 @@ class __$$CardDefImplCopyWithImpl<$Res>
           ? _value.isBird
           : isBird // ignore: cast_nullable_to_non_nullable
               as bool,
+      isBonus: null == isBonus
+          ? _value.isBonus
+          : isBonus // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -203,7 +216,8 @@ class _$CardDefImpl extends _CardDef {
       required this.nameKo,
       this.ribbonType = RibbonType.none,
       this.doubleJunk = false,
-      this.isBird = false})
+      this.isBird = false,
+      this.isBonus = false})
       : super._();
 
   factory _$CardDefImpl.fromJson(Map<String, dynamic> json) =>
@@ -228,10 +242,13 @@ class _$CardDefImpl extends _CardDef {
   @override
   @JsonKey()
   final bool isBird;
+  @override
+  @JsonKey()
+  final bool isBonus;
 
   @override
   String toString() {
-    return 'CardDef(id: $id, month: $month, grade: $grade, name: $name, nameKo: $nameKo, ribbonType: $ribbonType, doubleJunk: $doubleJunk, isBird: $isBird)';
+    return 'CardDef(id: $id, month: $month, grade: $grade, name: $name, nameKo: $nameKo, ribbonType: $ribbonType, doubleJunk: $doubleJunk, isBird: $isBird, isBonus: $isBonus)';
   }
 
   @override
@@ -248,13 +265,14 @@ class _$CardDefImpl extends _CardDef {
                 other.ribbonType == ribbonType) &&
             (identical(other.doubleJunk, doubleJunk) ||
                 other.doubleJunk == doubleJunk) &&
-            (identical(other.isBird, isBird) || other.isBird == isBird));
+            (identical(other.isBird, isBird) || other.isBird == isBird) &&
+            (identical(other.isBonus, isBonus) || other.isBonus == isBonus));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, month, grade, name, nameKo,
-      ribbonType, doubleJunk, isBird);
+      ribbonType, doubleJunk, isBird, isBonus);
 
   /// Create a copy of CardDef
   /// with the given fields replaced by the non-null parameter values.
@@ -281,7 +299,8 @@ abstract class _CardDef extends CardDef {
       required final String nameKo,
       final RibbonType ribbonType,
       final bool doubleJunk,
-      final bool isBird}) = _$CardDefImpl;
+      final bool isBird,
+      final bool isBonus}) = _$CardDefImpl;
   const _CardDef._() : super._();
 
   factory _CardDef.fromJson(Map<String, dynamic> json) = _$CardDefImpl.fromJson;
@@ -302,6 +321,8 @@ abstract class _CardDef extends CardDef {
   bool get doubleJunk;
   @override
   bool get isBird;
+  @override
+  bool get isBonus;
 
   /// Create a copy of CardDef
   /// with the given fields replaced by the non-null parameter values.

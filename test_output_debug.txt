@@ -1,0 +1,33 @@
+﻿00:00 +0: loading D:/02_PROJECT/08_k-poker/test/engine/debug_card_loss_test.dart
+00:00 +0: Detailed turn loss tracking
+=== LOSS game=256 turn=11 ===
+  played: m08_junk_2 (?듭깉 ??2) month=8 bonus=false deckDraw=false
+  turn: opponent
+  before=50 after=49
+  missing IDs: {bonus_1}
+  extra IDs: {}
+  event: 
+  field same month: 1
+  deck top: bonus_2 (month=13, bonus=true)
+  deck[1]: bonus_1 (month=13, bonus=true)
+=== LOSS game=261 turn=15 ===
+  played: m10_junk_1 (?⑦뭾 ??1) month=10 bonus=false deckDraw=false
+  turn: opponent
+  before=50 after=49
+  missing IDs: {bonus_1}
+  extra IDs: {}
+  event: 
+  field same month: 1
+  deck top: bonus_2 (month=13, bonus=true)
+  deck[1]: bonus_1 (month=13, bonus=true)
+=== LOSS game=322 turn=15 ===
+  played: m04_ribbon (??珥덈떒) month=4 bonus=false deckDraw=false
+  turn: opponent
+  before=50 after=49
+  missing IDs: {bonus_1}
+  extra IDs: {}
+  event: 
+  field same month: 1
+  deck top: bonus_2 (month=13, bonus=true)
+  deck[1]: bonus_1 (month=13, bonus=true)
+00:00 +1: All tests passed!
