@@ -1001,7 +1001,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
     final stateAfterPlay = ref.read(gameStateProvider);
-    if (stateAfterPlay.currentTurn == 'opponent' && !stateAfterPlay.isFinished) {
+    final isPending = ref.read(goStopPendingProvider); // 고/스톱 대기 중인지 확인
+
+    // 대기 중(isPending)이 아닐 때만 AI 턴 즉시 진행. 대기 중이라면 GoStopOverlay의 onGo에서 처리함.
+    if (stateAfterPlay.currentTurn == 'opponent' && !stateAfterPlay.isFinished && !isPending) {
       await _executeAiTurn();
     }
   }
