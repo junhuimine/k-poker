@@ -162,7 +162,6 @@ class GameState extends _$GameState {
 
     // 2. 매칭 피드백 이벤트 + SFX
     final newCaptured = nextState.playerCaptured.length - prevCaptured;
-    final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     var modifiedNextState = nextState;
 
@@ -604,7 +603,6 @@ class GameState extends _$GameState {
     }
 
     final prevCaptured = state.opponentCaptured.length;
-    final run = ref.read(runStateNotifierProvider);
     final nextState = GameEngine.playTurn(state, bestCard, run: run);
     final newCaptured = nextState.opponentCaptured.length - prevCaptured;
 
@@ -813,8 +811,6 @@ class RunStateNotifier extends _$RunStateNotifier {
 
   /// 패배 시 정산 — 상대 자금 증가
   void onLose(double penalty) {
-    if (state.isFinished) return; // Wait, actually isFinished doesn't matter here
-    
     // P-002 [안전모] 파산 방지 로직
     final currency = getCurrencyForLocale(state.currencyLocale);
     final minStake = currency.pointValue * 3; // 3점 금액 (파산 기준선)
