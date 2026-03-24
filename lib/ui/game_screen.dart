@@ -61,7 +61,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
   double get _scaleW => (_screenW / 1200).clamp(0.4, 1.5);
   double get _scaleH => (_screenH / 700).clamp(0.4, 1.5);
   double get _scale => (_scaleW < _scaleH ? _scaleW : _scaleH); // 작은 쪽 기준
-  bool get _showSidePanel => _screenW >= 700;
+  bool _isPanelExpanded = false;
+  bool get _shouldShowPanel => _screenW >= 900 ? true : _isPanelExpanded;
 
   // 카드 크기 (화면 비율에 따라 부드럽게 스케일)
   double get _opponentCardSize => (38 * _scale).clamp(20, 50);
@@ -236,29 +237,49 @@ class _GameScreenState extends ConsumerState<GameScreen>
             child: Row(
               children: [
                 Expanded(
-                  flex: 75,
                   child: Column(
                     children: [
-                      // 상단 영역: 상대 정보 + 뒷면 핸드 + 상대 획득 카드
+                      // 상단 영역: 통합 TopBar (캐릭터 / 상대 핸드 / 설정)
                       if (isGameStarted) _buildTopBar(gameState, strings),
-                      if (isGameStarted) _buildOpponentHand(gameState),
                       if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
                       
-                      // 중앙 영역: 필드 + 덱 더미
+                      // 중앙 영역: 덱 더미 + 필드
                       if (isGameStarted)
                         Expanded(child: _buildFieldWithDeck(gameState)),
                       
-                      // 하단 영역: 내 획득 카드 + 점수 + 내 핸드
+                      // 하단 영역: 내 획득 카드 + 내 핸드
                       if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
                       if (isGameStarted) _buildPlayerHand(gameState),
                     ],
                   ),
                 ),
-                if (isGameStarted && _showSidePanel)
+                if (isGameStarted && _shouldShowPanel)
                   GameSidePanel(state: gameState, events: events),
               ],
             ),
           ),
+
+          // 우측 패널 토글 버튼 (화면이 작을 때만 표시)
+          if (isGameStarted && _screenW < 900)
+            Positioned(
+              right: _shouldShowPanel ? 250 : 0, // 열렸을 땐 패널 너비만큼 이동
+              top: _screenH * 0.4,
+              child: GestureDetector(
+                onTap: () => setState(() => _isPanelExpanded = !_isPanelExpanded),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(8)),
+                    border: Border.all(color: Colors.white24, width: 1),
+                  ),
+                  child: Icon(
+                    _shouldShowPanel ? Icons.arrow_forward_ios : Icons.arrow_back_ios_new,
+                    color: Colors.white, size: 20,
+                  ),
+                ),
+              ),
+            ),
 
           // 날아가는 카드 오버레이
           if (_flyingCards.isNotEmpty)
@@ -403,7 +424,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   // ─── 시작 오버레이 (프리미엄 디자인) ─────────────
 
 
-  // ─── 상단 바 (왼쪽: AI 캐릭터, 오른쪽: 이번 판 점수) ─────────
+  // ─── 상단 바 (왼쪽: AI 캐릭터, 중앙: 상대패, 오른쪽: 설정) ─────────
   Widget _buildTopBar(dynamic state, dynamic strings) {
     final run = ref.watch(runStateNotifierProvider);
     final stageConfig = getStageConfig(run.stage);
@@ -414,103 +435,85 @@ class _GameScreenState extends ConsumerState<GameScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ◀ 왼쪽: AI 캐릭터 아바타 + 이름 + 상대 소지금
-          Row(
-            children: [
-              // AI 아바타
-              Container(
-                width: 48, height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
-                  boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 8)],
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/characters/${ai.avatarFile}',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF2A1A3A),
-                      child: Center(child: Text(ai.emoji, style: const TextStyle(fontSize: 20))),
-                    ),
+          // ◀ 왼쪽: AI 캐릭터 아바타 + 이름 (점수 삭제)
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                // AI 아바타
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                    boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 8)],
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(ai.nameKo, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text('${stageConfig.emoji} ${stageConfig.nameKo}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                  Text('상대: ${state.opponentScore}점',
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-          // ▶ 오른쪽: 이번 판 점수 + 턴 표시 + 설정
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // 턴 표시 + 설정
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: state.currentTurn == 'player'
-                          ? Colors.blue.withValues(alpha: 0.3)
-                          : Colors.red.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      state.currentTurn == 'player' ? '🎯 내 턴' : '🤖 AI',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => setState(() => _showTutorial = true),
-                    child: const Text('❓', style: TextStyle(fontSize: 16)),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => setState(() => _showSettings = true),
-                    child: const Text('⚙️', style: TextStyle(fontSize: 16)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              // 이번 판 점수
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _chipBox('${state.playerScore}점', Colors.blueAccent),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 3),
-                    child: Text('×', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                  ),
-                  _chipBox('${state.multiplier.toStringAsFixed(1)}배', Colors.redAccent),
-                  if (state.goCount > 0) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.orange),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/characters/${ai.avatarFile}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF2A1A3A),
+                        child: Center(child: Text(ai.emoji, style: const TextStyle(fontSize: 20))),
                       ),
-                      child: Text('🔥Go×${state.goCount}',
-                        style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(ai.nameKo, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('${stageConfig.emoji} ${stageConfig.nameKo}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // 🔼 중앙: 상대 핸드 (뒷면 여러 장)
+          Expanded(
+            flex: 4,
+            child: _buildOpponentHand(state),
+          ),
+          // ▶ 오른쪽: 턴 표시 + 설정 (내 턴 점수 삭제)
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: state.currentTurn == 'player'
+                            ? Colors.blue.withValues(alpha: 0.3)
+                            : Colors.red.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        state.currentTurn == 'player' ? '🎯 내 턴' : '🤖 AI',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => setState(() => _showTutorial = true),
+                      child: const Text('❓', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => setState(() => _showSettings = true),
+                      child: const Text('⚙️', style: TextStyle(fontSize: 16)),
                     ),
                   ],
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -627,39 +630,45 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  // ─── 덱 더미 (플레이어 카드 크기와 동일) ────
+  // ─── 덱 더미 (플레이어 카드 크기와 동일, 남은 카드수 오버레이) ────
   Widget _buildDeckPile(int remaining) {
     final cardW = (72.0 * _scale).clamp(40, 80).toDouble();
     final cardH = (108.0 * _scale).clamp(60, 120).toDouble();
 
-    return Column(
-      children: [
-        SizedBox(
-          width: cardW + 6,
-          height: cardH + 6,
-          child: Stack(
-            children: [
-              if (remaining > 4)
-                Positioned(left: 6, top: 6, child: _buildMiniBack(cardW - 4, cardH - 4)),
-              if (remaining > 2)
-                Positioned(left: 4, top: 4, child: _buildMiniBack(cardW - 2, cardH - 2)),
-              if (remaining > 1)
-                Positioned(left: 2, top: 2, child: _buildMiniBack(cardW - 1, cardH - 1)),
-              if (remaining > 0)
-                Positioned(left: 0, top: 0, child: _buildMiniBack(cardW, cardH)),
-            ],
+    return SizedBox(
+      width: cardW + 6,
+      height: cardH + 6,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (remaining > 4)
+            Positioned(left: 6, top: 6, child: _buildMiniBack(cardW - 4, cardH - 4)),
+          if (remaining > 2)
+            Positioned(left: 4, top: 4, child: _buildMiniBack(cardW - 2, cardH - 2)),
+          if (remaining > 1)
+            Positioned(left: 2, top: 2, child: _buildMiniBack(cardW - 1, cardH - 1)),
+          if (remaining > 0)
+            Positioned(left: 0, top: 0, child: _buildMiniBack(cardW, cardH)),
+            
+          // 남은 카드수 표시를 텍스트로 합쳐서 카드 하단에 겹치게 배치
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: -5,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white24, width: 1),
+                ),
+                child: Text('$remaining', style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text('$remaining', style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
