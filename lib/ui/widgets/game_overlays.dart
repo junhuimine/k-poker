@@ -124,7 +124,7 @@ class GameStartOverlay extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text('화투 타짜의 도박', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16, letterSpacing: 4, fontWeight: FontWeight.w300)),
+                Text(strings.ui('subtitle'), style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 16, letterSpacing: 4, fontWeight: FontWeight.w300)),
                 const SizedBox(height: 28),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -135,13 +135,13 @@ class GameStartOverlay extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      Text('${stageConfig.emoji} ${stageConfig.nameKo}',
+                      Text('${stageConfig.emoji} ${strings.getStageName(stageConfig)}',
                         style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 6),
-                      Text('${ai.emoji} ${ai.nameKo}', 
+                      Text('${ai.emoji} ${strings.getAiName(ai)}', 
                         style: const TextStyle(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text('상대 자금: ${currency.formatAmount(displayOpponentMoney)}',
+                      Text('💰 ${currency.formatAmount(displayOpponentMoney)}',
                         style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
                     ],
                   ),

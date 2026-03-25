@@ -38,6 +38,8 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
   Widget build(BuildContext context) {
     final lang = ref.watch(localeStateProvider);
 
+    final strings = ref.watch(appStringsProvider);
+
     return GestureDetector(
       onTap: widget.onClose,
       child: Container(
@@ -67,7 +69,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                       children: [
                         const Text('⚙️', style: TextStyle(fontSize: 24)),
                         const SizedBox(width: 8),
-                        const Text('설정', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text(strings.ui('settings'), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close, color: Colors.white54, size: 20)),
                       ],
@@ -76,7 +78,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const SizedBox(height: 8),
 
                     // 🔊 BGM 볼륨
-                    _buildVolumeRow('🎵 배경음악', _bgmVol, _bgmMuted, (v) {
+                    _buildVolumeRow('🎵 ${strings.ui('bgm')}', _bgmVol, _bgmMuted, (v) {
                       setState(() => _bgmVol = v);
                       _audio.setBgmVolume(v);
                     }, () {
@@ -86,7 +88,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const SizedBox(height: 12),
 
                     // 🔊 SFX 볼륨
-                    _buildVolumeRow('🔊 효과음', _sfxVol, _sfxMuted, (v) {
+                    _buildVolumeRow('🔊 ${strings.ui('sfx')}', _sfxVol, _sfxMuted, (v) {
                       setState(() => _sfxVol = v);
                       _audio.setSfxVolume(v);
                     }, () {
@@ -98,7 +100,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const SizedBox(height: 12),
 
                     // 🌐 언어 선택
-                    const Text('🌐 언어', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    Text('🌐 ${strings.ui('language')}', style: const TextStyle(color: Colors.white, fontSize: 14)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -131,7 +133,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const SizedBox(height: 12),
 
                     // 🎴 카드 뒷면 스킨
-                    const Text('🃏 카드 뒷면 디자인', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text('🃏 ${strings.ui('cardSkin')}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -252,8 +254,8 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                 if (muted) onMute();
                 onChanged(v);
               },
-              // SFX일 때 슬라이더 놓으면 테스트 사운드 재생
-              onChangeEnd: label.contains('효과음') ? (_) => _audio.cardPlay() : null,
+              // SFX일 때 슬라이더 놓으면 테스트 사운드 재생 (기본 라벨과 한국어 포함 대응)
+              onChangeEnd: (label.contains('효과음') || label.contains('SFX') || label.contains('SE') || label.contains('音效')) ? (_) => _audio.cardPlay() : null,
             ),
           ),
         ),

@@ -86,16 +86,16 @@ class GameSidePanel extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency),
+                  OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency, strings: strings),
                   Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
-                  MySummaryBlock(state: state, run: run, currency: currency),
+                  MySummaryBlock(state: state, run: run, currency: currency, strings: strings),
                   Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        YakuProgress(state: state),
+                        YakuProgress(state: state, strings: strings),
                         const SizedBox(height: 8),
                         MySkillsBlock(run: run),
                       ],
@@ -115,11 +115,11 @@ class GameSidePanel extends ConsumerWidget {
           return Column(
             children: [
               // 1. 상대 정보
-              OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency),
+              OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency, strings: strings),
               Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
 
               // 2. 내 정보
-              MySummaryBlock(state: state, run: run, currency: currency),
+              MySummaryBlock(state: state, run: run, currency: currency, strings: strings),
               Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
 
               // 3. 족보 진행도 및 스킬 가방
@@ -129,7 +129,7 @@ class GameSidePanel extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      YakuProgress(state: state),
+                      YakuProgress(state: state, strings: strings),
                       const SizedBox(height: 8),
                       MySkillsBlock(run: run),
                     ],
@@ -190,6 +190,7 @@ class OpponentSummaryBlock extends StatelessWidget {
   final dynamic run;
   final dynamic ai;
   final dynamic currency;
+  final AppStrings strings;
 
   const OpponentSummaryBlock({
     super.key,
@@ -197,6 +198,7 @@ class OpponentSummaryBlock extends StatelessWidget {
     required this.run,
     required this.ai,
     required this.currency,
+    required this.strings,
   });
 
   @override
@@ -233,28 +235,28 @@ class OpponentSummaryBlock extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('${ai.emoji} 상대', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text('${ai.emoji} ${strings.ui('opponent')}', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
               const Spacer(),
-              Text('${state.opponentScore}점', style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text('${state.opponentScore}', style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 4),
           Text('💰 ${currency.formatAmount(oppMoneyLeft)}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text('🎴 패 현황', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9)),
+          Text('🎴 ${strings.ui('handStatus')}', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9)),
           const SizedBox(height: 4),
           Wrap(
             spacing: 2, runSpacing: 2,
             children: [
-              if (kwang > 0) _miniTag('광 $kwang', Colors.amber),
-              if (animal > 0) _miniTag('열끗 $animal', Colors.cyan),
-              if (blue > 0) _miniTag('청단 $blue', Colors.blue),
-              if (red > 0) _miniTag('홍단 $red', Colors.red),
-              if (grass > 0) _miniTag('초단 $grass', Colors.green),
-              if (plain > 0) _miniTag('띠 $plain', Colors.purple),
-              if (pi > 0) _miniTag('피 $pi', Colors.grey),
+              if (kwang > 0) _miniTag('${strings.ui('kwang')} $kwang', Colors.amber),
+              if (animal > 0) _miniTag('${strings.ui('animal')} $animal', Colors.cyan),
+              if (blue > 0) _miniTag('${strings.ui('blue')} $blue', Colors.blue),
+              if (red > 0) _miniTag('${strings.ui('red')} $red', Colors.red),
+              if (grass > 0) _miniTag('${strings.ui('grass')} $grass', Colors.green),
+              if (plain > 0) _miniTag('${strings.ui('plain')} $plain', Colors.purple),
+              if (pi > 0) _miniTag('${strings.ui('pi')} $pi', Colors.grey),
               if (kwang==0 && animal==0 && blue==0 && red==0 && grass==0 && plain==0 && pi==0)
-                const Text('없음', style: TextStyle(color: Colors.white30, fontSize: 9)),
+                Text(strings.ui('none'), style: const TextStyle(color: Colors.white30, fontSize: 9)),
             ],
           ),
         ],
@@ -268,12 +270,14 @@ class MySummaryBlock extends StatelessWidget {
   final dynamic state;
   final dynamic run;
   final dynamic currency;
+  final AppStrings strings;
 
   const MySummaryBlock({
     super.key,
     required this.state,
     required this.run,
     required this.currency,
+    required this.strings,
   });
 
   @override
@@ -287,9 +291,9 @@ class MySummaryBlock extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('👤 내 정보', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text('👤 ${strings.ui('myInfo')}', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
               if (run.winStreak > 0)
-                Text('🔥${run.winStreak}연승', style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                Text('🔥${run.winStreak}${strings.ui('winStreak')}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 4),
@@ -298,8 +302,8 @@ class MySummaryBlock extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('현재 점수', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
-              Text('${state.playerScore}점 × ${state.multiplier.toStringAsFixed(1)}배', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+              Text(strings.ui('currentScore'), style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
+              Text('${state.playerScore} × ${state.multiplier.toStringAsFixed(1)}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -311,8 +315,9 @@ class MySummaryBlock extends StatelessWidget {
 // ─── 족보 진행도 ─────────────
 class YakuProgress extends StatelessWidget {
   final dynamic state;
+  final AppStrings strings;
 
-  const YakuProgress({super.key, required this.state});
+  const YakuProgress({super.key, required this.state, required this.strings});
 
   @override
   Widget build(BuildContext context) {
@@ -329,14 +334,14 @@ class YakuProgress extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('📊 족보', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text('📊 ${strings.ui('yakuProgress')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
-        _yakuBar('⭐ 광', brights, 3, Colors.amber),
-        _yakuBar('🔴 홍단', redRibbons, 3, Colors.red),
-        _yakuBar('🔵 청단', blueRibbons, 3, Colors.blue),
-        _yakuBar('🟢 초단', grassRibbons, 3, Colors.green),
-        _yakuBar('🦌 열끗', animals, 5, Colors.cyan),
-        _yakuBar('🃏 피', junks, 10, Colors.grey),
+        _yakuBar('⭐ ${strings.ui('kwang')}', brights, 3, Colors.amber),
+        _yakuBar('🔴 ${strings.ui('red')}', redRibbons, 3, Colors.red),
+        _yakuBar('🔵 ${strings.ui('blue')}', blueRibbons, 3, Colors.blue),
+        _yakuBar('🟢 ${strings.ui('grass')}', grassRibbons, 3, Colors.green),
+        _yakuBar('🦌 ${strings.ui('animal')}', animals, 5, Colors.cyan),
+        _yakuBar('🃏 ${strings.ui('pi')}', junks, 10, Colors.grey),
       ],
     );
   }

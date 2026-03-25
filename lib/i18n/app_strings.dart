@@ -206,6 +206,64 @@ class AppStrings {
     AppLanguage.th: 'ภาษา',
   });
 
+  // ─── [일반 UI 텍스트] ───
+  String ui(String key) {
+    const Map<String, Map<AppLanguage, String>> uiTexts = {
+      'subtitle': {
+        AppLanguage.ko: '화투 타짜의 도박',
+        AppLanguage.en: 'Hwatu Roguelike',
+        AppLanguage.ja: '花札ローグライク',
+        AppLanguage.zhCn: '花牌肉鸽',
+        AppLanguage.zhTw: '花牌肉鴿',
+      },
+      'settings': {
+        AppLanguage.ko: '설정', AppLanguage.en: 'Settings', AppLanguage.ja: '設定', AppLanguage.zhCn: '设置', AppLanguage.zhTw: '設定',
+      },
+      'bgm': {
+        AppLanguage.ko: '배경음악', AppLanguage.en: 'BGM', AppLanguage.ja: 'BGM', AppLanguage.zhCn: '背景音乐', AppLanguage.zhTw: '背景音樂',
+      },
+      'sfx': {
+        AppLanguage.ko: '효과음', AppLanguage.en: 'SFX', AppLanguage.ja: 'SE', AppLanguage.zhCn: '音效', AppLanguage.zhTw: '音效',
+      },
+      'language': {
+        AppLanguage.ko: '언어', AppLanguage.en: 'Language', AppLanguage.ja: '言語', AppLanguage.zhCn: '语言', AppLanguage.zhTw: '語言',
+      },
+      'cardSkin': {
+        AppLanguage.ko: '카드 뒷면 디자인', AppLanguage.en: 'Card Back Design', AppLanguage.ja: 'カード背面デザイン', AppLanguage.zhCn: '卡背设计', AppLanguage.zhTw: '卡背設計',
+      },
+      'handStatus': {
+        AppLanguage.ko: '패 현황', AppLanguage.en: 'Hand Status', AppLanguage.ja: '手札状況', AppLanguage.zhCn: '卡牌状态', AppLanguage.zhTw: '卡牌狀態',
+      },
+      'myInfo': {
+        AppLanguage.ko: '내 정보', AppLanguage.en: 'My Profile', AppLanguage.ja: 'マイプロフィール', AppLanguage.zhCn: '我的信息', AppLanguage.zhTw: '我的資訊',
+      },
+      'winStreak': {
+        AppLanguage.ko: '연승', AppLanguage.en: ' Win Streak', AppLanguage.ja: '連勝', AppLanguage.zhCn: '连胜', AppLanguage.zhTw: '連勝',
+      },
+      'currentScore': {
+        AppLanguage.ko: '현재 점수', AppLanguage.en: 'Current Score', AppLanguage.ja: '現在のスコア', AppLanguage.zhCn: '当前分数', AppLanguage.zhTw: '目前分數',
+      },
+      'yakuProgress': {
+        AppLanguage.ko: '족보 진행', AppLanguage.en: 'Yaku Progress', AppLanguage.ja: '役の進行', AppLanguage.zhCn: '牌型进度', AppLanguage.zhTw: '牌型進度',
+      },
+      'opponent': {
+        AppLanguage.ko: '상대', AppLanguage.en: 'Opponent', AppLanguage.ja: '相手', AppLanguage.zhCn: '对手', AppLanguage.zhTw: '對手',
+      },
+      'none': {
+        AppLanguage.ko: '없음', AppLanguage.en: 'None', AppLanguage.ja: 'なし', AppLanguage.zhCn: '无', AppLanguage.zhTw: '無',
+      },
+      // 족보 이름들
+      'kwang': { AppLanguage.ko: '광', AppLanguage.en: 'Bright', AppLanguage.ja: '光', AppLanguage.zhCn: '光', AppLanguage.zhTw: '光' },
+      'animal': { AppLanguage.ko: '열끗', AppLanguage.en: 'Animal', AppLanguage.ja: 'タネ', AppLanguage.zhCn: '种', AppLanguage.zhTw: '種' },
+      'blue': { AppLanguage.ko: '청단', AppLanguage.en: 'Blue Ribbon', AppLanguage.ja: '青短', AppLanguage.zhCn: '青丹', AppLanguage.zhTw: '青丹' },
+      'red': { AppLanguage.ko: '홍단', AppLanguage.en: 'Red Ribbon', AppLanguage.ja: '赤短', AppLanguage.zhCn: '赤丹', AppLanguage.zhTw: '赤丹' },
+      'grass': { AppLanguage.ko: '초단', AppLanguage.en: 'Grass Ribbon', AppLanguage.ja: '草短', AppLanguage.zhCn: '草丹', AppLanguage.zhTw: '草丹' },
+      'plain': { AppLanguage.ko: '띠', AppLanguage.en: 'Ribbon', AppLanguage.ja: '短冊', AppLanguage.zhCn: '条', AppLanguage.zhTw: '條' },
+      'pi': { AppLanguage.ko: '피', AppLanguage.en: 'Junk', AppLanguage.ja: 'カス', AppLanguage.zhCn: '皮', AppLanguage.zhTw: '皮' },
+    };
+    return _t(uiTexts[key] ?? {AppLanguage.ko: key});
+  }
+
   // ─── [도움말/도감 시스템 텍스트] ───
   String get tabRules => _t({
     AppLanguage.ko: '규칙', AppLanguage.en: 'Rules', AppLanguage.ja: 'ルール', AppLanguage.zhCn: '规则', AppLanguage.zhTw: '規則',
@@ -567,4 +625,16 @@ class AppStrings {
   String _t(Map<AppLanguage, String> translations) {
     return translations[language] ?? translations[AppLanguage.en] ?? '';
   }
+
+  // ─── [AI 및 스테이지 이름 동적 반환] ───
+  String getAiName(dynamic ai) {
+    if (language == AppLanguage.ko) return ai.nameKo;
+    return ai.nameEn;
+  }
+
+  String getStageName(dynamic stage) {
+    if (language == AppLanguage.ko) return stage.nameKo;
+    return stage.nameEn;
+  }
 }
+

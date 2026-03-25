@@ -525,9 +525,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(ai.nameKo, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(strings.getAiName(ai), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
-                    Text('${stageConfig.emoji} ${stageConfig.nameKo}',
+                    Text('${stageConfig.emoji} ${strings.getStageName(stageConfig)}',
                       style: const TextStyle(color: Colors.white54, fontSize: 10)),
                   ],
                 ),
