@@ -6,6 +6,7 @@
 /// - 동적 크기 스케일 (멀리→가까이 느낌)
 /// - 발광 + 그림자 효과
 /// - 착지 바운스 + 흔들림
+library;
 
 import 'dart:math';
 import 'package:flutter/material.dart';

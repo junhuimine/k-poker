@@ -3,12 +3,14 @@
 /// 1. 인게임 액티브 스킬 (장착 제한 없음, 소모품)
 /// 2. 라운드 장착 (1회용, 시작 전 슬롯 장착)
 /// 3. 영구 부적 (보유 시 자동 상시 적용)
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/item_library.dart';
 import '../models/run_state.dart';
 import '../state/game_providers.dart';
+import '../i18n/app_strings.dart';
 
 class ShopScreen extends ConsumerWidget {
   final VoidCallback onClose;
@@ -149,9 +151,11 @@ class ShopScreen extends ConsumerWidget {
   Widget _buildActiveSkillCard(WidgetRef ref, RunState run, ActiveSkill item) {
     final count = run.inventorySkills[item.id] ?? 0;
     final canAfford = run.gold >= item.shopCost;
+    final s = ref.watch(appStringsProvider);
 
     return _ItemCardImpl(
       item: item,
+      s: s,
       themeColor: Colors.blueAccent,
       statusText: count > 0 ? '보유량: $count개' : null,
       onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyActiveSkill(item.id, item.shopCost) : null,
@@ -163,9 +167,11 @@ class ShopScreen extends ConsumerWidget {
     final count = run.inventoryRoundItems[item.id] ?? 0;
     final isEquipped = run.equippedRoundItemIds.contains(item.id);
     final canAfford = run.gold >= item.shopCost;
+    final s = ref.watch(appStringsProvider);
 
     return _ItemCardImpl(
       item: item,
+      s: s,
       themeColor: Colors.greenAccent,
       statusText: isEquipped ? '✅ 장착 완료' : (count > 0 ? '보유량: $count개' : null),
       onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyPreRoundItem(item.id, item.shopCost) : null,
@@ -178,9 +184,11 @@ class ShopScreen extends ConsumerWidget {
   Widget _buildPassiveCard(WidgetRef ref, RunState run, PassiveTalisman item) {
     final isOwned = run.ownedTalismanIds.contains(item.id);
     final canAfford = run.gold >= item.shopCost;
+    final s = ref.watch(appStringsProvider);
 
     return _ItemCardImpl(
       item: item,
+      s: s,
       themeColor: Colors.amber,
       statusText: isOwned ? '✅ 영구 보유 중' : null,
       onBuy: (!isOwned && canAfford) ? () => ref.read(runStateNotifierProvider.notifier).buyPassiveTalisman(item.id, item.shopCost) : null,
@@ -191,6 +199,7 @@ class ShopScreen extends ConsumerWidget {
 
 class _ItemCardImpl extends StatelessWidget {
   final BaseItemDef item;
+  final AppStrings s;
   final Color themeColor;
   final String? statusText;
   final VoidCallback? onBuy;
@@ -200,6 +209,7 @@ class _ItemCardImpl extends StatelessWidget {
 
   const _ItemCardImpl({
     required this.item,
+    required this.s,
     required this.themeColor,
     this.statusText,
     this.onBuy,
@@ -229,10 +239,10 @@ class _ItemCardImpl extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(item.nameKo, style: TextStyle(color: themeColor, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1),
+          Text(s.getItemName(item.id, item.nameKo), style: TextStyle(color: themeColor, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1),
           const SizedBox(height: 4),
           Expanded(
-            child: Text(item.description, style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.3), maxLines: 5, overflow: TextOverflow.ellipsis),
+            child: Text(s.getItemDesc(item.id, item.description), style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.3), maxLines: 5, overflow: TextOverflow.ellipsis),
           ),
           if (statusText != null) ...[
             const SizedBox(height: 4),

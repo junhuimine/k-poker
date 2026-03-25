@@ -1,4 +1,5 @@
 /// 🎴 K-Poker — 카드 정의 모델 (freezed 업그레이드)
+library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 

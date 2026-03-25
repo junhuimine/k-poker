@@ -1,5 +1,7 @@
+// ignore_for_file: avoid_print
 /// 🎵 K-Poker 효과음 WAV 생성기 (Dart)
 /// dart run tool/generate_sfx.dart 로 실행
+library;
 
 import 'dart:io';
 import 'dart:math';
@@ -79,11 +81,15 @@ List<double> mixAll(List<List<double>> tracks) {
   final len = tracks.map((t) => t.length).reduce(max);
   final result = List.filled(len, 0.0);
   for (final t in tracks) {
-    for (var i = 0; i < t.length; i++) result[i] += t[i];
+    for (var i = 0; i < t.length; i++) {
+      result[i] += t[i];
+    }
   }
   final mx = result.map((s) => s.abs()).reduce(max);
   if (mx > 0) {
-    for (var i = 0; i < result.length; i++) result[i] = result[i] / mx * 0.8;
+    for (var i = 0; i < result.length; i++) {
+      result[i] = result[i] / mx * 0.8;
+    }
   }
   return result;
 }
@@ -95,7 +101,9 @@ void writeWav(String filename, List<double> samples) {
 
   // WAV header
   void writeString(int offset, String s) {
-    for (var i = 0; i < s.length; i++) byteData.setUint8(offset + i, s.codeUnitAt(i));
+    for (var i = 0; i < s.length; i++) {
+      byteData.setUint8(offset + i, s.codeUnitAt(i));
+    }
   }
   final dataSize = samples.length * 2;
   writeString(0, 'RIFF');

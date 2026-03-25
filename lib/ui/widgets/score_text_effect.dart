@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 점수 팝업 텍스트 이펙트
 /// 
 /// Balatro 스타일의 화려한 숫자 상승 연출.
+library;
 
 import 'package:flutter/material.dart';
 

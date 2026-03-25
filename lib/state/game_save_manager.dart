@@ -1,6 +1,7 @@
 /// 🎴 K-Poker -- 게임 저장/불러오기 시스템
 ///
 /// LocalStorage (SharedPreferences) 기반 자동 저장
+library;
 
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';

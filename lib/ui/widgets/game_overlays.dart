@@ -6,12 +6,14 @@
 /// - GoStopOverlay: 고/스톱 결정 오버레이
 /// - AiGoStopAnimation: AI 고/스톱 알림 애니메이션
 /// - RoundEndOverlay: 라운드 종료 (승리/패배/파산)
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_providers.dart';
 import '../../models/card_def.dart';
 import '../../data/stage_config.dart';
+import '../../common/responsive.dart';
 import 'hwatu_card.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -49,6 +51,8 @@ class GameStartOverlay extends ConsumerWidget {
     return Stack(
       children: [
         Container(
+          width: double.infinity,
+          height: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -56,10 +60,17 @@ class GameStartOverlay extends ConsumerWidget {
               colors: [Color(0xFF0D0D0D), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0D0D0D)],
             ),
           ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: SizedBox(
+              width: 1200,
+              height: 700,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                 // 5광 부채살 + 글로우
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -160,6 +171,9 @@ class GameStartOverlay extends ConsumerWidget {
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
               ],
             ),
+            ),
+            ),
+          ),
           ),
         ),
         Positioned(
@@ -358,6 +372,8 @@ class GoStopOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.read(gameStateProvider);
+    final s = Responsive.scaleMax(context); // 폰트가 너무 작아지지 않게
+    
     final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
     final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
@@ -367,11 +383,11 @@ class GoStopOverlay extends ConsumerWidget {
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
-          width: 340,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          width: (360 * s).clamp(300.0, 480.0),
+          padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 16 * s),
           decoration: BoxDecoration(
             color: const Color(0xFF1A1A2E),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20 * s),
             border: Border.all(color: const Color(0xFFFFD700), width: 2),
             boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 3)],
           ),
@@ -382,13 +398,13 @@ class GoStopOverlay extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Column(children: [
-                    const Text('나', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text('${state.playerScore}점', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text('나', style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
+                    Text('${state.playerScore}점', style: TextStyle(color: const Color(0xFFFFD700), fontSize: 24 * s, fontWeight: FontWeight.bold)),
                   ]),
-                  const Text('VS', style: TextStyle(color: Colors.white38, fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text('VS', style: TextStyle(color: Colors.white38, fontSize: 16 * s, fontWeight: FontWeight.bold)),
                   Column(children: [
-                    const Text('상대', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text('${state.opponentScore}점', style: const TextStyle(color: Colors.redAccent, fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text('상대', style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
+                    Text('${state.opponentScore}점', style: TextStyle(color: Colors.redAccent, fontSize: 24 * s, fontWeight: FontWeight.bold)),
                   ]),
                 ],
               ),
@@ -409,12 +425,12 @@ class GoStopOverlay extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14 * s),
               Text(
                 state.goCount == 0
                     ? '🔥 3점 달성!'
                     : '${'🔥' * (state.goCount + 1)} ${state.goCount + 1}고! 추가 점수!',
-                style: const TextStyle(color: Color(0xFFFFD700), fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(color: const Color(0xFFFFD700), fontSize: 22 * s, fontWeight: FontWeight.bold),
               ),
               Text(
                 state.goCount == 0
@@ -425,30 +441,30 @@ class GoStopOverlay extends ConsumerWidget {
                             ? '고(3고) → 점수 2배 폭증! | 스톱 시 즉시 승리'
                             : '현재 배율 ${state.multiplier.toInt()}배 → 고 시 ${(state.multiplier * 2).toInt()}배!',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: Colors.white54, fontSize: 14 * s),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 18 * s),
               Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
                     onPressed: () => onGo(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: EdgeInsets.symmetric(horizontal: 28 * s, vertical: 12 * s),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14 * s)),
                     ),
-                    child: Text(strings.goDecision, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(strings.goDecision, style: TextStyle(fontSize: 18 * s, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16 * s),
                   ElevatedButton(
                     onPressed: onStop,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade700,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: EdgeInsets.symmetric(horizontal: 28 * s, vertical: 12 * s),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14 * s)),
                     ),
-                    child: Text(strings.stopDecision, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(strings.stopDecision, style: TextStyle(fontSize: 18 * s, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ],
               ),
@@ -503,18 +519,21 @@ class RoundEndOverlay extends ConsumerWidget {
         : -(state.opponentScore > 0 ? state.opponentScore : 1) * currency.pointValue;
 
     if (isBankrupt) {
-      return _buildBankruptOverlay(state, run, currency);
+      return _buildBankruptOverlay(context, state, run, currency);
     }
+
+    final s = Responsive.scaleMax(context);
+    final w = Responsive.screenWidth(context);
 
     return Container(
       color: Colors.black.withValues(alpha: 0.85),
       child: Center(
         child: Container(
-          constraints: BoxConstraints(maxWidth: screenW * 0.85 > 380 ? 380 : screenW * 0.85),
-          padding: EdgeInsets.all(scale > 0.7 ? 28 : 16),
+          constraints: BoxConstraints(maxWidth: (w * 0.85).clamp(320.0, 420.0)),
+          padding: EdgeInsets.all(s > 0.7 ? 24 * s : 16 * s),
           decoration: BoxDecoration(
             color: const Color(0xFF161B22),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24 * s),
             border: Border.all(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, width: 2),
             boxShadow: [BoxShadow(color: (isWin ? Colors.amber : Colors.red).withValues(alpha: 0.3), blurRadius: 30)],
           ),
@@ -522,12 +541,12 @@ class RoundEndOverlay extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ScoreVersusHeader(state: state),
-              const SizedBox(height: 16),
-              Text(isWin ? '🏆' : '💀', style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 8),
+              SizedBox(height: 16 * s),
+              Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 48 * s)),
+              SizedBox(height: 8 * s),
               Text(isWin ? '승리!' : '패배...',
-                style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+                style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32 * s, fontWeight: FontWeight.bold)),
+              SizedBox(height: 12 * s),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -629,16 +648,18 @@ class RoundEndOverlay extends ConsumerWidget {
     );
   }
 
-  Widget _buildBankruptOverlay(dynamic state, dynamic run, dynamic currency) {
+  Widget _buildBankruptOverlay(BuildContext context, dynamic state, dynamic run, dynamic currency) {
+    final s = Responsive.scaleMax(context);
+    final w = Responsive.screenWidth(context);
     return Container(
       color: Colors.black.withValues(alpha: 0.92),
       child: Center(
         child: Container(
-          constraints: BoxConstraints(maxWidth: screenW * 0.85 > 380 ? 380 : screenW * 0.85),
-          padding: EdgeInsets.all(scale > 0.7 ? 28 : 16),
+          constraints: BoxConstraints(maxWidth: (w * 0.85).clamp(320.0, 420.0)),
+          padding: EdgeInsets.all(s > 0.7 ? 24 * s : 16 * s),
           decoration: BoxDecoration(
             color: const Color(0xFF161B22),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24 * s),
             border: Border.all(color: Colors.redAccent, width: 3),
             boxShadow: [BoxShadow(color: Colors.red.withValues(alpha: 0.4), blurRadius: 40, spreadRadius: 5)],
           ),

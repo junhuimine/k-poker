@@ -1,10 +1,12 @@
 /// 🎴 K-Poker — main.dart
 ///
 /// 앱 엔트리 포인트. Flutter + Riverpod 기반.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'ui/game_screen.dart';
 
 void main() {
@@ -29,11 +31,12 @@ class KPokerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
+        textTheme: GoogleFonts.notoSansKrTextTheme(ThemeData.dark().textTheme),
         scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        colorScheme: ColorScheme.dark(
-          primary: const Color(0xFF4FACFE),
-          secondary: const Color(0xFFFF6B35),
-          surface: const Color(0xFF1A1A2E),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF4FACFE),
+          secondary: Color(0xFFFF6B35),
+          surface: Color(0xFF1A1A2E),
         ),
         useMaterial3: true,
       ),

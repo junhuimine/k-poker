@@ -1,4 +1,5 @@
 /// 🎴 K-Poker — 점수 계산 엔진 유닛 테스트
+library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:k_poker/engine/score_calculator.dart';
@@ -14,7 +15,7 @@ void main() {
       final captured = brights.map((d) => CardInstance(def: d)).toList();
       
       final state = RoundState(playerCaptured: captured);
-      final run = const RunState();
+      const run = RunState();
       
       final result = ScoreCalculator.calculate(state, run);
       
@@ -30,7 +31,7 @@ void main() {
       final captured = birds.map((d) => CardInstance(def: d)).toList();
       
       final state = RoundState(playerCaptured: captured);
-      final run = const RunState();
+      const run = RunState();
       
       final result = ScoreCalculator.calculate(state, run);
       
@@ -45,7 +46,7 @@ void main() {
       final captured = junks.map((d) => CardInstance(def: d)).toList();
       
       final state = RoundState(playerCaptured: captured);
-      final run = const RunState();
+      const run = RunState();
       
       final result = ScoreCalculator.calculate(state, run);
       
@@ -68,7 +69,7 @@ void main() {
       final captured = [card, ...otherJunks.map((d) => CardInstance(def: d))];
       
       final state = RoundState(playerCaptured: captured);
-      final run = const RunState();
+      const run = RunState();
       
       final result = ScoreCalculator.calculate(state, run);
       

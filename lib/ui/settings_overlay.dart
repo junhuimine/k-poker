@@ -1,4 +1,5 @@
 /// 🎴 K-Poker — 설정 화면 (볼륨/언어/카드 스킨)
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -260,6 +261,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
     );
   }
 
+  // ignore: unused_element
   Widget _skinChip(String label, bool isActive) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

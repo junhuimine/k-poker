@@ -3,6 +3,7 @@
 /// 1. 인게임 액티브 (ActiveSkill)
 /// 2. 라운드 장착 소모품 (PreRoundItem)
 /// 3. 영구 패시브 부적 (PassiveTalisman)
+library;
 
 enum ItemCategory {
   activeSkill,
@@ -146,8 +147,14 @@ final List<PassiveTalisman> shopPassiveTalismans = [
 
 /// ID로 아이템을 검색하는 헬퍼 함수
 BaseItemDef? findItemById(String id) {
-  for (var s in shopActiveSkills) if (s.id == id) return s;
-  for (var p in shopPreRoundItems) if (p.id == id) return p;
-  for (var t in shopPassiveTalismans) if (t.id == id) return t;
+  for (var s in shopActiveSkills) {
+    if (s.id == id) return s;
+  }
+  for (var p in shopPreRoundItems) {
+    if (p.id == id) return p;
+  }
+  for (var t in shopPassiveTalismans) {
+    if (t.id == id) return t;
+  }
   return null;
 }

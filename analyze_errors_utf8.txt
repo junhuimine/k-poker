@@ -1,0 +1,44 @@
+﻿Analyzing 08_k-poker...                                         
+
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:393:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:394:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:395:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:396:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:397:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:410:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:411:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:412:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:413:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:414:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:417:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:418:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:419:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:420:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:421:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:424:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:425:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:426:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:427:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:428:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:431:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:432:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:433:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:434:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:435:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:438:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:439:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:440:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:441:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:442:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:445:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:446:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:447:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:448:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:449:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:452:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:453:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:454:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:455:23 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\i18n\app_strings.dart:456:23 - prefer_interpolation_to_compose_strings
+  error - Undefined name 'appStringsProvider' - lib\state\game_providers.dart:78:33 - undefined_identifier
+

@@ -1,6 +1,7 @@
 /// 🎴 K-Poker -- 런(Run) 전체 상태 모델
 ///
 /// 판돈, 소지금, 스테이지, 기술/부적, 저장/불러오기 포함
+library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../data/skills.dart';
@@ -13,7 +14,7 @@ part 'run_state.g.dart';
 class RunState with _$RunState {
   const factory RunState({
     @Default(1) int stage,           // 현재 스테이지 (1~6+)
-    @Default(0) int gold,            // 레거시 (호환용)
+    @Default(1000000) int gold,      // 테스트 및 상점 올클리어용 100만 골드 지급
     @Default(50000) double money,    // 소지금 (화폐 기준)
     @Default(0) double stageEarned,  // 레거시 (호환용, 미사용)
     @Default(0) int currentOpponentIndex, // 현재 상대 인덱스 (0 또는 1)

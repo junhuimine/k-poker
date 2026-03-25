@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — Riverpod 상태 관리 (GDD 2.0)
 ///
 /// AI 자동 턴, 고/스톱, 점수 계산, 판돈/소지금, 저장/불러오기 포함.
+library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/round_state.dart';
@@ -12,6 +13,8 @@ import '../engine/card_matcher.dart';
 import '../data/stage_config.dart';
 import '../state/game_save_manager.dart';
 import '../state/audio_manager.dart';
+import '../i18n/app_strings.dart';
+import '../i18n/locale_provider.dart';
 
 part 'game_providers.g.dart';
 
@@ -73,6 +76,8 @@ class YakuAnnounce extends _$YakuAnnounce {
 /// 게임 세션(라운드) 상태 관리자
 @riverpod
 class GameState extends _$GameState {
+  AppStrings get _s => ref.read(appStringsProvider);
+
   @override
   RoundState build() {
     return const RoundState();
@@ -84,7 +89,7 @@ class GameState extends _$GameState {
     ref.read(goStopPendingProvider.notifier).hide();
     final runState = ref.read(runStateNotifierProvider);
     state = GameEngine.createInitialState(run: runState);
-    ref.read(gameEventsProvider.notifier).addEvent('start', '🎴 새 라운드 시작!');
+    ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
   }
 
   /// 총통 감지 (핸드에 같은 월 4장)
@@ -105,11 +110,12 @@ class GameState extends _$GameState {
       playerCaptured: [...state.playerCaptured, ...chongtongCards],
       playerScore: 3,
       isFinished: true,
+      winner: 'player',
     );
 
     AudioManager().cardSweep();
     ref.read(gameEventsProvider.notifier)
-        .addEvent('bomb', '🎆 총통! ${month}월 4장! 즉시 승리! (+3점)');
+        .addEvent('bomb', _s.eventChongtong(month));
     ref.read(yakuAnnounceProvider.notifier).announce('chongtong');
     Future.delayed(const Duration(milliseconds: 2000), () {
       ref.read(yakuAnnounceProvider.notifier).clear();
@@ -131,7 +137,7 @@ class GameState extends _$GameState {
         field: pool.sublist(0, fieldSize),
         deck: pool.sublist(fieldSize),
       );
-      ref.read(gameEventsProvider.notifier).addEvent('skill', '🌪️ [덱 셔플] 발동! 필드와 덱을 재배열했습니다!');
+      ref.read(gameEventsProvider.notifier).addEvent('skill', _s.eventSkillShuffle);
     } else if (skillId == 'S-002') {
       // [스나이퍼] 상대방이 획득한 피(Junk) 1장을 훔침 (없으면 실패)
       final opJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).toList();
@@ -141,13 +147,13 @@ class GameState extends _$GameState {
           opponentCaptured: state.opponentCaptured.where((c) => c != target).toList(),
           playerCaptured: [...state.playerCaptured, target],
         );
-        ref.read(gameEventsProvider.notifier).addEvent('skill', '🎯 [스나이퍼] 발동! 상대 피 1장을 탈취했습니다!');
+        ref.read(gameEventsProvider.notifier).addEvent('skill', _s.eventSkillSniperSuccess);
       } else {
-        ref.read(gameEventsProvider.notifier).addEvent('skill', '🎯 [스나이퍼] 상대방에게 뺏을 수 있는 피가 없습니다!');
+        ref.read(gameEventsProvider.notifier).addEvent('skill', _s.eventSkillSniperFail);
       }
     } else if (skillId == 'S-001') {
       // [전용 조커] 이벤트성
-      ref.read(gameEventsProvider.notifier).addEvent('skill', '🃏 [전용 조커] 강력한 다음 턴을 준비합니다!');
+      ref.read(gameEventsProvider.notifier).addEvent('skill', _s.eventSkillJoker);
     }
   }
 
@@ -176,16 +182,16 @@ class GameState extends _$GameState {
       final hasBright = modifiedNextState.playerCaptured.any((c) => c.def.grade == CardGrade.bright && !state.playerCaptured.contains(c));
       if (hasBright) AudioManager().brightCapture();
       ref.read(gameEventsProvider.notifier)
-          .addEvent('match', '✅ ${card.def.nameKo} → $newCaptured장 획득!');
+          .addEvent('match', _s.eventPlayerMatch(card.def.nameKo, newCaptured));
 
-      final lines = ai.dialogues['player_match'] ?? ['흥!'];
-      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
+      final matchLine = _s.getAiDialogue(ai.id, 'player_match', ai.dialogues['player_match'] ?? ['흥!']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
     } else {
       ref.read(gameEventsProvider.notifier)
-          .addEvent('miss', '❌ ${card.def.nameKo} → 매칭 실패');
+          .addEvent('miss', _s.eventPlayerMiss(card.def.nameKo));
 
-      final lines = ai.dialogues['player_miss'] ?? ['쯧쯧'];
-      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
+      final missLine = _s.getAiDialogue(ai.id, 'player_miss', ai.dialogues['player_miss'] ?? ['쯧쯧']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
     }
 
     // 3. 점수 업데이트 (이전 baseChips 저장 필요 — 고/스톱 판정용)
@@ -213,9 +219,8 @@ class GameState extends _$GameState {
       }
     }
 
-    // 삼뻑으로 인한 즉시 종료 체크
     if (specialEvent == 'triple_ppeok') {
-      state = state.copyWith(isFinished: true);
+      state = state.copyWith(isFinished: true, winner: 'player');
       _handleRoundEnd();
       return;
     }
@@ -236,10 +241,16 @@ class GameState extends _$GameState {
     // 6. AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
     if (state.currentTurn == 'opponent' && !state.isFinished) {
       if (state.opponentHand.isEmpty) {
-        state = state.copyWith(isFinished: true);
+        state = state.copyWith(isFinished: true, isDraw: true);
         _handleRoundEnd();
         return;
       }
+    }
+
+    if (state.playerHand.isEmpty && state.opponentHand.isEmpty && !state.isFinished) {
+      state = state.copyWith(isFinished: true, isDraw: true);
+      _handleRoundEnd();
+      return;
     }
   }
 
@@ -250,43 +261,43 @@ class GameState extends _$GameState {
     switch (event) {
       case 'ppeok':
         AudioManager().cardMatch();
-        text = '💥 뻑! 아무것도 먹지 못하고 바닥에 쌓인다!';
+        text = _s.eventPpeok;
         break;
       case 'double_ppeok':
         AudioManager().cardSweep();
-        text = '🔥🔥 연뻑!! +3점 획득!';
+        text = _s.eventDoublePpeok;
         break;
       case 'triple_ppeok':
         AudioManager().cardSweep();
-        text = '🔥🔥🔥 삼뻑!!! 즉시 승리!!!';
+        text = _s.eventTriplePpeok;
         break;
       case 'chok':
         AudioManager().cardMatch();
-        text = '✌️ 쪽!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        text = _s.eventChok(stolenPi > 0);
         break;
       case 'chok_sweep':
         AudioManager().cardSweep();
-        text = '✌️🌊 쪽 + 쓸! 상대 피 ${stolenPi}장 빼앗기!';
+        text = _s.eventChokSweep(stolenPi > 0);
         break;
       case 'tadak':
         AudioManager().cardMatch();
-        text = '⚡ 따닥!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        text = _s.eventTadak(stolenPi > 0);
         break;
       case 'sweep':
         AudioManager().cardSweep();
-        text = '🌊 쓸!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        text = _s.eventSweep(stolenPi > 0);
         break;
       case 'ppeok_eat':
         AudioManager().cardSweep();
-        text = '💥 뻑 먹기! 4장 전부 획득!${stolenPi > 0 ? ' + 피 ${stolenPi}장 빼앗기!' : ''}';
+        text = _s.eventPpeokEat(stolenPi > 0);
         break;
       case 'self_ppeok':
         AudioManager().cardSweep();
-        text = '💥🔥 자뻑! 4장 전부 획득! + 피 ${stolenPi}장 빼앗기!';
+        text = _s.eventSelfPpeok(stolenPi > 0);
         break;
       case 'bomb':
         AudioManager().cardSweep();
-        text = '💣 폭탄!${stolenPi > 0 ? ' 상대 피 ${stolenPi}장 빼앗기!' : ''}';
+        text = _s.eventGeneralBomb(stolenPi > 0);
         break;
       default:
         return;
@@ -300,8 +311,8 @@ class GameState extends _$GameState {
 
     // AI 반응 대사
     final reactKey = event.contains('ppeok') ? 'sweep_react' : 'player_match';
-    final lines = ai.dialogues[reactKey] ?? ['...'];
-    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${lines[DateTime.now().millisecond % lines.length]}"');
+    final reactLine = _s.getAiDialogue(ai.id, reactKey, ai.dialogues[reactKey] ?? ['...']);
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$reactLine"');
   }
 
   /// 폭탄! (같은 월 3장 한번에 내기)
@@ -316,13 +327,13 @@ class GameState extends _$GameState {
     // 이벤트
     AudioManager().cardSweep(); // 폭탄은 쓸과 비슷한 임팩트 SFX
     ref.read(gameEventsProvider.notifier)
-        .addEvent('bomb', '💣 폭탄! ${bombMonth}월 3장 일괄 획득!${stolenJunk ? ' + 상대 피 빼앗기!' : ''}');
+        .addEvent('bomb', _s.eventPlayerBomb(bombMonth, stolenJunk));
 
     // AI 반응 대사
     final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
-    final bombLines = ai.dialogues['bomb_react'] ?? ['앗!'];
-    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${bombLines[DateTime.now().millisecond % bombLines.length]}"');
+    final bombReactLine = _s.getAiDialogue(ai.id, 'bomb_react', ai.dialogues['bomb_react'] ?? ['앗!']);
+    ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$bombReactLine"');
 
     // 점수 업데이트
     final scoreResult = ScoreCalculator.calculate(nextState, run);
@@ -345,18 +356,16 @@ class GameState extends _$GameState {
 
     // AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
     if (state.currentTurn == 'opponent' && !state.isFinished) {
-      // AI 핸드가 비면 나가리 처리
       if (state.opponentHand.isEmpty) {
-        state = state.copyWith(isFinished: true);
+        state = state.copyWith(isFinished: true, isDraw: true);
         _handleRoundEnd();
         return;
       }
       // UI에서 _executeAiTurn을 호출하게 됨
     }
 
-    // 안전장치: 양쪽 핸드가 모두 비면 나가리
     if (state.playerHand.isEmpty && state.opponentHand.isEmpty && !state.isFinished) {
-      state = state.copyWith(isFinished: true);
+      state = state.copyWith(isFinished: true, isDraw: true);
       _handleRoundEnd();
     }
   }
@@ -365,16 +374,14 @@ class GameState extends _$GameState {
   void declareGo() {
     ref.read(goStopPendingProvider.notifier).hide();
     AudioManager().goDeclare();
-    ref.read(gameEventsProvider.notifier).addEvent('go', '🔥 고! 선언! (배율 증가)');
+    ref.read(gameEventsProvider.notifier).addEvent('go', _s.eventPlayerGo);
 
     // AI 반응 대사 (고 횟수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final isFear = state.goCount >= 2; // 3고 이상 (현재 count 2일때 선언하면 3고가 됨)
-    final goLines = isFear 
-        ? (ai.dialogues['player_go_fear'] ?? ['안돼!'])
-        : (ai.dialogues['player_go'] ?? ['오호, 대담하네!']);
-    final goLine = goLines[DateTime.now().millisecond % goLines.length];
+    final sit = isFear ? 'player_go_fear' : 'player_go';
+    final goLine = _s.getAiDialogue(ai.id, sit, ai.dialogues[sit] ?? (isFear ? ['안돼!'] : ['오호, 대담하네!']));
     
     // 두려운 상황이면 추가 놀라는 SFX 플레이 가능
     if (isFear) AudioManager().cardSweep(); // 에러음 대신 쓸과 비슷한 임팩트음 사용
@@ -395,19 +402,17 @@ class GameState extends _$GameState {
   void declareStop() {
     ref.read(goStopPendingProvider.notifier).hide();
     AudioManager().stopDeclare();
-    ref.read(gameEventsProvider.notifier).addEvent('stop', '🛑 스톱! 라운드 종료!');
+    ref.read(gameEventsProvider.notifier).addEvent('stop', _s.eventPlayerStop);
 
     // AI 반응 대사 (점수에 따라 다름)
     final run = ref.read(runStateNotifierProvider);
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final isBig = state.playerScore >= 10;
-    final stopLines = isBig 
-        ? (ai.dialogues['player_stop_big'] ?? ['너무하네!'])
-        : (ai.dialogues['player_stop_small'] ?? ['소박하네~']);
-    final stopLine = stopLines[DateTime.now().millisecond % stopLines.length];
+    final sit = isBig ? 'player_stop_big' : 'player_stop_small';
+    final stopLine = _s.getAiDialogue(ai.id, sit, ai.dialogues[sit] ?? (isBig ? ['너무하네!'] : ['소박하네~']));
     ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$stopLine"');
 
-    state = state.copyWith(isFinished: true);
+    state = state.copyWith(isFinished: true, winner: 'player');
     _handleRoundEnd();
   }
 
@@ -431,10 +436,15 @@ class GameState extends _$GameState {
       final matchable = findMatchableCards(card, state.field);
       if (matchable.isNotEmpty) {
         int cardScore = 0;
-        if (card.def.grade == CardGrade.bright) cardScore = 100;
-        else if (card.def.grade == CardGrade.animal) cardScore = 50;
-        else if (card.def.grade == CardGrade.ribbon) cardScore = 30;
-        else cardScore = 10;
+        if (card.def.grade == CardGrade.bright) {
+          cardScore = 100;
+        } else if (card.def.grade == CardGrade.animal) {
+          cardScore = 50;
+        } else if (card.def.grade == CardGrade.ribbon) {
+          cardScore = 30;
+        } else {
+          cardScore = 10;
+        }
         if (ai.matchPriority < 0.5) {
           cardScore = (cardScore * ai.matchPriority).round();
         }
@@ -458,20 +468,14 @@ class GameState extends _$GameState {
 
     if (newCaptured > 0) {
       ref.read(gameEventsProvider.notifier)
-          .addEvent('ai_play', '🤖 AI: ${card.def.nameKo} → $newCaptured장 획득');
-      final matchLine = ai.getDialogue('match');
-      if (matchLine != null) {
-        ref.read(gameEventsProvider.notifier)
-            .addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
-      }
+          .addEvent('ai_play', _s.eventAiMatch(card.def.nameKo, newCaptured));
+      final matchLine = _s.getAiDialogue(ai.id, 'match', ai.dialogues['match'] ?? ['...']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
     } else {
       ref.read(gameEventsProvider.notifier)
-          .addEvent('ai_play', '🤖 AI: ${card.def.nameKo}');
-      final missLine = ai.getDialogue('miss');
-      if (missLine != null) {
-        ref.read(gameEventsProvider.notifier)
-            .addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
-      }
+          .addEvent('ai_play', _s.eventAiMiss(card.def.nameKo));
+      final missLine = _s.getAiDialogue(ai.id, 'miss', ai.dialogues['miss'] ?? ['...']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
     }
 
     state = nextState;
@@ -502,10 +506,10 @@ class GameState extends _$GameState {
       if (shouldStop) {
         AudioManager().stopDeclare(); // AI 스톱 효과음
         ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
-        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖 AI: 스톱! 라운드 종료!');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', _s.eventAiStop);
         
-        final stopLines = ai.dialogues['stop'] ?? ['스톱!'];
-        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${stopLines[DateTime.now().millisecond % stopLines.length]}"');
+        final stopLine = _s.getAiDialogue(ai.id, 'stop', ai.dialogues['stop'] ?? ['스톱!']);
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$stopLine"');
 
         state = state.copyWith(isFinished: true);
         Future.delayed(const Duration(milliseconds: 1500), () {
@@ -516,10 +520,10 @@ class GameState extends _$GameState {
         AudioManager().goDeclare(); // AI 고 효과음
         final newGoCount = aiGoCount + 1;
         ref.read(aiGoStopAnnounceProvider.notifier).announce('go_$newGoCount');
-        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖🔥 AI: 고! ×$newGoCount');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', _s.eventAiGo(newGoCount));
         
-        final goLines = ai.dialogues['go'] ?? ['고!'];
-        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${goLines[DateTime.now().millisecond % goLines.length]}"');
+        final goLine = _s.getAiDialogue(ai.id, 'go', ai.dialogues['go'] ?? ['고!']);
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$goLine"');
 
         state = state.copyWith(
           opponentGoCount: newGoCount,
@@ -533,6 +537,7 @@ class GameState extends _$GameState {
   }
 
   /// AI 턴 실행 (기존 - 폭탄/fallback용)
+  // ignore: unused_element
   void _playAiTurn() {
     if (state.isFinished || state.currentTurn != 'opponent') return;
 
@@ -548,10 +553,10 @@ class GameState extends _$GameState {
         AudioManager().cardSweep(); // 폭탄 효과음
         final nextState = GameEngine.playBomb(state, aiBombMonth);
         ref.read(gameEventsProvider.notifier)
-            .addEvent('ai_play', '🤖💣 AI: ${aiBombMonth}월 폭탄!');
+            .addEvent('ai_play', _s.eventAiBomb(aiBombMonth));
         
-        final bombLines = ai.dialogues['bomb'] ?? ['폭탄이다!'];
-        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${bombLines[DateTime.now().millisecond % bombLines.length]}"');
+        final bombLine = _s.getAiDialogue(ai.id, 'bomb', ai.dialogues['bomb'] ?? ['폭탄이다!']);
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$bombLine"');
         
         // AI 점수 계산
         final aiScoreState = nextState.copyWith(
@@ -577,10 +582,15 @@ class GameState extends _$GameState {
       if (matchable.isNotEmpty) {
         // 높은 등급 카드 우선 (AI 난이도에 따라)
         int cardScore = 0;
-        if (card.def.grade == CardGrade.bright) cardScore = 100;
-        else if (card.def.grade == CardGrade.animal) cardScore = 50;
-        else if (card.def.grade == CardGrade.ribbon) cardScore = 30;
-        else cardScore = 10;
+        if (card.def.grade == CardGrade.bright) {
+          cardScore = 100;
+        } else if (card.def.grade == CardGrade.animal) {
+          cardScore = 50;
+        } else if (card.def.grade == CardGrade.ribbon) {
+          cardScore = 30;
+        } else {
+          cardScore = 10;
+        }
         
         // AI 난이도: 낮으면 랜덤 요소 추가
         if (ai.matchPriority < 0.5) {
@@ -608,21 +618,15 @@ class GameState extends _$GameState {
 
     if (newCaptured > 0) {
       ref.read(gameEventsProvider.notifier)
-          .addEvent('ai_play', '🤖 AI: ${bestCard.def.nameKo} → $newCaptured장 획득');
+          .addEvent('ai_play', _s.eventAiMatch(bestCard.def.nameKo, newCaptured));
       // #6 AI 대사
-      final matchLine = ai.getDialogue('match');
-      if (matchLine != null) {
-        ref.read(gameEventsProvider.notifier)
-            .addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
-      }
+      final matchLine = _s.getAiDialogue(ai.id, 'match', ai.dialogues['match'] ?? ['...']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$matchLine"');
     } else {
       ref.read(gameEventsProvider.notifier)
-          .addEvent('ai_play', '🤖 AI: ${bestCard.def.nameKo}');
-      final missLine = ai.getDialogue('miss');
-      if (missLine != null) {
-        ref.read(gameEventsProvider.notifier)
-            .addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
-      }
+          .addEvent('ai_play', _s.eventAiMiss(bestCard.def.nameKo));
+      final missLine = _s.getAiDialogue(ai.id, 'miss', ai.dialogues['miss'] ?? ['...']);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
     }
 
     state = nextState;
@@ -654,7 +658,7 @@ class GameState extends _$GameState {
       if (shouldStop) {
         // AI 스톱!
         ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
-        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖 AI: 스톱! 라운드 종료!');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', _s.eventAiStop);
         state = state.copyWith(isFinished: true);
         // 애니메이션 후 라운드 종료 처리 (UI에서 처리)
         Future.delayed(const Duration(milliseconds: 1500), () {
@@ -665,7 +669,7 @@ class GameState extends _$GameState {
         // AI 고!
         final newGoCount = aiGoCount + 1;
         ref.read(aiGoStopAnnounceProvider.notifier).announce('go_$newGoCount');
-        ref.read(gameEventsProvider.notifier).addEvent('ai_play', '🤖🔥 AI: 고! ×$newGoCount');
+        ref.read(gameEventsProvider.notifier).addEvent('ai_play', _s.eventAiGo(newGoCount));
         state = state.copyWith(
           opponentGoCount: newGoCount,
           opponentScore: aiResult.finalScore,
@@ -682,36 +686,55 @@ class GameState extends _$GameState {
   void _handleRoundEnd() {
     final run = ref.read(runStateNotifierProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
-    
-    // 수입 계산: 점수(baseChips) × 판돈 단위(pointValue) × 배율(multiplier)
-    // 공식 고스톱: 점수 × 판돈 = 수입
-    final baseScore = state.baseChips; // score_calculator에서 계산된 기본 점수
-    final mult = state.multiplier;     // 박 배율
-    final earnings = baseScore * currency.pointValue * mult;
-
-    // AI 반응 대사 (win/lose)
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
-    if (state.playerScore > state.opponentScore) {
-      // 플레이어 승리 → AI는 lose 대사
-      final loseLines = ai.dialogues['lose'] ?? ['다음엔 지지 않을 거야...'];
-      final loseLine = loseLines[DateTime.now().millisecond % loseLines.length];
-      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$loseLine"');
-      
-      ref.read(runStateNotifierProvider.notifier).onWin(earnings, state.playerScore);
-      ref.read(gameEventsProvider.notifier)
-          .addEvent('round_end', '🏆 승리! +${currency.formatAmount(earnings)}');
+    
+    // 무승부 (나가리) 처리
+    final isDraw = state.isDraw || (state.winner == null && state.playerScore == state.opponentScore && state.playerScore == 0);
+    if (isDraw) {
+      ref.read(gameEventsProvider.notifier).addEvent('round_end', _s.eventDraw);
+      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${_s.aiTalkDraw}"');
     } else {
-      // 플레이어 패배 → AI는 win 대사
-      final winLines = ai.dialogues['win'] ?? ['내가 이겼다!'];
-      final winLine = winLines[DateTime.now().millisecond % winLines.length];
-      ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$winLine"');
-      
-      // 패배 시: 상대 점수 × 판돈 단위
-      final opScore = state.opponentScore > 0 ? state.opponentScore : 1;
-      final penalty = opScore * currency.pointValue;
-      ref.read(runStateNotifierProvider.notifier).onLose(penalty);
-      ref.read(gameEventsProvider.notifier)
-          .addEvent('round_end', '💀 패배... -${currency.formatAmount(penalty)}');
+      // 명시적인 승자가 있으면 우선 적용, 없으면 점수 비교
+      final isPlayerWin = state.winner == 'player' || (state.winner == null && state.playerScore > state.opponentScore);
+
+      if (isPlayerWin) {
+        // 플레이어 승리 → AI는 lose 대사
+        var baseScore = state.baseChips > 0 ? state.baseChips : state.playerScore;
+
+        // 상대 고박 (AI가 고를 불렀는데 유저가 스톱으로 이긴 경우 2배)
+        if (state.opponentGoCount > 0) {
+          baseScore *= 2;
+          ref.read(gameEventsProvider.notifier).addEvent('round_end', _s.eventRewardGoBak);
+        }
+
+        final mult = state.multiplier;
+        final earnings = baseScore * currency.pointValue * mult;
+
+        final loseLine = _s.getAiDialogue(ai.id, 'lose', ai.dialogues['lose'] ?? ['다음엔 지지 않을 거야...']);
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$loseLine"');
+        
+        ref.read(runStateNotifierProvider.notifier).onWin(earnings, state.playerScore);
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('round_end', _s.eventWin(currency.formatAmount(earnings)));
+      } else {
+        // 플레이어 패배 → AI는 win 대사
+        final winLine = _s.getAiDialogue(ai.id, 'win', ai.dialogues['win'] ?? ['내가 이겼다!']);
+        ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$winLine"');
+        
+        // 패배 시 정산
+        var opScore = state.opponentScore > 0 ? state.opponentScore : 1;
+        
+        // 내 고박 (내가 고를 불렀는데 AI가 스톱하여 패배한 경우 벌금 2배)
+        if (state.goCount > 0) {
+          opScore *= 2;
+          ref.read(gameEventsProvider.notifier).addEvent('round_end', _s.eventPenaltyGoBak);
+        }
+
+        final penalty = opScore * currency.pointValue;
+        ref.read(runStateNotifierProvider.notifier).onLose(penalty);
+        ref.read(gameEventsProvider.notifier)
+            .addEvent('round_end', _s.eventLose(currency.formatAmount(penalty)));
+      }
     }
 
     // 자동 저장

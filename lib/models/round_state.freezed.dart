@@ -33,7 +33,10 @@ mixin _$RoundState {
   int get opponentGoCount => throw _privateConstructorUsedError; // AI 고 횟수
   int get playerScore => throw _privateConstructorUsedError;
   int get opponentScore => throw _privateConstructorUsedError;
-  bool get isFinished =>
+  bool get isFinished => throw _privateConstructorUsedError;
+  String? get winner =>
+      throw _privateConstructorUsedError; // 'player', 'opponent', or 'draw'
+  bool get isDraw =>
       throw _privateConstructorUsedError; // Balatro 스타일 시너지 추적을 위한 추가 필드
   int get baseChips => throw _privateConstructorUsedError;
   double get multiplier => throw _privateConstructorUsedError;
@@ -89,6 +92,8 @@ abstract class $RoundStateCopyWith<$Res> {
       int playerScore,
       int opponentScore,
       bool isFinished,
+      String? winner,
+      bool isDraw,
       int baseChips,
       double multiplier,
       bool isSweep,
@@ -131,6 +136,8 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
     Object? playerScore = null,
     Object? opponentScore = null,
     Object? isFinished = null,
+    Object? winner = freezed,
+    Object? isDraw = null,
     Object? baseChips = null,
     Object? multiplier = null,
     Object? isSweep = null,
@@ -196,6 +203,14 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
       isFinished: null == isFinished
           ? _value.isFinished
           : isFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      winner: freezed == winner
+          ? _value.winner
+          : winner // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isDraw: null == isDraw
+          ? _value.isDraw
+          : isDraw // ignore: cast_nullable_to_non_nullable
               as bool,
       baseChips: null == baseChips
           ? _value.baseChips
@@ -271,6 +286,8 @@ abstract class _$$RoundStateImplCopyWith<$Res>
       int playerScore,
       int opponentScore,
       bool isFinished,
+      String? winner,
+      bool isDraw,
       int baseChips,
       double multiplier,
       bool isSweep,
@@ -311,6 +328,8 @@ class __$$RoundStateImplCopyWithImpl<$Res>
     Object? playerScore = null,
     Object? opponentScore = null,
     Object? isFinished = null,
+    Object? winner = freezed,
+    Object? isDraw = null,
     Object? baseChips = null,
     Object? multiplier = null,
     Object? isSweep = null,
@@ -376,6 +395,14 @@ class __$$RoundStateImplCopyWithImpl<$Res>
       isFinished: null == isFinished
           ? _value.isFinished
           : isFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      winner: freezed == winner
+          ? _value.winner
+          : winner // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isDraw: null == isDraw
+          ? _value.isDraw
+          : isDraw // ignore: cast_nullable_to_non_nullable
               as bool,
       baseChips: null == baseChips
           ? _value.baseChips
@@ -446,6 +473,8 @@ class _$RoundStateImpl implements _RoundState {
       this.playerScore = 0,
       this.opponentScore = 0,
       this.isFinished = false,
+      this.winner,
+      this.isDraw = false,
       this.baseChips = 0,
       this.multiplier = 1.0,
       this.isSweep = false,
@@ -546,6 +575,12 @@ class _$RoundStateImpl implements _RoundState {
   @override
   @JsonKey()
   final bool isFinished;
+  @override
+  final String? winner;
+// 'player', 'opponent', or 'draw'
+  @override
+  @JsonKey()
+  final bool isDraw;
 // Balatro 스타일 시너지 추적을 위한 추가 필드
   @override
   @JsonKey()
@@ -599,7 +634,7 @@ class _$RoundStateImpl implements _RoundState {
 
   @override
   String toString() {
-    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount, playerPpeokCount: $playerPpeokCount, opponentPpeokCount: $opponentPpeokCount, lastSpecialEvent: $lastSpecialEvent, lastStolenPiCount: $lastStolenPiCount, lastPpeokOwner: $lastPpeokOwner, lastPpeokMonth: $lastPpeokMonth, mentalGuardUsed: $mentalGuardUsed)';
+    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, winner: $winner, isDraw: $isDraw, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount, playerPpeokCount: $playerPpeokCount, opponentPpeokCount: $opponentPpeokCount, lastSpecialEvent: $lastSpecialEvent, lastStolenPiCount: $lastStolenPiCount, lastPpeokOwner: $lastPpeokOwner, lastPpeokMonth: $lastPpeokMonth, mentalGuardUsed: $mentalGuardUsed)';
   }
 
   @override
@@ -630,6 +665,8 @@ class _$RoundStateImpl implements _RoundState {
                 other.opponentScore == opponentScore) &&
             (identical(other.isFinished, isFinished) ||
                 other.isFinished == isFinished) &&
+            (identical(other.winner, winner) || other.winner == winner) &&
+            (identical(other.isDraw, isDraw) || other.isDraw == isDraw) &&
             (identical(other.baseChips, baseChips) ||
                 other.baseChips == baseChips) &&
             (identical(other.multiplier, multiplier) ||
@@ -672,6 +709,8 @@ class _$RoundStateImpl implements _RoundState {
         playerScore,
         opponentScore,
         isFinished,
+        winner,
+        isDraw,
         baseChips,
         multiplier,
         isSweep,
@@ -717,6 +756,8 @@ abstract class _RoundState implements RoundState {
       final int playerScore,
       final int opponentScore,
       final bool isFinished,
+      final String? winner,
+      final bool isDraw,
       final int baseChips,
       final double multiplier,
       final bool isSweep,
@@ -758,7 +799,11 @@ abstract class _RoundState implements RoundState {
   @override
   int get opponentScore;
   @override
-  bool get isFinished; // Balatro 스타일 시너지 추적을 위한 추가 필드
+  bool get isFinished;
+  @override
+  String? get winner; // 'player', 'opponent', or 'draw'
+  @override
+  bool get isDraw; // Balatro 스타일 시너지 추적을 위한 추가 필드
   @override
   int get baseChips;
   @override

@@ -1,4 +1,5 @@
 /// 🎴 K-Poker — 언어 상태 관리 Provider
+library;
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

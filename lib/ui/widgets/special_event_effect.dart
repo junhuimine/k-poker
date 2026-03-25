@@ -2,6 +2,7 @@
 ///
 /// 뻑, 쪽, 따닥, 쓸, 폭탄 등 각 이벤트마다 완전히 다른 비주얼 이펙트.
 /// CustomPainter + AnimationController 기반.
+library;
 
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -435,7 +436,7 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
   _TextConfig _getTextConfig(String type) {
     switch (type) {
       case 'ppeok':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '💥',
           iconSize: 64,
           text: '뻑',
@@ -443,26 +444,26 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 12,
           textColor: Colors.amber,
           glowColor: Colors.orange,
-          bgColor: const Color(0xFF1A0A00),
-          bgColor2: const Color(0xFF2E1500),
+          bgColor: Color(0xFF1A0A00),
+          bgColor2: Color(0xFF2E1500),
           borderColor: Colors.orange,
         );
       case 'double_ppeok':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '🔥🔥',
           iconSize: 56,
           text: '연뻑',
           fontSize: 48,
           letterSpacing: 10,
           subText: '+3점',
-          textColor: const Color(0xFFFF3D00),
+          textColor: Color(0xFFFF3D00),
           glowColor: Colors.red,
-          bgColor: const Color(0xFF2A0000),
-          bgColor2: const Color(0xFF4A0000),
+          bgColor: Color(0xFF2A0000),
+          bgColor2: Color(0xFF4A0000),
           borderColor: Colors.red,
         );
       case 'triple_ppeok':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '🔥🔥🔥',
           iconSize: 52,
           text: '삼뻑',
@@ -470,13 +471,13 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 14,
           subText: '즉시 승리',
           textColor: Colors.white,
-          glowColor: const Color(0xFFFF1744),
-          bgColor: const Color(0xFF4A0000),
-          bgColor2: const Color(0xFF7A0000),
-          borderColor: const Color(0xFFFF1744),
+          glowColor: Color(0xFFFF1744),
+          bgColor: Color(0xFF4A0000),
+          bgColor2: Color(0xFF7A0000),
+          borderColor: Color(0xFFFF1744),
         );
       case 'chok':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '✌️',
           iconSize: 60,
           text: '쪽',
@@ -484,12 +485,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 10,
           textColor: Colors.cyanAccent,
           glowColor: Colors.cyan,
-          bgColor: const Color(0xFF001A2E),
-          bgColor2: const Color(0xFF002A4A),
+          bgColor: Color(0xFF001A2E),
+          bgColor2: Color(0xFF002A4A),
           borderColor: Colors.cyanAccent,
         );
       case 'chok_sweep':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '✌️🌊',
           iconSize: 56,
           text: '쪽쓸',
@@ -498,12 +499,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           subText: '피 2장 빼앗기',
           textColor: Colors.tealAccent,
           glowColor: Colors.teal,
-          bgColor: const Color(0xFF001A1A),
-          bgColor2: const Color(0xFF003333),
+          bgColor: Color(0xFF001A1A),
+          bgColor2: Color(0xFF003333),
           borderColor: Colors.tealAccent,
         );
       case 'tadak':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '⚡',
           iconSize: 64,
           text: '따닥',
@@ -511,12 +512,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 10,
           textColor: Colors.purpleAccent,
           glowColor: Colors.deepPurple,
-          bgColor: const Color(0xFF0A001A),
-          bgColor2: const Color(0xFF1A0033),
+          bgColor: Color(0xFF0A001A),
+          bgColor2: Color(0xFF1A0033),
           borderColor: Colors.purpleAccent,
         );
       case 'sweep':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '🌊',
           iconSize: 64,
           text: '쓸',
@@ -524,12 +525,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 14,
           textColor: Colors.lightBlueAccent,
           glowColor: Colors.blue,
-          bgColor: const Color(0xFF00001A),
-          bgColor2: const Color(0xFF000033),
+          bgColor: Color(0xFF00001A),
+          bgColor2: Color(0xFF000033),
           borderColor: Colors.lightBlueAccent,
         );
       case 'ppeok_eat':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '😈',
           iconSize: 60,
           text: '뻑 먹기',
@@ -538,26 +539,26 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           subText: '4장 흡수',
           textColor: Colors.orangeAccent,
           glowColor: Colors.deepOrange,
-          bgColor: const Color(0xFF1A0500),
-          bgColor2: const Color(0xFF2E0A00),
+          bgColor: Color(0xFF1A0500),
+          bgColor2: Color(0xFF2E0A00),
           borderColor: Colors.orangeAccent,
         );
       case 'self_ppeok':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '🔥😈',
           iconSize: 58,
           text: '자뻑',
           fontSize: 48,
           letterSpacing: 10,
           subText: '4장 + 피 2장 빼앗기!',
-          textColor: const Color(0xFFFF6D00),
-          glowColor: const Color(0xFFFF3D00),
-          bgColor: const Color(0xFF2A0500),
-          bgColor2: const Color(0xFF4A0A00),
-          borderColor: const Color(0xFFFF6D00),
+          textColor: Color(0xFFFF6D00),
+          glowColor: Color(0xFFFF3D00),
+          bgColor: Color(0xFF2A0500),
+          bgColor2: Color(0xFF4A0A00),
+          borderColor: Color(0xFFFF6D00),
         );
       case 'bomb':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '💣',
           iconSize: 70,
           text: '폭탄',
@@ -565,12 +566,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           letterSpacing: 12,
           textColor: Colors.yellow,
           glowColor: Colors.orange,
-          bgColor: const Color(0xFF1A0A00),
-          bgColor2: const Color(0xFF331500),
+          bgColor: Color(0xFF1A0A00),
+          bgColor2: Color(0xFF331500),
           borderColor: Colors.yellow,
         );
       case 'chongtong':
-        return _TextConfig(
+        return const _TextConfig(
           icon: '🎆',
           iconSize: 70,
           text: '총통',
@@ -579,8 +580,8 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
           subText: '4장 즉시 획득',
           textColor: Colors.yellow,
           glowColor: Colors.orange,
-          bgColor: const Color(0xFF1A0A00),
-          bgColor2: const Color(0xFF331500),
+          bgColor: Color(0xFF1A0A00),
+          bgColor2: Color(0xFF331500),
           borderColor: Colors.yellow,
         );
       default:
@@ -824,7 +825,7 @@ class _LightningSlashPainter extends CustomPainter {
       final path = Path();
       path.moveTo(start.dx, start.dy);
 
-      final segments = 8;
+      const segments = 8;
       for (int i = 1; i < segments; i++) {
         final ratio = i / segments;
         final x = start.dx + (end.dx - start.dx) * ratio;
@@ -858,7 +859,7 @@ class _LightningSlashPainter extends CustomPainter {
     // X자 슬래시
     final drawLen = t.clamp(0.0, 1.0);
     final cx = size.width / 2, cy = size.height / 2;
-    final span = 150.0;
+    const span = 150.0;
 
     drawLightning(
       Offset(cx - span * drawLen, cy - span * drawLen),

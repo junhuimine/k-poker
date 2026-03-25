@@ -2,6 +2,7 @@
 /// 
 /// 화투 매칭 핵심: "같은 월(月)의 카드를 매칭하면 먹는다"
 /// 순수 로직 — UI 의존 없음.
+library;
 
 import '../models/card_def.dart';
 

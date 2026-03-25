@@ -8,6 +8,7 @@
 /// - 피: 10장=1점, 추가 1장당 +1점
 /// - 박: 광박/피박/띠박/멍박 = x2 배율 (누적 곱)
 /// - 고: 1고=+1점, 2고=+2점, 3고=x2, 4고=x4...
+library;
 
 import '../models/card_def.dart';
 import '../models/round_state.dart';
@@ -188,7 +189,7 @@ class ScoreCalculator {
       if (goCount >= 3) {
         final goMult = 1 << (goCount - 2); // 3고=x2, 4고=x4, 5고=x8...
         penaltyMult *= goMult;
-        yakuList.add('🔥 ${goCount}고 (+$goCount점, x$goMult)');
+        yakuList.add('🔥 $goCount고 (+$goCount점, x$goMult)');
 
         // T-001 [단골손님] 부적: 3고 이상 시 0.5~2.0배 추가 산정
         if (run.ownedTalismanIds.contains('T-001')) {
@@ -197,7 +198,7 @@ class ScoreCalculator {
           yakuList.add('🤝 단골손님 (x$bonusMult)');
         }
       } else {
-        yakuList.add('🔥 ${goCount}고 (+$goCount)');
+        yakuList.add('🔥 $goCount고 (+$goCount)');
       }
     }
 

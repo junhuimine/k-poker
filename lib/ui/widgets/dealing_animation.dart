@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 카드 분배(Dealing) 애니메이션 위젯
 /// 
 /// 카드가 덱에서 각자의 위치로 날아가는 연출 담당.
+library;
 
 import 'package:flutter/material.dart';
 

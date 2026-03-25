@@ -1,6 +1,7 @@
 /// 🎵 K-Poker — 오디오 매니저
 ///
 /// BGM + SFX 재생, 볼륨 관리, SharedPreferences 저장
+library;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +14,8 @@ class AudioManager {
   final AudioPlayer _bgmPlayer = AudioPlayer();
   final AudioPlayer _sfxPlayer = AudioPlayer();
 
-  double _bgmVolume = 0.5;
-  double _sfxVolume = 0.7;
+  double _bgmVolume = 0.2;
+  double _sfxVolume = 0.2;
   bool _bgmMuted = false;
   bool _sfxMuted = false;
 
@@ -26,8 +27,8 @@ class AudioManager {
   /// 초기화 (앱 시작 시)
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _bgmVolume = prefs.getDouble('bgm_volume') ?? 0.5;
-    _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.7;
+    _bgmVolume = prefs.getDouble('bgm_volume') ?? 0.2;
+    _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.2;
     _bgmMuted = prefs.getBool('bgm_muted') ?? false;
     _sfxMuted = prefs.getBool('sfx_muted') ?? false;
     

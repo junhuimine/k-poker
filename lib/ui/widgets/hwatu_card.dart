@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 화투 카드 위젯 (최종 버전)
 ///
 /// 실제 PNG + 카드 뒷면(card_back.png) + 상단 월 뱃지 + 하단 카드 특징 표시
+library;
 
 import 'package:flutter/material.dart';
 import '../../models/card_def.dart';
@@ -113,6 +114,7 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
           curve: Curves.easeOutBack,
           transform: Matrix4.identity()
             ..setTranslationRaw(0.0, _isPressed ? -4.0 : (_isHovered ? -15.0 : (widget.isSelected ? -10.0 : 0.0)), 0.0)
+            // ignore: deprecated_member_use
             ..scale(_isPressed ? 0.94 : (_isHovered ? 1.05 : 1.0)),
           width: width,
           height: height,

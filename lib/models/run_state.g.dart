@@ -9,7 +9,7 @@ part of 'run_state.dart';
 _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
     _$RunStateImpl(
       stage: (json['stage'] as num?)?.toInt() ?? 1,
-      gold: (json['gold'] as num?)?.toInt() ?? 0,
+      gold: (json['gold'] as num?)?.toInt() ?? 1000000,
       money: (json['money'] as num?)?.toDouble() ?? 50000,
       stageEarned: (json['stageEarned'] as num?)?.toDouble() ?? 0,
       currentOpponentIndex:

@@ -1,6 +1,8 @@
+// ignore_for_file: avoid_print
 /// 🎴 K-Poker - 스테이지 진행 로직 유닛 테스트
 ///
 /// 상대 자금 시스템, 스테이지 클리어, 밸런싱 검증
+library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:k_poker/data/stage_config.dart';
@@ -136,7 +138,7 @@ void main() {
       var opMoney = getOpponentFund(1, 0, pointValue); // 50000
       
       // 패배: 상대에게 ₩10,000 잃음
-      final penalty = 10000.0;
+      const penalty = 10000.0;
       opMoney += penalty;
       expect(opMoney, equals(60000));
       print('✅ 패배 시 상대 자금 증가: ₩50,000 → ₩${opMoney.toInt()}');

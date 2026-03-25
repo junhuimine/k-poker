@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 공통 상수
 /// 
 /// 게임 전반에서 사용하는 딜레이, 크기, 패턴 등.
+library;
 
 /// 애니메이션 딜레이 (밀리초)
 class AnimDuration {

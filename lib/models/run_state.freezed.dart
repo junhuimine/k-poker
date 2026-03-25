@@ -21,7 +21,8 @@ RunState _$RunStateFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$RunState {
   int get stage => throw _privateConstructorUsedError; // 현재 스테이지 (1~6+)
-  int get gold => throw _privateConstructorUsedError; // 레거시 (호환용)
+  int get gold =>
+      throw _privateConstructorUsedError; // 테스트 및 상점 올클리어용 100만 골드 지급
   double get money => throw _privateConstructorUsedError; // 소지금 (화폐 기준)
   double get stageEarned =>
       throw _privateConstructorUsedError; // 레거시 (호환용, 미사용)
@@ -353,7 +354,7 @@ class __$$RunStateImplCopyWithImpl<$Res>
 class _$RunStateImpl extends _RunState {
   const _$RunStateImpl(
       {this.stage = 1,
-      this.gold = 0,
+      this.gold = 1000000,
       this.money = 50000,
       this.stageEarned = 0,
       this.currentOpponentIndex = 0,
@@ -390,7 +391,7 @@ class _$RunStateImpl extends _RunState {
   @override
   @JsonKey()
   final int gold;
-// 레거시 (호환용)
+// 테스트 및 상점 올클리어용 100만 골드 지급
   @override
   @JsonKey()
   final double money;
@@ -629,7 +630,7 @@ abstract class _RunState extends RunState {
   @override
   int get stage; // 현재 스테이지 (1~6+)
   @override
-  int get gold; // 레거시 (호환용)
+  int get gold; // 테스트 및 상점 올클리어용 100만 골드 지급
   @override
   double get money; // 소지금 (화폐 기준)
   @override

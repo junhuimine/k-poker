@@ -1,8 +1,10 @@
+// ignore_for_file: avoid_print
 /// 🎴 K-Poker — 전체 게임 시뮬레이션 테스트 (헤드리스)
 ///
 /// 100회 게임을 엔진 수준에서 시뮬레이션하여
 /// 모든 게임이 isFinished = true로 정상 종료되는지 검증.
 /// (게임 멈춤 버그 근본 검증)
+library;
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +46,7 @@ CardInstance _aiChooseCard(RoundState state) {
 
 /// 한 게임을 완주하고 결과를 반환
 ({bool finished, int turns, String lastEvent}) _simulateOneGame(int seed) {
+  // ignore: unused_local_variable
   final random = Random(seed);
   var state = GameEngine.createInitialState();
   const turnLimit = 200; // 무한루프 방지
@@ -149,7 +152,7 @@ void main() {
         }
       }
 
-      print('✅ 500회 스트레스 테스트 완료: 카드 보존 위반 ${violations}건');
+      print('✅ 500회 스트레스 테스트 완료: 카드 보존 위반 $violations건');
       expect(violations, 0, reason: '카드 50장이 항상 보존되어야 합니다');
     });
 

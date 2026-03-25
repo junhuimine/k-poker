@@ -1,4 +1,5 @@
 /// 🎴 카드 뒷면 스킨 관리
+library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

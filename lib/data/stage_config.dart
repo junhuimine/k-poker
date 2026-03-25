@@ -1,6 +1,7 @@
 /// 🎴 K-Poker -- 화폐/판돈/스테이지/AI 캐릭터 설정
 ///
 /// 국가별 화폐, 스테이지별 판돈, AI 11명(남6/여4/신급1) 정의
+library;
 
 import 'dart:ui' show Color;
 
@@ -34,9 +35,9 @@ class CurrencyConfig {
       final remainder = (amount % 10000).round();
       final cheon = (remainder / 1000).floor();   // 천 단위
       if (cheon > 0) {
-        return '$symbol${man}만 ${cheon}천';
+        return '$symbol$man만 $cheon천';
       }
-      return '$symbol${man}만';
+      return '$symbol$man만';
     }
     if (amount >= 1000000) {
       return '$symbol${(amount / 1000000).toStringAsFixed(1)}M';

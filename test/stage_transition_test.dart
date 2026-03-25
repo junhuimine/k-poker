@@ -1,4 +1,6 @@
+// ignore_for_file: avoid_print
 /// 🎴 K-Poker — 스테이지 전환 로직 검증 (flutter test)
+library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:k_poker/data/stage_config.dart';
 
@@ -68,6 +70,7 @@ void main() {
       int opIdx = 0;
       const pv = 1000.0;
       double opMoney = getOpponentFund(1, 0, pv);
+      // ignore: unused_local_variable
       int stagesCleared = 0;
 
       for (int round = 0; round < 500; round++) {

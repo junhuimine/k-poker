@@ -116,7 +116,7 @@ class GameEngine {
   // ─────────────────────────────────────────────
   // 덱드로 전용 더미 CardDef
   // ─────────────────────────────────────────────
-  static final CardDef _deckDrawDef = CardDef(
+  static const CardDef _deckDrawDef = CardDef(
     id: 'deck_draw',
     month: 0,
     grade: CardGrade.junk,
@@ -125,7 +125,7 @@ class GameEngine {
   );
 
   static CardInstance createDeckDrawCard() {
-    return CardInstance(def: _deckDrawDef, isDeckDraw: true);
+    return const CardInstance(def: _deckDrawDef, isDeckDraw: true);
   }
 
   // ─────────────────────────────────────────────
@@ -319,6 +319,7 @@ class GameEngine {
     final handSameMonth = newState.field.where((c) => c.def.month == playedCard.def.month).toList();
     bool handMatched = false;
     List<CardInstance> handCaptured = [];
+    // ignore: unused_local_variable
     List<CardInstance> handMatchedField = [];
 
     if (handSameMonth.length == 3) {
@@ -395,11 +396,11 @@ class GameEngine {
       newState = newState.copyWith(deck: newState.deck.skip(1).toList());
 
       // 보너스 카드가 덱에서 나오면 즉시 획득 + 계속 뒤집기 (연속 보너스 대응)
-      while (flippedCard != null && flippedCard!.def.isBonus) {
+      while (flippedCard != null && flippedCard.def.isBonus) {
         if (currentTurn == 'player') {
-          newState = newState.copyWith(playerCaptured: [...newState.playerCaptured, flippedCard!]);
+          newState = newState.copyWith(playerCaptured: [...newState.playerCaptured, flippedCard]);
         } else {
-          newState = newState.copyWith(opponentCaptured: [...newState.opponentCaptured, flippedCard!]);
+          newState = newState.copyWith(opponentCaptured: [...newState.opponentCaptured, flippedCard]);
         }
         if (newState.deck.isNotEmpty) {
           flippedCard = newState.deck.first;

@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 48장 화투 카드 데이터
 /// 
 /// Single Source of Truth. 이 파일만 수정하면 전체 게임에 반영.
+library;
 
 import '../models/card_def.dart';
 

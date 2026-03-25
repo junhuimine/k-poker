@@ -7,6 +7,7 @@
 /// - MySummaryBlock: 내 정보 블록
 /// - YakuProgress: 족보 진행도
 /// - MySkillsBlock: 내 아이템/스킬 블록
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,65 +74,112 @@ class GameSidePanel extends ConsumerWidget {
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
 
     return Container(
-      width: 200,
+      width: 140, // 200 -> 140 (약 2/3 수준)
       color: const Color(0xFF0D1117),
-      child: Column(
-        children: [
-          // 1. 상대 정보
-          OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency),
-          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
-
-          // 2. 내 정보
-          MySummaryBlock(state: state, run: run, currency: currency),
-          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
-
-          // 3. 족보 진행도
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isShort = constraints.maxHeight < 450;
+          
+          if (isShort) {
+            // 짧은 화면일 때는 스크롤뷰로 전체를 감싼 형태 반환
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  YakuProgress(state: state),
-                  const SizedBox(height: 8),
-                  MySkillsBlock(run: run),
+                  OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency),
+                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+                  MySummaryBlock(state: state, run: run, currency: currency),
+                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        YakuProgress(state: state),
+                        const SizedBox(height: 8),
+                        MySkillsBlock(run: run),
+                      ],
+                    ),
+                  ),
+                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+                  SizedBox(
+                    height: 120, // 스크롤 시 로그가 보일 수 있도록 고정 크기 할당
+                    child: _buildLogList(events),
+                  ),
                 ],
+              ),
+            );
+          }
+
+          // 기본 레이아웃
+          return Column(
+            children: [
+              // 1. 상대 정보
+              OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency),
+              Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+
+              // 2. 내 정보
+              MySummaryBlock(state: state, run: run, currency: currency),
+              Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+
+              // 3. 족보 진행도 및 스킬 가방
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      YakuProgress(state: state),
+                      const SizedBox(height: 8),
+                      MySkillsBlock(run: run),
+                    ],
+                  ),
+                ),
+              ),
+              Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
+
+              // 4. 게임 로그 (약 4줄 정도 보이도록 85px로 조정)
+              SizedBox(
+                height: 85,
+                child: _buildLogList(events),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLogList(List<GameEvent> events) {
+    return ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        final reversedIndex = events.length - 1 - index;
+        final event = events[reversedIndex];
+        
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: event.type == 'ai_talk' 
+                  ? Colors.purple.withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: Text(
+              event.message,
+              style: TextStyle(
+                color: event.type == 'ai_talk' ? Colors.purpleAccent.shade100 : Colors.white60,
+                fontSize: 9, // 엄청 작은 게임 로그
               ),
             ),
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
-
-          // 4. 게임 로그
-          SizedBox(
-            height: 130,
-            child: ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(6),
-              itemCount: events.length,
-              itemBuilder: (_, i) {
-                final event = events[events.length - 1 - i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _eventColor(event.type).withValues(alpha: 0.1),
-                      border: Border.all(color: _eventColor(event.type).withValues(alpha: 0.3)),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      event.message,
-                      style: TextStyle(color: _eventColor(event.type), fontSize: 10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -158,37 +206,45 @@ class OpponentSummaryBlock extends StatelessWidget {
 
     int kwang = 0, animal = 0, blue = 0, red = 0, grass = 0, plain = 0, pi = 0;
     for (var c in state.opponentCaptured) {
-      if (c.def.grade == CardGrade.bright) kwang++;
-      else if (c.def.grade == CardGrade.animal) animal++;
-      else if (c.def.grade == CardGrade.ribbon) {
-        if (c.def.ribbonType == RibbonType.blue) blue++;
-        else if (c.def.ribbonType == RibbonType.red) red++;
-        else if (c.def.ribbonType == RibbonType.grass) grass++;
-        else plain++;
+      if (c.def.grade == CardGrade.bright) {
+        kwang++;
+      } else if (c.def.grade == CardGrade.animal) {
+        animal++;
+      } else if (c.def.grade == CardGrade.ribbon) {
+        if (c.def.ribbonType == RibbonType.blue) {
+          blue++;
+        } else if (c.def.ribbonType == RibbonType.red) {
+          red++;
+        } else if (c.def.ribbonType == RibbonType.grass) {
+          grass++;
+        } else {
+          plain++;
+        }
+      } else if (c.def.grade == CardGrade.junk) {
+        pi += c.def.doubleJunk ? 2 : 1;
       }
-      else if (c.def.grade == CardGrade.junk) pi += c.def.doubleJunk ? 2 : 1;
     }
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       color: Colors.redAccent.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Text('${ai.emoji} 상대 정보', style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('${ai.emoji} 상대', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
               const Spacer(),
-              Text('${state.opponentScore}점', style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('${state.opponentScore}점', style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 8),
-          Text('💰 ${currency.formatAmount(oppMoneyLeft)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Text('🎴 보유 패 현황', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
+          const SizedBox(height: 4),
+          Text('💰 ${currency.formatAmount(oppMoneyLeft)}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Text('🎴 패 현황', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9)),
           const SizedBox(height: 4),
           Wrap(
-            spacing: 4, runSpacing: 4,
+            spacing: 2, runSpacing: 2,
             children: [
               if (kwang > 0) _miniTag('광 $kwang', Colors.amber),
               if (animal > 0) _miniTag('열끗 $animal', Colors.cyan),
@@ -198,7 +254,7 @@ class OpponentSummaryBlock extends StatelessWidget {
               if (plain > 0) _miniTag('띠 $plain', Colors.purple),
               if (pi > 0) _miniTag('피 $pi', Colors.grey),
               if (kwang==0 && animal==0 && blue==0 && red==0 && grass==0 && plain==0 && pi==0)
-                const Text('없음', style: TextStyle(color: Colors.white30, fontSize: 11)),
+                const Text('없음', style: TextStyle(color: Colors.white30, fontSize: 9)),
             ],
           ),
         ],
@@ -223,7 +279,7 @@ class MySummaryBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       color: Colors.blueAccent.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -231,19 +287,19 @@ class MySummaryBlock extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('👤 내 정보', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+              const Text('👤 내 정보', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
               if (run.winStreak > 0)
-                Text('🔥${run.winStreak}연승', style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text('🔥${run.winStreak}연승', style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 8),
-          Text('💰 ${currency.formatAmount(run.money)}', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
+          Text('💰 ${currency.formatAmount(run.money)}', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 12, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('현재 점수', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
-              Text('${state.playerScore}점 × ${state.multiplier.toStringAsFixed(1)}배', style: const TextStyle(color: Colors.cyanAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('현재 점수', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
+              Text('${state.playerScore}점 × ${state.multiplier.toStringAsFixed(1)}배', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -273,8 +329,8 @@ class YakuProgress extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('📊 족보', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
+        const Text('📊 족보', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
         _yakuBar('⭐ 광', brights, 3, Colors.amber),
         _yakuBar('🔴 홍단', redRibbons, 3, Colors.red),
         _yakuBar('🔵 청단', blueRibbons, 3, Colors.blue),
@@ -292,8 +348,8 @@ class YakuProgress extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 3),
       child: Row(
         children: [
-          SizedBox(width: 60, child: Text(name, style: TextStyle(
-            color: isComplete ? color : Colors.white54, fontSize: 10,
+          SizedBox(width: 45, child: Text(name, style: TextStyle(
+            color: isComplete ? color : Colors.white54, fontSize: 9,
             fontWeight: isComplete ? FontWeight.bold : FontWeight.normal,
           ))),
           Expanded(
@@ -324,77 +380,85 @@ class YakuProgress extends StatelessWidget {
 }
 
 // ─── 내 아이템/스킬 블록 ─────────────
-class MySkillsBlock extends StatelessWidget {
+class MySkillsBlock extends ConsumerWidget {
   final dynamic run;
 
   const MySkillsBlock({super.key, required this.run});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final _s = ref.watch(appStringsProvider);
     final skills = run.activeSkills as List<dynamic>;
     final talismans = run.activeTalismans as List<dynamic>;
-
-    if (skills.isEmpty && talismans.isEmpty) {
-      return const SizedBox.shrink();
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('🎒 내 아이템 / 스킬', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (var t in talismans)
-              Tooltip(
-                message: '${t.nameKo}\n${t.description}',
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.deepPurpleAccent, width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(t.emoji, style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 4),
-                      Text(t.nameKo, style: const TextStyle(color: Colors.white, fontSize: 10)),
-                    ],
-                  ),
-                ),
-              ),
-            for (var s in skills)
-              Tooltip(
-                message: '${s.nameKo}\n${s.description}',
-                child: InkWell(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${s.nameKo} 스킬 사용!'), duration: const Duration(seconds: 1)));
-                  },
-                  borderRadius: BorderRadius.circular(8),
+        const Text('🎒 기술 가방', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        if (skills.isEmpty && talismans.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text('보유한 기술/부적이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Colors.white30, fontSize: 9)),
+          )
+        else
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              for (var t in talismans)
+                Tooltip(
+                  message: '${_s.getItemName(t.id, t.nameKo)}\n${_s.getItemDesc(t.id, t.description)}',
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.greenAccent, width: 1),
+                      color: Colors.deepPurple.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.deepPurpleAccent, width: 1),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(s.emoji, style: const TextStyle(fontSize: 14)),
-                        const SizedBox(width: 4),
-                        Text(s.nameKo, style: const TextStyle(color: Colors.white, fontSize: 10)),
+                        Text(t.emoji, style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 2),
+                        Text(_s.getItemName(t.id, t.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
                       ],
                     ),
                   ),
                 ),
-              ),
-          ],
-        ),
+              for (var s in skills)
+                Tooltip(
+                  message: '${_s.getItemName(s.id, s.nameKo)}\n${_s.getItemDesc(s.id, s.description)}',
+                  child: InkWell(
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_s.getItemName(s.id, s.nameKo)} 스킬 사용!'), duration: const Duration(seconds: 1)));
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.greenAccent, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(s.emoji, style: const TextStyle(fontSize: 12)),
+                          const SizedBox(width: 2),
+                          Text(_s.getItemName(s.id, s.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
       ],
     );
   }
@@ -409,18 +473,8 @@ Widget _miniTag(String label, Color color) {
       borderRadius: BorderRadius.circular(4),
       border: Border.all(color: color.withValues(alpha: 0.5)),
     ),
-    child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+    child: Text(label, style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
   );
 }
 
-Color _eventColor(String type) {
-  switch (type) {
-    case 'match': return Colors.greenAccent;
-    case 'miss': return Colors.grey;
-    case 'go': return Colors.orangeAccent;
-    case 'stop': return Colors.redAccent;
-    case 'ai_play': return Colors.cyanAccent;
-    case 'round_end': return Colors.yellowAccent;
-    default: return Colors.white70;
-  }
-}
+

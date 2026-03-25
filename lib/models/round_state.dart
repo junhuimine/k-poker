@@ -1,4 +1,5 @@
 /// 🎴 K-Poker — 라운드 상태 모델 (freezed 업그레이드)
+library;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'card_def.dart';
@@ -23,6 +24,8 @@ class RoundState with _$RoundState {
     @Default(0) int playerScore,
     @Default(0) int opponentScore,
     @Default(false) bool isFinished,
+    String? winner, // 'player', 'opponent', or 'draw'
+    @Default(false) bool isDraw,
     
     // Balatro 스타일 시너지 추적을 위한 추가 필드
     @Default(0) int baseChips,

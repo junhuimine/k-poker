@@ -1,11 +1,11 @@
+// ignore_for_file: avoid_print
 import 'dart:math';
 
-import '../lib/models/card_def.dart';
-import '../lib/models/round_state.dart';
-import '../lib/models/run_state.dart';
-import '../lib/engine/game_engine.dart';
-import '../lib/engine/score_calculator.dart';
-import '../lib/engine/card_matcher.dart';
+import 'package:k_poker/models/card_def.dart';
+import 'package:k_poker/models/run_state.dart';
+import 'package:k_poker/engine/game_engine.dart';
+import 'package:k_poker/engine/score_calculator.dart';
+import 'package:k_poker/engine/card_matcher.dart';
 
 void main() {
   print('Starting Infinite K-Poker Simulation...');
@@ -18,7 +18,7 @@ void main() {
     // print('Game $gamesPlayed...');
     
     try {
-      final run = RunState(
+      const run = RunState(
         stage: 1,
         money: 10000,
         currentOpponentIndex: 0,
@@ -63,6 +63,7 @@ void main() {
         state = GameEngine.playTurn(state, playedCard, selectedMatch: selectedMatch, run: run);
 
         // --- 4. Evaluate Score & Go/Stop logic ---
+        // ignore: unused_local_variable
         bool goStopTriggered = false;
         
         // Let's assume after the turn, if it was player's turn, we calculate player's score.

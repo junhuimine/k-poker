@@ -1,6 +1,7 @@
 /// 🎴 K-Poker — 메인 게임 화면 (애니메이션 버전)
 ///
 /// 딜링, 카드 던짐, 획득 날아오기 등 전체 카드 모션 시스템 포함
+library;
 
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -22,6 +23,9 @@ import 'shop_screen.dart';
 import 'widgets/side_panel.dart';
 import 'widgets/game_overlays.dart';
 import 'widgets/special_event_effect.dart';
+import '../state/tutorial_provider.dart';
+import 'widgets/tutorial_popup_overlay.dart';
+import '../common/responsive.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -55,28 +59,29 @@ class _GameScreenState extends ConsumerState<GameScreen>
   bool _showTutorial = false;
 
   // ─── 반응형 UI 헬퍼 (화면 비율 기반) ─────────────────
-  double get _screenW => MediaQuery.of(context).size.width;
-  double get _screenH => MediaQuery.of(context).size.height;
-  // 기준 해상도 대비 스케일 팩터 (1200x700 기준)
-  double get _scaleW => (_screenW / 1200).clamp(0.4, 1.5);
-  double get _scaleH => (_screenH / 700).clamp(0.4, 1.5);
-  double get _scale => (_scaleW < _scaleH ? _scaleW : _scaleH); // 작은 쪽 기준
+  double get _screenW => Responsive.screenWidth(context);
+  double get _screenH => Responsive.screenHeight(context);
+  double get _scale => Responsive.scale(context);
+  double get _scaleH => Responsive.scaleY(context);
+  
   bool _isPanelExpanded = false;
+  // 모바일 가로 모드 (화면 폭 900 미만)에서는 사이드 패널을 기본으로 숨기고 토글형으로.
   bool get _shouldShowPanel => _screenW >= 900 ? true : _isPanelExpanded;
 
-  // 카드 크기 (화면 비율에 따라 부드럽게 스케일)
-  double get _opponentCardSize => (38 * _scale).clamp(20, 50);
-  double get _fieldCardSize => (70 * _scale).clamp(35, 90);
-  double get _playerCardSize => (72 * _scale).clamp(40, 95);
-  double get _capturedCardSize => (45 * _scale).clamp(22, 55);
-  double get _capturedFanHeight => (70 * _scale).clamp(38, 85);
+  // 카드 크기 (화면 비율에 따라 부드럽게 스케일, 터치 영역 확보를 위해 여유있게)
+  double get _opponentCardSize => (42 * _scale).clamp(16, 55);
+  double get _fieldCardSize => (76 * _scale).clamp(24, 100);
+  double get _playerCardSize => (82 * _scale).clamp(28, 105);
+  double get _capturedCardSize => (50 * _scale).clamp(14, 60);
+  double get _capturedFanHeight => (75 * _scale).clamp(20, 90);
 
   // 레이아웃 수치 (화면 비율 기반)
-  double get _opponentHandHeight => (70 * _scaleH).clamp(35, 80);
-  double get _playerHandHeight => (145 * _scaleH).clamp(80, 160);
-  double get _capturedAreaHeight => (75 * _scaleH).clamp(38, 85);
-  double get _fieldMinHeight => (140 * _scaleH).clamp(70, 160);
-  double get _fontSize => (13 * _scale).clamp(9, 16);
+  double get _opponentHandHeight => (75 * _scaleH).clamp(20, 90);
+  double get _playerHandHeight => (155 * _scaleH).clamp(50, 180);
+  double get _capturedAreaHeight => (80 * _scaleH).clamp(24, 95);
+  double get _fieldMinHeight => (150 * _scaleH).clamp(40, 180);
+  // ignore: unused_element
+  double get _fontSize => (13 * _scale).clamp(11, 18);
 
   @override
   void didChangeDependencies() {
@@ -225,12 +230,32 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final isGoStopPending = ref.watch(goStopPendingProvider);
     final aiGoStopAnnounce = ref.watch(aiGoStopAnnounceProvider);
     final events = ref.watch(gameEventsProvider);
+    
+    // 튜토리얼 팝업 상태 체크
+    final tutState = ref.watch(tutorialProvider);
+    final isFirstYakuTutVisible = !tutState.isLoading && !tutState.suppressAllTutorials && !tutState.hasSeenFirstYaku && gameState.playerScore >= 1;
+    final isFirstGoTutVisible = !tutState.isLoading && !tutState.suppressAllTutorials && !tutState.hasSeenFirstGo && gameState.goCount >= 1;
+
     final isGameStarted = gameState.deck.isNotEmpty || gameState.isFinished || _isDealing;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
-      body: Stack(
-        children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double minWidth = 800.0;
+        final double minHeight = 400.0;
+        final bool needScale = constraints.maxWidth < minWidth || constraints.maxHeight < minHeight;
+        
+        final logicalWidth = max(minWidth, constraints.maxWidth);
+        final logicalHeight = max(minHeight, constraints.maxHeight);
+
+        Widget content = MediaQuery(
+          data: MediaQuery.of(context).copyWith(size: Size(logicalWidth, logicalHeight)),
+          child: SizedBox(
+            width: logicalWidth,
+            height: logicalHeight,
+            child: Scaffold(
+              backgroundColor: const Color(0xFF0A0A0A),
+              body: Stack(
+                children: [
           _buildDynamicBackground(gameState.playerScore),
 
           SafeArea(
@@ -262,12 +287,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
           // 우측 패널 토글 버튼 (화면이 작을 때만 표시)
           if (isGameStarted && _screenW < 900)
             Positioned(
-              right: _shouldShowPanel ? 250 : 0, // 열렸을 땐 패널 너비만큼 이동
+              right: _shouldShowPanel ? 140 : 0, // 열렸을 땐 패널 너비만큼 이동
               top: _screenH * 0.4,
               child: GestureDetector(
                 onTap: () => setState(() => _isPanelExpanded = !_isPanelExpanded),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(8)),
@@ -382,6 +407,36 @@ class _GameScreenState extends ConsumerState<GameScreen>
           // 튜토리얼 오버레이
           if (_showTutorial)
             TutorialOverlay(onComplete: () => setState(() => _showTutorial = false)),
+
+          // 실시간 규칙 안내 팝업 (가장 위)
+          if (isFirstYakuTutVisible)
+            TutorialPopupOverlay(
+              title: strings.tutFirstYakuTitle,
+              body: strings.tutFirstYakuBody,
+              btnText: strings.continueBtn,
+              doNotShowAgainText: strings.doNotShowAgain,
+              onDismiss: (checked) {
+                if (checked) {
+                  ref.read(tutorialProvider.notifier).suppressAll();
+                } else {
+                  ref.read(tutorialProvider.notifier).markSeenFirstYaku();
+                }
+              },
+            )
+          else if (isFirstGoTutVisible)
+            TutorialPopupOverlay(
+              title: strings.tutFirstGoTitle,
+              body: strings.tutFirstGoBody,
+              btnText: strings.continueBtn,
+              doNotShowAgainText: strings.doNotShowAgain,
+              onDismiss: (checked) {
+                if (checked) {
+                  ref.read(tutorialProvider.notifier).suppressAll();
+                } else {
+                  ref.read(tutorialProvider.notifier).markSeenFirstGo();
+                }
+              },
+            ),
         ],
       ),
     );
@@ -730,6 +785,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
 
+  // ignore: unused_element
   Widget _chipBox(String value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -783,19 +839,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 final chongtongMonth = ref.read(gameStateProvider.notifier).getPlayerChongtong();
                 if (chongtongMonth == null) return const SizedBox.shrink();
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8, bottom: 15),
+                  padding: const EdgeInsets.only(right: 8, bottom: 4),
                   child: GestureDetector(
                     onTap: () {
                       ref.read(gameStateProvider.notifier).declareChongtong(chongtongMonth);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B00)]),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.6), blurRadius: 12)],
                       ),
-                      child: Text('🎆 총통 ${chongtongMonth}월',
+                      child: Text('🎆 총통 $chongtongMonth월',
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ),
@@ -822,7 +878,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text('💣', style: TextStyle(fontSize: 24)),
-                        Text('${bombMonth}월', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        Text('$bombMonth월', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                         const Text('폭탄!', style: TextStyle(color: Colors.white, fontSize: 10)),
                       ],
                     ),
@@ -1258,6 +1314,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           builder: (context, ref, child) {
             final run = ref.watch(runStateNotifierProvider);
             final availableSkills = run.inventorySkills.entries.where((e) => e.value > 0).toList();
+            final _s = ref.watch(appStringsProvider);
 
             return AlertDialog(
               backgroundColor: const Color(0xFF1A1A2E),
@@ -1287,7 +1344,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           tileColor: Colors.blueAccent.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           leading: Text(itemInfo?.emoji ?? '⚡', style: const TextStyle(fontSize: 28)),
-                          title: Text(itemInfo?.nameKo ?? skillId, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          title: Text(_s.getItemName(skillId, itemInfo?.nameKo ?? skillId), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           subtitle: Text('잔여: $count회', style: const TextStyle(color: Colors.white54)),
                           trailing: ElevatedButton(
                             onPressed: () {
@@ -1326,6 +1383,7 @@ class _DealTarget {
 }
 
 /// 화투판 바닥 패턴 페인터 (스테이지별 다른 질감)
+// ignore: unused_element
 class _HwatuMatPainter extends CustomPainter {
   final Color baseColor;
   final Color accentColor;

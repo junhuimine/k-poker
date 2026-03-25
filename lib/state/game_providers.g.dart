@@ -78,7 +78,7 @@ final yakuAnnounceProvider =
 );
 
 typedef _$YakuAnnounce = AutoDisposeNotifier<String?>;
-String _$gameStateHash() => r'a9a66a8f71989321800b6aca1fbf94120c098dd9';
+String _$gameStateHash() => r'8e632b3e49f0379c27b50eecdbf8f28df560ccb5';
 
 /// 게임 세션(라운드) 상태 관리자
 ///
@@ -95,7 +95,7 @@ final gameStateProvider =
 );
 
 typedef _$GameState = AutoDisposeNotifier<RoundState>;
-String _$runStateNotifierHash() => r'e9fcf44f2b63d1361642e57f8afe9d1de8500e4e';
+String _$runStateNotifierHash() => r'b3258ce55c8113fe00ba7fbf3340be715faac38a';
 
 /// 전체 런 상태 관리자
 ///
