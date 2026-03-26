@@ -11,6 +11,7 @@ import '../data/item_library.dart';
 import '../models/run_state.dart';
 import '../state/game_providers.dart';
 import '../i18n/app_strings.dart';
+import '../i18n/locale_provider.dart';
 
 class ShopScreen extends ConsumerWidget {
   final VoidCallback onClose;
@@ -20,6 +21,7 @@ class ShopScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final run = ref.watch(runStateNotifierProvider);
+    final s = ref.watch(appStringsProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D1117),
@@ -38,7 +40,7 @@ class ShopScreen extends ConsumerWidget {
               children: [
                 const Text('🛒', style: TextStyle(fontSize: 28)),
                 const SizedBox(width: 12),
-                const Text('비밀 상점', style: TextStyle(color: Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.bold)),
+                Text(s.ui('shopSecretShop'), style: const TextStyle(color: Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 // 골드 표시
                 Container(
@@ -69,21 +71,21 @@ class ShopScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('⚡ 인게임 액티브 스킬 (소모품)', '게임 중 턴을 소모하지 않고 원할 때 발동!'),
+                  _buildSectionTitle(s.ui('shopActiveSkillTitle'), s.ui('shopActiveSkillSubtitle')),
                   _buildHorizontalList(
                     items: shopActiveSkills,
                     itemBuilder: (context, item) => _buildActiveSkillCard(ref, run, item as ActiveSkill),
                   ),
                   const SizedBox(height: 32),
 
-                  _buildSectionTitle('🛡️ 라운드 장착 (일회성)', '이번 판 시작 전에 미리 장비! (판 종료 시 소멸)'),
+                  _buildSectionTitle(s.ui('shopPreRoundTitle'), s.ui('shopPreRoundSubtitle')),
                   _buildHorizontalList(
                     items: shopPreRoundItems,
                     itemBuilder: (context, item) => _buildPreRoundCard(ref, run, item as PreRoundItem),
                   ),
                   const SizedBox(height: 32),
 
-                  _buildSectionTitle('📜 영구 부적 (패시브)', '한 번 사두면 평생 자동 적용!'),
+                  _buildSectionTitle(s.ui('shopPassiveTitle'), s.ui('shopPassiveSubtitle')),
                   _buildHorizontalList(
                     items: shopPassiveTalismans,
                     itemBuilder: (context, item) => _buildPassiveCard(ref, run, item as PassiveTalisman),
@@ -110,7 +112,7 @@ class ShopScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('쇼핑 종료 / 대기실로 →', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(s.ui('shopExit'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -157,7 +159,7 @@ class ShopScreen extends ConsumerWidget {
       item: item,
       s: s,
       themeColor: Colors.blueAccent,
-      statusText: count > 0 ? '보유량: $count개' : null,
+      statusText: count > 0 ? s.shopOwnedCount(count) : null,
       onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyActiveSkill(item.id, item.shopCost) : null,
     );
   }
@@ -173,10 +175,10 @@ class ShopScreen extends ConsumerWidget {
       item: item,
       s: s,
       themeColor: Colors.greenAccent,
-      statusText: isEquipped ? '✅ 장착 완료' : (count > 0 ? '보유량: $count개' : null),
+      statusText: isEquipped ? s.ui('shopEquipped') : (count > 0 ? s.shopOwnedCount(count) : null),
       onBuy: canAfford ? () => ref.read(runStateNotifierProvider.notifier).buyPreRoundItem(item.id, item.shopCost) : null,
       extraAction: (count > 0 && !isEquipped) ? () => ref.read(runStateNotifierProvider.notifier).equipRoundItem(item.id) : null,
-      extraActionLabel: '장착하기',
+      extraActionLabel: s.ui('shopEquip'),
     );
   }
 
@@ -190,9 +192,9 @@ class ShopScreen extends ConsumerWidget {
       item: item,
       s: s,
       themeColor: Colors.amber,
-      statusText: isOwned ? '✅ 영구 보유 중' : null,
+      statusText: isOwned ? s.ui('shopOwnedPermanent') : null,
       onBuy: (!isOwned && canAfford) ? () => ref.read(runStateNotifierProvider.notifier).buyPassiveTalisman(item.id, item.shopCost) : null,
-      overrideButtonText: isOwned ? '구매 완료' : null,
+      overrideButtonText: isOwned ? s.ui('shopPurchased') : null,
     );
   }
 }
@@ -260,7 +262,7 @@ class _ItemCardImpl extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
-                child: Text(extraActionLabel ?? '사용', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(extraActionLabel ?? s.ui('shopUse'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 4),
@@ -276,7 +278,7 @@ class _ItemCardImpl extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text(
-                overrideButtonText ?? '${item.shopCost} G 구매',
+                overrideButtonText ?? s.shopBuyCost(item.shopCost),
                 style: TextStyle(
                   color: onBuy == null ? Colors.white54 : themeColor,
                   fontSize: 13,

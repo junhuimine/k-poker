@@ -4,7 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/audio_manager.dart';
-import '../state/card_skin_provider.dart';
+import '../state/card_skin_provider.dart'; // CardSkin + FrontSkin
 import '../i18n/locale_provider.dart';
 import '../i18n/app_strings.dart';
 
@@ -84,7 +84,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     }, () {
                       setState(() => _bgmMuted = !_bgmMuted);
                       _audio.toggleBgmMute();
-                    }),
+                    }, strings),
                     const SizedBox(height: 12),
 
                     // 🔊 SFX 볼륨
@@ -94,7 +94,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     }, () {
                       setState(() => _sfxMuted = !_sfxMuted);
                       _audio.toggleSfxMute();
-                    }),
+                    }, strings),
                     const SizedBox(height: 16),
                     const Divider(color: Color(0xFF30363D)),
                     const SizedBox(height: 12),
@@ -132,8 +132,49 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const Divider(color: Color(0xFF30363D)),
                     const SizedBox(height: 12),
 
-                    // 🎴 카드 뒷면 스킨
-                    Text('🃏 ${strings.ui('cardSkin')}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    // 🎴 카드 앞면 스킨
+                    Text('🎨 ${strings.ui('cardSkinFront')}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: FrontSkin.values.map((skin) {
+                        final isActive = skin == ref.watch(frontSkinProvider);
+                        return GestureDetector(
+                          onTap: () => ref.read(frontSkinProvider.notifier).setSkin(skin),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isActive ? Colors.deepPurple.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isActive ? Colors.deepPurpleAccent : Colors.white24,
+                                width: isActive ? 2 : 1,
+                              ),
+                              boxShadow: isActive ? [BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.3), blurRadius: 8)] : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(skin.emoji, style: const TextStyle(fontSize: 18)),
+                                const SizedBox(width: 6),
+                                Text(skin.displayName, style: TextStyle(
+                                  color: isActive ? Colors.deepPurpleAccent : Colors.white70,
+                                  fontSize: 13,
+                                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                                )),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(color: Color(0xFF30363D)),
+                    const SizedBox(height: 12),
+
+                    // 🃏 카드 뒷면 스킨
+                    Text('🃏 ${strings.ui('cardSkinBack')}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -194,7 +235,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
     );
   }
 
-  Widget _buildVolumeRow(String label, double volume, bool muted, ValueChanged<double> onChanged, VoidCallback onMute) {
+  Widget _buildVolumeRow(String label, double volume, bool muted, ValueChanged<double> onChanged, VoidCallback onMute, AppStrings strings) {
     final displayPercent = (volume * 100).round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +266,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                muted ? 'OFF' : '$displayPercent%',
+                muted ? strings.ui('volumeOff') : '$displayPercent%',
                 style: TextStyle(
                   color: muted ? Colors.redAccent : Colors.blueAccent,
                   fontSize: 13, fontWeight: FontWeight.bold,

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../i18n/app_strings.dart';
 import '../i18n/locale_provider.dart';
 import '../data/all_cards.dart';
 import '../models/card_def.dart';
@@ -105,7 +106,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
     );
   }
 
-  Widget _buildRulesTab(dynamic strings) {
+  Widget _buildRulesTab(AppStrings strings) {
     return ListView(
       padding: const EdgeInsets.all(32),
       children: [
@@ -118,7 +119,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
     );
   }
 
-  Widget _buildDictionaryTab(dynamic strings) {
+  Widget _buildDictionaryTab(AppStrings strings) {
     return GridView.builder(
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -140,7 +141,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
           padding: const EdgeInsets.all(8),
           child: Column(
             children: [
-              Text('$month월', style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(strings.monthFormatted(month), style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
               Expanded(
                 child: Wrap(
@@ -148,7 +149,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
                   alignment: WrapAlignment.center,
                   children: monthCards.map((c) {
                     return Tooltip(
-                      message: _getCardGradeName(c.grade, doubleJunk: c.doubleJunk),
+                      message: _getCardGradeName(c.grade, strings, doubleJunk: c.doubleJunk),
                       child: Container(
                         decoration: const BoxDecoration(
                           boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(1, 2))],
@@ -173,13 +174,13 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
     );
   }
 
-  String _getCardGradeName(CardGrade grade, {bool doubleJunk = false}) {
-    if (doubleJunk) return '쌍피';
+  String _getCardGradeName(CardGrade grade, AppStrings strings, {bool doubleJunk = false}) {
+    if (doubleJunk) return strings.ui('doublePi');
     switch (grade) {
-      case CardGrade.bright: return '광';
-      case CardGrade.animal: return '열끗 (멍텅구리)';
-      case CardGrade.ribbon: return '띠 (단)';
-      case CardGrade.junk: return '피';
+      case CardGrade.bright: return strings.ui('cardGradeBright');
+      case CardGrade.animal: return strings.ui('cardGradeAnimalFull');
+      case CardGrade.ribbon: return strings.ui('cardGradeRibbonFull');
+      case CardGrade.junk: return strings.ui('cardGradeJunk');
     }
   }
 
@@ -192,7 +193,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
     );
   }
 
-  Widget _buildYakuTab(dynamic strings) {
+  Widget _buildYakuTab(AppStrings strings) {
     return ListView(
       padding: const EdgeInsets.all(32),
       children: [

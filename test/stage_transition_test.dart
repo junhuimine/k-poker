@@ -73,11 +73,16 @@ void main() {
       // ignore: unused_local_variable
       int stagesCleared = 0;
 
-      for (int round = 0; round < 500; round++) {
-        opMoney -= 5000; // 매 라운드 ₩5000 깎기
+      // 스테이지별 예상 라운드당 수입 증가를 반영한 감소량
+      // 높은 스테이지일수록 판돈이 커지므로 라운드당 수입도 증가
+      double earningPerRound(int s) => 5000.0 * s;
+
+      for (int round = 0; round < 2000; round++) {
+        opMoney -= earningPerRound(stage);
 
         if (opMoney <= 0) {
-          final aiIds = stageAiMapping[stage.clamp(1, 6)]!;
+          final clampedStage = stage.clamp(1, 6);
+          final aiIds = stageAiMapping[clampedStage]!;
           if (opIdx + 1 < aiIds.length) {
             opIdx++;
             opMoney = getOpponentFund(stage, opIdx, pv);

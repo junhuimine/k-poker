@@ -36,6 +36,10 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen>
     with TickerProviderStateMixin {
+  // 스플래시/로딩 상태
+  bool _isLoading = true;
+  double _splashOpacity = 1.0;
+
   // 딜링 애니메이션 상태
   bool _isDealing = false;
   List<FlyingCard> _flyingCards = [];
@@ -86,17 +90,53 @@ class _GameScreenState extends ConsumerState<GameScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 앱 시작 시 저장된 게임 자동 불러오기
+    // 앱 시작 시 저장된 게임 자동 불러오기 + 에셋 프리캐시
     if (!_loadAttempted) {
       _loadAttempted = true;
       ref.read(runStateNotifierProvider.notifier).loadGame().then((_) {
         // 로드 후 상대 자금 보정
         ref.read(runStateNotifierProvider.notifier).fixOpponentMoney();
       });
+      _precacheAssets();
     }
   }
 
   bool _loadAttempted = false;
+
+  /// 주요 카드 이미지를 프리캐시하고 스플래시를 페이드아웃
+  Future<void> _precacheAssets() async {
+    // 5광 + 카드 뒷면 등 핵심 이미지 프리캐시
+    final importantAssets = [
+      'assets/images/cards/card_back.png',
+      'assets/images/cards/m01_bright.png',
+      'assets/images/cards/m03_bright.png',
+      'assets/images/cards/m08_bright.png',
+      'assets/images/cards/m11_bright.png',
+      'assets/images/cards/m12_bright.png',
+    ];
+
+    final futures = importantAssets.map((path) {
+      return precacheImage(AssetImage(path), context).catchError((_) {
+        // 이미지 로드 실패 시 무시 (errorBuilder가 대응)
+        debugPrint('precache failed: $path');
+      });
+    }).toList();
+
+    await Future.wait(futures);
+
+    // 최소 표시 시간 보장 (1초)
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (mounted) {
+      // 페이드아웃 트리거
+      setState(() => _splashOpacity = 0.0);
+      // 페이드아웃 애니메이션 완료 대기
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   /// 게임 시작 + 딜링 애니메이션
   void _startGameWithDeal() {
@@ -240,8 +280,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double minWidth = 800.0;
-        final double minHeight = 400.0;
+        const double minWidth = 800.0;
+        const double minHeight = 400.0;
         final bool needScale = constraints.maxWidth < minWidth || constraints.maxHeight < minHeight;
         
         final logicalWidth = max(minWidth, constraints.maxWidth);
@@ -266,14 +306,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     children: [
                       // 상단 영역: 통합 TopBar (캐릭터 / 상대 핸드 / 설정)
                       if (isGameStarted) _buildTopBar(gameState, strings),
-                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, '상대 획득'),
+                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, strings.opponentCapturedLabel),
                       
                       // 중앙 영역: 덱 더미 + 필드
                       if (isGameStarted)
                         Expanded(child: _buildFieldWithDeck(gameState)),
                       
                       // 하단 영역: 내 획득 카드 + 내 핸드
-                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, '내 획득'),
+                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, strings.playerCapturedLabel),
                       if (isGameStarted) _buildPlayerHand(gameState),
                     ],
                   ),
@@ -338,6 +378,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                    _selectableFieldCards = [];
                  });
                },
+               strings: strings,
             ),
 
           if (isGoStopPending)
@@ -356,7 +397,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
           // AI 고/스톱 화면 중앙 애니메이션
           if (aiGoStopAnnounce != null)
-            AiGoStopAnimation(announce: aiGoStopAnnounce),
+            AiGoStopAnimation(announce: aiGoStopAnnounce, strings: strings),
 
           // 족보 달성 알림 (#4)
           if (ref.watch(yakuAnnounceProvider) != null)
@@ -400,7 +441,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 backgroundColor: Colors.blueAccent.withValues(alpha: 0.8),
                 onPressed: () => _showSkillSelectDialog(context, ref),
                 icon: const Icon(Icons.flash_on, color: Colors.amber),
-                label: const Text('스킬발동', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                label: Text(strings.skillActivateBtn, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
 
@@ -437,8 +478,77 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 }
               },
             ),
+
+          // 스플래시 로딩 오버레이 (최상단)
+          if (_isLoading)
+            AnimatedOpacity(
+              opacity: _splashOpacity,
+              duration: const Duration(milliseconds: 500),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0A0A0A),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // K-Poker 로고 (골드 그라데이션)
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700)],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'K-Poker',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 56,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 6,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '화투 타짜',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 18,
+                          letterSpacing: 6,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      const SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4FACFE)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
-      ),
+              ),
+            ),
+          ),
+        );
+
+        if (needScale) {
+          return Center(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: content,
+            ),
+          );
+        }
+        return content;
+      },
     );
   }
 
@@ -558,7 +668,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        state.currentTurn == 'player' ? '🎯 내 턴' : '🤖 AI',
+                        state.currentTurn == 'player' ? strings.myTurnLabel : '🤖 AI',
                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -668,7 +778,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 top: 0,
                 child: Transform.rotate(
                   angle: startAngle + i * fanAngleStep,
-                  child: HwatuCard(card: cards[i], size: cardSize),
+                  child: HwatuCard(card: cards[i], size: cardSize, frontSkin: ref.watch(frontSkinProvider)),
                 ),
               ),
           ],
@@ -768,7 +878,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
         border: Border.all(color: Colors.green.withValues(alpha: 0.2), width: 1),
       ),
       child: count == 0
-          ? const Center(child: Text('필드', style: TextStyle(color: Colors.white24, fontSize: 16)))
+          ? Center(child: Text(ref.watch(appStringsProvider).fieldLabel, style: const TextStyle(color: Colors.white24, fontSize: 16)))
           : Wrap(
               spacing: 5, runSpacing: 5, alignment: WrapAlignment.center,
               children: [
@@ -778,6 +888,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     card: state.field[i],
                     size: _fieldCardSize,
                     isField: true,
+                    frontSkin: ref.watch(frontSkinProvider),
                   ),
               ],
             ),
@@ -851,7 +962,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.6), blurRadius: 12)],
                       ),
-                      child: Text('🎆 총통 $chongtongMonth월',
+                      child: Text(ref.watch(appStringsProvider).chongtongBtn(chongtongMonth),
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ),
@@ -878,8 +989,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text('💣', style: TextStyle(fontSize: 24)),
-                        Text('$bombMonth월', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                        const Text('폭탄!', style: TextStyle(color: Colors.white, fontSize: 10)),
+                        Text(ref.watch(appStringsProvider).bombMonthLabel(bombMonth), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        Text(ref.watch(appStringsProvider).bombLabel, style: const TextStyle(color: Colors.white, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -902,6 +1013,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       HwatuCard(
                         card: card,
                         size: _playerCardSize,
+                        frontSkin: ref.watch(frontSkinProvider),
                         onTap: isPlayable
                             ? () => _playCardWithAnimation(card)
                             : null,
@@ -1314,22 +1426,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
           builder: (context, ref, child) {
             final run = ref.watch(runStateNotifierProvider);
             final availableSkills = run.inventorySkills.entries.where((e) => e.value > 0).toList();
-            final _s = ref.watch(appStringsProvider);
+            final s = ref.watch(appStringsProvider);
 
             return AlertDialog(
               backgroundColor: const Color(0xFF1A1A2E),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.flash_on, color: Colors.amber),
-                  SizedBox(width: 8),
-                  Text('액티브 스킬 사용', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Icon(Icons.flash_on, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  Text(s.activeSkillTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                 ],
               ),
               content: SizedBox(
                 width: 320,
                 child: availableSkills.isEmpty 
-                  ? const Padding(padding: EdgeInsets.all(16.0), child: Text('사용 가능한 스킬이 없습니다.', style: TextStyle(color: Colors.white70)))
+                  ? Padding(padding: const EdgeInsets.all(16.0), child: Text(s.noSkillAvailable, style: const TextStyle(color: Colors.white70)))
                   : ListView.separated(
                       shrinkWrap: true,
                       itemCount: availableSkills.length,
@@ -1344,8 +1456,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           tileColor: Colors.blueAccent.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           leading: Text(itemInfo?.emoji ?? '⚡', style: const TextStyle(fontSize: 28)),
-                          title: Text(_s.getItemName(skillId, itemInfo?.nameKo ?? skillId), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: Text('잔여: $count회', style: const TextStyle(color: Colors.white54)),
+                          title: Text(s.getItemName(skillId, itemInfo?.nameKo ?? skillId), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: Text(s.remainingCount(count), style: const TextStyle(color: Colors.white54)),
                           trailing: ElevatedButton(
                             onPressed: () {
                               Navigator.of(ctx).pop();
@@ -1356,7 +1468,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                             ),
-                            child: const Text('사용', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(s.useBtn, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         );
                       },
@@ -1365,7 +1477,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('닫기', style: TextStyle(color: Colors.white54)),
+                  child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
                 )
               ],
             );

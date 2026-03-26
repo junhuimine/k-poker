@@ -23,11 +23,19 @@ class CurrencyConfig {
 
   /// 금액 포맷팅
   String formatAmount(double amount) {
+    // 한국어/일본어: 억 단위
+    if (amount >= 1000000000 && (locale == 'ko' || locale == 'ja')) {
+      return '$symbol${(amount / 100000000).toStringAsFixed(1)}${locale == 'ko' ? '억' : '億'}';
+    }
+    if (amount >= 100000000 && (locale == 'ko' || locale == 'ja')) {
+      return '$symbol${(amount / 100000000).toStringAsFixed(0)}${locale == 'ko' ? '억' : '億'}';
+    }
+    // 그 외 언어: B(Billion) 표기
     if (amount >= 1000000000) {
-      return '$symbol${(amount / 100000000).toStringAsFixed(1)}억';
+      return '$symbol${(amount / 1000000000).toStringAsFixed(1)}B';
     }
     if (amount >= 100000000) {
-      return '$symbol${(amount / 100000000).toStringAsFixed(0)}억';
+      return '$symbol${(amount / 1000000).toStringAsFixed(0)}M';
     }
     // 한국어: 만/천 단위 정확 표시 (₩5만 3천)
     if (locale == 'ko' && amount >= 10000) {
@@ -70,6 +78,7 @@ const Map<String, CurrencyConfig> currencies = {
   'pt': CurrencyConfig(locale: 'pt', symbol: 'R\$', name: 'Real', pointValue: 2.50),
   'ru': CurrencyConfig(locale: 'ru', symbol: '₽', name: 'Рубль', pointValue: 45),
   'ar': CurrencyConfig(locale: 'ar', symbol: '\$', name: 'Dollar', pointValue: 0.50),
+  'th': CurrencyConfig(locale: 'th', symbol: '฿', name: 'Baht', pointValue: 15),
 };
 
 /// 로케일에 맞는 화폐 가져오기

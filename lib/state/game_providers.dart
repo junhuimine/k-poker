@@ -784,7 +784,7 @@ class RunStateNotifier extends _$RunStateNotifier {
     state = RunState(
       stage: 1,
       money: initialMoney,
-      gold: 10000, // TODO: 개발 테스트용 지급
+      gold: 500,
       currencyLocale: locale,
       currentOpponentIndex: 0,
       opponentMoney: firstOpponentFund,

@@ -32,6 +32,7 @@ flutter:
 
   assets:
     - assets/images/cards/
+    - assets/images/cards_manga/
     - assets/images/characters/
     - assets/images/backgrounds/
     - assets/audio/sfx/

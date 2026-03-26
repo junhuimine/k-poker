@@ -14,6 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_providers.dart';
 import '../../models/card_def.dart';
 import '../../data/stage_config.dart';
+import '../../i18n/app_strings.dart';
+import '../../i18n/locale_provider.dart';
 
 // ─── 사이드 패널 토글 버튼 ─────────────
 class SidePanelToggle extends StatelessWidget {
@@ -72,6 +74,7 @@ class GameSidePanel extends ConsumerWidget {
     final run = ref.watch(runStateNotifierProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
+    final strings = ref.watch(appStringsProvider);
 
     return Container(
       width: 140, // 200 -> 140 (약 2/3 수준)
@@ -392,14 +395,14 @@ class MySkillsBlock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _s = ref.watch(appStringsProvider);
+    final appStr = ref.watch(appStringsProvider);
     final skills = run.activeSkills as List<dynamic>;
     final talismans = run.activeTalismans as List<dynamic>;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('🎒 기술 가방', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text('🎒 ${appStr.ui('skillBag')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         if (skills.isEmpty && talismans.isEmpty)
           Container(
@@ -409,7 +412,7 @@ class MySkillsBlock extends ConsumerWidget {
               color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Text('보유한 기술/부적이 없습니다', textAlign: TextAlign.center, style: TextStyle(color: Colors.white30, fontSize: 9)),
+            child: Text(appStr.ui('noSkills'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 9)),
           )
         else
           Wrap(
@@ -418,7 +421,7 @@ class MySkillsBlock extends ConsumerWidget {
             children: [
               for (var t in talismans)
                 Tooltip(
-                  message: '${_s.getItemName(t.id, t.nameKo)}\n${_s.getItemDesc(t.id, t.description)}',
+                  message: '${appStr.getItemName(t.id, t.nameKo)}\n${appStr.getItemDesc(t.id, t.description)}',
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
@@ -431,17 +434,17 @@ class MySkillsBlock extends ConsumerWidget {
                       children: [
                         Text(t.emoji, style: const TextStyle(fontSize: 12)),
                         const SizedBox(width: 2),
-                        Text(_s.getItemName(t.id, t.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
+                        Text(appStr.getItemName(t.id, t.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
                       ],
                     ),
                   ),
                 ),
               for (var s in skills)
                 Tooltip(
-                  message: '${_s.getItemName(s.id, s.nameKo)}\n${_s.getItemDesc(s.id, s.description)}',
+                  message: '${appStr.getItemName(s.id, s.nameKo)}\n${appStr.getItemDesc(s.id, s.description)}',
                   child: InkWell(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_s.getItemName(s.id, s.nameKo)} 스킬 사용!'), duration: const Duration(seconds: 1)));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${appStr.getItemName(s.id, s.nameKo)} ${appStr.ui('skillUsed')}'), duration: const Duration(seconds: 1)));
                     },
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
@@ -456,7 +459,7 @@ class MySkillsBlock extends ConsumerWidget {
                         children: [
                           Text(s.emoji, style: const TextStyle(fontSize: 12)),
                           const SizedBox(width: 2),
-                          Text(_s.getItemName(s.id, s.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
+                          Text(appStr.getItemName(s.id, s.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
                         ],
                       ),
                     ),

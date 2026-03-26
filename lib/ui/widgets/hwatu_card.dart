@@ -4,7 +4,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../i18n/app_strings.dart';
 import '../../models/card_def.dart';
+import '../../state/card_skin_provider.dart';
 
 /// 등급별 보더 색상
 const Map<CardGrade, Color> gradeBorderColors = {
@@ -15,7 +17,33 @@ const Map<CardGrade, Color> gradeBorderColors = {
 };
 
 /// 카드 특징 텍스트 (하단 중앙 표시용)
-String getCardFeatureLabel(CardDef def) {
+String getCardFeatureLabel(CardDef def, {AppStrings? strings}) {
+  if (strings != null) {
+    switch (def.grade) {
+      case CardGrade.bright:
+        return strings.ui('cardGradeBright');
+      case CardGrade.animal:
+        return strings.ui('cardGradeAnimal');
+      case CardGrade.ribbon:
+        switch (def.ribbonType) {
+          case RibbonType.red:
+            return strings.ui('cardGradeRedRibbon');
+          case RibbonType.blue:
+            return strings.ui('cardGradeBlueRibbon');
+          case RibbonType.grass:
+            return strings.ui('cardGradeGrassRibbon');
+          case RibbonType.plain:
+            return strings.ui('cardGradeRibbon');
+          default:
+            return strings.ui('cardGradeRibbon');
+        }
+      case CardGrade.junk:
+        if (def.isBonus) return strings.ui('doublePi');
+        if (def.doubleJunk) return strings.ui('doublePi');
+        return strings.ui('cardGradeJunk');
+    }
+  }
+  // 폴백: AppStrings 없으면 한국어 기본값
   switch (def.grade) {
     case CardGrade.bright:
       return '광';
@@ -72,6 +100,9 @@ class HwatuCard extends StatefulWidget {
   final bool isField;
   final bool isFaceDown;
   final String skinPath;
+  final AppStrings? strings;
+  /// 앞면 스킨 (manga 등). null이면 기본 original.
+  final FrontSkin frontSkin;
 
   const HwatuCard({
     super.key,
@@ -82,6 +113,8 @@ class HwatuCard extends StatefulWidget {
     this.isField = false,
     this.isFaceDown = false,
     this.skinPath = 'assets/images/cards/card_back.png',
+    this.strings,
+    this.frontSkin = FrontSkin.original,
   });
 
   @override
@@ -191,7 +224,7 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('🎴', style: TextStyle(fontSize: width * 0.35)),
-              Text('뒤집기', style: TextStyle(
+              Text(widget.strings?.ui('flip') ?? '뒤집기', style: TextStyle(
                 color: Colors.cyanAccent,
                 fontSize: width * 0.15,
                 fontWeight: FontWeight.bold,
@@ -206,20 +239,22 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
 
   /// ── 카드 앞면 (실제 이미지 + 월 뱃지 + 특징 라벨) ──
   Widget _buildCardFront(double width) {
-    final featureLabel = getCardFeatureLabel(widget.card.def);
+    final featureLabel = getCardFeatureLabel(widget.card.def, strings: widget.strings);
     final featureColor = getFeatureColor(widget.card.def);
+    final isManga = widget.frontSkin == FrontSkin.manga;
+    final imagePath = widget.frontSkin.getAssetPath(widget.card.def.id);
 
-    return Stack(
+    Widget cardContent = Stack(
       fit: StackFit.expand,
       children: [
         // 1. 실제 카드 이미지
         Image.asset(
-          'assets/images/cards/${widget.card.def.id}.png',
+          imagePath,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
             color: Colors.grey[800],
             child: Center(
-              child: Text(widget.card.def.isBonus ? '쌍피' : '${widget.card.def.month}월', style: const TextStyle(color: Colors.white, fontSize: 12)),
+              child: Text(widget.card.def.isBonus ? (widget.strings?.ui('doublePi') ?? '쌍피') : (widget.strings?.monthFormatted(widget.card.def.month) ?? '${widget.card.def.month}월'), style: const TextStyle(color: Colors.white, fontSize: 12)),
             ),
           ),
         ),
@@ -236,7 +271,7 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
               border: Border.all(color: _borderColor.withValues(alpha: 0.6), width: 1),
             ),
             child: Text(
-              widget.card.def.isBonus ? '쌍피' : '${widget.card.def.month}월',
+              widget.card.def.isBonus ? (widget.strings?.ui('doublePi') ?? '쌍피') : (widget.strings?.monthFormatted(widget.card.def.month) ?? '${widget.card.def.month}월'),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: (width * 0.18).clamp(10.0, 18.0),
@@ -281,6 +316,12 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
           _buildEditionOverlay(),
       ],
     );
+
+    // 만화 스킨이면 MangaStyleCard 래퍼 적용
+    if (isManga) {
+      return MangaStyleCard(child: cardContent);
+    }
+    return cardContent;
   }
 
   List<BoxShadow> _buildShadows() {

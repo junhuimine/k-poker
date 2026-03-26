@@ -14,6 +14,7 @@ import '../../state/game_providers.dart';
 import '../../models/card_def.dart';
 import '../../data/stage_config.dart';
 import '../../common/responsive.dart';
+import '../../i18n/app_strings.dart';
 import 'hwatu_card.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -102,7 +103,7 @@ class GameStartOverlay extends ConsumerWidget {
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(
                                       color: const Color(0xFF2A1A3A),
-                                      child: Center(child: Text('${i + 1}광', style: const TextStyle(color: Colors.white))),
+                                      child: Center(child: Text('${i + 1} ${strings.ui('brightLabel')}', style: const TextStyle(color: Colors.white))),
                                     ),
                                   ),
                                 ),
@@ -184,12 +185,12 @@ class GameStartOverlay extends ConsumerWidget {
                 IconButton(
                   onPressed: onTutorial,
                   icon: const Text('❓', style: TextStyle(fontSize: 20)),
-                  tooltip: '도움말',
+                  tooltip: strings.ui('help'),
                 ),
                 IconButton(
                   onPressed: onSettings,
                   icon: const Text('⚙️', style: TextStyle(fontSize: 20)),
-                  tooltip: '설정',
+                  tooltip: strings.settings,
                 ),
               ],
             ),
@@ -208,12 +209,14 @@ class CardSelectOverlay extends StatelessWidget {
   final List<CardInstance> selectableFieldCards;
   final void Function(CardInstance) onSelect;
   final VoidCallback onCancel;
+  final AppStrings strings;
 
   const CardSelectOverlay({
     super.key,
     required this.selectableFieldCards,
     required this.onSelect,
     required this.onCancel,
+    required this.strings,
   });
 
   @override
@@ -232,9 +235,9 @@ class CardSelectOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🎯 먹을 카드를 선택하세요', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('🎯 ${strings.ui('selectCardTitle')}', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('같은 월 카드가 ${selectableFieldCards.length}장 있습니다', style: const TextStyle(color: Colors.white54, fontSize: 14)),
+              Text(strings.sameMonthCards(selectableFieldCards.length), style: const TextStyle(color: Colors.white54, fontSize: 14)),
               const SizedBox(height: 20),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -262,7 +265,7 @@ class CardSelectOverlay extends StatelessWidget {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: onCancel,
-                child: const Text('취소', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                child: Text(strings.ui('cancel'), style: const TextStyle(color: Colors.white54, fontSize: 14)),
               ),
             ],
           ),
@@ -278,8 +281,9 @@ class CardSelectOverlay extends StatelessWidget {
 
 class AiGoStopAnimation extends StatelessWidget {
   final String announce;
+  final AppStrings strings;
 
-  const AiGoStopAnimation({super.key, required this.announce});
+  const AiGoStopAnimation({super.key, required this.announce, required this.strings});
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +291,7 @@ class AiGoStopAnimation extends StatelessWidget {
     final goCount = isStop ? 0 : int.tryParse(announce.replaceAll('go_', '')) ?? 1;
 
     final emoji = isStop ? '🛑' : '🔥';
-    final text = isStop ? '스톱!' : '고! ×$goCount';
+    final text = isStop ? strings.ui('aiStop') : '${strings.ui('aiGo')} ×$goCount';
     final color = isStop ? Colors.white : const Color(0xFFFF2200);
     final bgColor = isStop
         ? Colors.blueGrey.withValues(alpha: 0.8)
@@ -398,13 +402,13 @@ class GoStopOverlay extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Column(children: [
-                    Text('나', style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
-                    Text('${state.playerScore}점', style: TextStyle(color: const Color(0xFFFFD700), fontSize: 24 * s, fontWeight: FontWeight.bold)),
+                    Text(strings.ui('me'), style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
+                    Text('${state.playerScore}${strings.ui('pointSuffix')}', style: TextStyle(color: const Color(0xFFFFD700), fontSize: 24 * s, fontWeight: FontWeight.bold)),
                   ]),
                   Text('VS', style: TextStyle(color: Colors.white38, fontSize: 16 * s, fontWeight: FontWeight.bold)),
                   Column(children: [
-                    Text('상대', style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
-                    Text('${state.opponentScore}점', style: TextStyle(color: Colors.redAccent, fontSize: 24 * s, fontWeight: FontWeight.bold)),
+                    Text(strings.ui('opponent'), style: TextStyle(color: Colors.white70, fontSize: 13 * s)),
+                    Text('${state.opponentScore}${strings.ui('pointSuffix')}', style: TextStyle(color: Colors.redAccent, fontSize: 24 * s, fontWeight: FontWeight.bold)),
                   ]),
                 ],
               ),
@@ -418,28 +422,28 @@ class GoStopOverlay extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _goStopChip('⭐', '광', pBright, const Color(0xFFFFD700)),
-                    _goStopChip('🦌', '동물', pAnimal, const Color(0xFF00E5FF)),
-                    _goStopChip('🎀', '띄', pRibbon, const Color(0xFFFF4081)),
-                    _goStopChip('🎴', '피', pJunk, const Color(0xFF78909C)),
+                    _goStopChip('⭐', strings.ui('kwang'), pBright, const Color(0xFFFFD700)),
+                    _goStopChip('🦌', strings.ui('animal'), pAnimal, const Color(0xFF00E5FF)),
+                    _goStopChip('🎀', strings.ui('plain'), pRibbon, const Color(0xFFFF4081)),
+                    _goStopChip('🎴', strings.ui('pi'), pJunk, const Color(0xFF78909C)),
                   ],
                 ),
               ),
               SizedBox(height: 14 * s),
               Text(
                 state.goCount == 0
-                    ? '🔥 3점 달성!'
-                    : '${'🔥' * (state.goCount + 1)} ${state.goCount + 1}고! 추가 점수!',
+                    ? '🔥 ${strings.ui('goStopReached')}'
+                    : '${'🔥' * (state.goCount + 1)} ${state.goCount + 1}${strings.ui('aiGo')} ${strings.ui('goStopExtraPoints')}',
                 style: TextStyle(color: const Color(0xFFFFD700), fontSize: 22 * s, fontWeight: FontWeight.bold),
               ),
               Text(
                 state.goCount == 0
-                    ? '고(1고) → +1점 추가 | 스톱 시 즉시 승리'
+                    ? strings.ui('goStopDesc1go')
                     : state.goCount == 1
-                        ? '고(2고) → +2점 추가 | 스톱 시 즉시 승리'
+                        ? strings.ui('goStopDesc2go')
                         : state.goCount == 2
-                            ? '고(3고) → 점수 2배 폭증! | 스톱 시 즉시 승리'
-                            : '현재 배율 ${state.multiplier.toInt()}배 → 고 시 ${(state.multiplier * 2).toInt()}배!',
+                            ? strings.ui('goStopDesc3go')
+                            : strings.goStopMultiplierDesc(state.multiplier.toInt(), (state.multiplier * 2).toInt()),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white54, fontSize: 14 * s),
               ),
@@ -540,11 +544,11 @@ class RoundEndOverlay extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ScoreVersusHeader(state: state),
+              ScoreVersusHeader(state: state, strings: strings),
               SizedBox(height: 16 * s),
               Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 48 * s)),
               SizedBox(height: 8 * s),
-              Text(isWin ? '승리!' : '패배...',
+              Text(isWin ? strings.ui('victory') : strings.ui('defeat'),
                 style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32 * s, fontWeight: FontWeight.bold)),
               SizedBox(height: 12 * s),
               Container(
@@ -556,12 +560,12 @@ class RoundEndOverlay extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    resultBadge('🌟', '$pBright', '광'),
-                    resultBadge('🐾', '$pAnimal', '동물'),
-                    resultBadge('🎀', '$pRibbon', '띠'),
-                    resultBadge('🍂', '$pJunk', '피'),
+                    resultBadge('🌟', '$pBright', strings.ui('kwang')),
+                    resultBadge('🐾', '$pAnimal', strings.ui('animal')),
+                    resultBadge('🎀', '$pRibbon', strings.ui('plain')),
+                    resultBadge('🍂', '$pJunk', strings.ui('pi')),
                     if (state.sweepCount > 0)
-                      resultBadge('🧹', '${state.sweepCount}', '쓸'),
+                      resultBadge('🧹', '${state.sweepCount}', strings.ui('sweepLabel')),
                   ],
                 ),
               ),
@@ -577,7 +581,7 @@ class RoundEndOverlay extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('점수', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                        Text(strings.ui('uiScore'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
                         Text('${state.playerScore} vs ${state.opponentScore}',
                           style: const TextStyle(color: Colors.white, fontSize: 13)),
                       ],
@@ -587,8 +591,8 @@ class RoundEndOverlay extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('계산', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                          Text('${state.baseChips.toInt()}점 × ${currency.formatAmount(currency.pointValue)}'
+                          Text(strings.ui('calculation'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                          Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} × ${currency.formatAmount(currency.pointValue)}'
                             '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
                             style: const TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
@@ -598,7 +602,7 @@ class RoundEndOverlay extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(isWin ? '💰 수입' : '💸 손실',
+                        Text(isWin ? '💰 ${strings.ui('income')}' : '💸 ${strings.ui('loss')}',
                           style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
                         Text(isWin ? '+${currency.formatAmount(earnings)}' : currency.formatAmount(earnings),
                           style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
@@ -620,7 +624,7 @@ class RoundEndOverlay extends ConsumerWidget {
                     OutlinedButton.icon(
                       onPressed: onShop,
                       icon: const Text('🛒'),
-                      label: const Text('상점'),
+                      label: Text(strings.shop),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Color(0xFF30363D)),
@@ -636,7 +640,7 @@ class RoundEndOverlay extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: Text(isWin ? '다음 라운드 →' : '재도전!',
+                    child: Text(isWin ? strings.ui('nextRound') : strings.ui('retry'),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ],
@@ -666,16 +670,16 @@ class RoundEndOverlay extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ScoreVersusHeader(state: state),
+              ScoreVersusHeader(state: state, strings: strings),
               const SizedBox(height: 16),
               const Text('💸', style: TextStyle(fontSize: 64)),
               const SizedBox(height: 12),
-              const Text('파산!', style: TextStyle(
+              Text(strings.ui('bankrupt'), style: const TextStyle(
                 color: Colors.redAccent, fontSize: 36, fontWeight: FontWeight.bold,
                 shadows: [Shadow(color: Colors.red, blurRadius: 20)],
               )),
               const SizedBox(height: 8),
-              const Text('소지금이 바닥났습니다...', style: TextStyle(color: Colors.white54, fontSize: 16)),
+              Text(strings.ui('bankruptDesc'), style: const TextStyle(color: Colors.white54, fontSize: 16)),
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -686,12 +690,12 @@ class RoundEndOverlay extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    gameOverStatRow('🏆 총 승리', '${run.wins}승'),
-                    gameOverStatRow('💀 총 패배', '${run.losses}패'),
-                    gameOverStatRow('🔥 최고 연승', '${run.winStreak}연승'),
-                    gameOverStatRow('⭐ 최고 점수', '${run.highestScore}점'),
-                    gameOverStatRow('💰 최고 소지금', currency.formatExact(run.highestMoney)),
-                    gameOverStatRow('📍 도달 스테이지', '스테이지 ${run.stage}'),
+                    gameOverStatRow('🏆 ${strings.ui('totalWins')}', '${run.wins}${strings.ui('winsUnit')}'),
+                    gameOverStatRow('💀 ${strings.ui('totalLosses')}', '${run.losses}${strings.ui('lossesUnit')}'),
+                    gameOverStatRow('🔥 ${strings.ui('bestWinStreak')}', '${run.winStreak}${strings.ui('streakUnit')}'),
+                    gameOverStatRow('⭐ ${strings.ui('bestScore')}', '${run.highestScore}${strings.ui('pointSuffix')}'),
+                    gameOverStatRow('💰 ${strings.ui('bestMoney')}', currency.formatExact(run.highestMoney)),
+                    gameOverStatRow('📍 ${strings.ui('reachedStage')}', '${strings.ui('stagePrefix')} ${run.stage}'),
                   ],
                 ),
               ),
@@ -704,7 +708,7 @@ class RoundEndOverlay extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('🔄 처음부터 다시', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text('🔄 ${strings.ui('restartFromBeginning')}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -720,8 +724,9 @@ class RoundEndOverlay extends ConsumerWidget {
 
 class ScoreVersusHeader extends StatelessWidget {
   final dynamic state;
+  final dynamic strings;
 
-  const ScoreVersusHeader({super.key, required this.state});
+  const ScoreVersusHeader({super.key, required this.state, required this.strings});
 
   @override
   Widget build(BuildContext context) {
@@ -737,8 +742,8 @@ class ScoreVersusHeader extends StatelessWidget {
         children: [
           Column(
             children: [
-              const Text('👤 나', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              Text('${state.playerScore}점', style: const TextStyle(color: Colors.blueAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('👤 ${strings.ui('meWithIcon')}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('${state.playerScore}${strings.ui('pointSuffix')}', style: const TextStyle(color: Colors.blueAccent, fontSize: 20, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(width: 24),
@@ -746,8 +751,8 @@ class ScoreVersusHeader extends StatelessWidget {
           const SizedBox(width: 24),
           Column(
             children: [
-               const Text('🤖 상대', style: TextStyle(color: Colors.white70, fontSize: 12)),
-               Text('${state.opponentScore}점', style: const TextStyle(color: Colors.redAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+               Text('🤖 ${strings.ui('opponentWithIcon')}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+               Text('${state.opponentScore}${strings.ui('pointSuffix')}', style: const TextStyle(color: Colors.redAccent, fontSize: 20, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
