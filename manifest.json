@@ -1,13 +1,17 @@
 {
-    "name": "K-Poker",
+    "name": "K-Poker: Hwatu Roguelike",
     "short_name": "K-Poker",
     "start_url": ".",
     "display": "standalone",
+    "display_override": ["standalone", "fullscreen"],
     "background_color": "#0A0A0A",
     "theme_color": "#D4AF37",
-    "description": "A roguelike Hwatu card game inspired by Balatro",
+    "description": "A roguelike Hwatu card game inspired by Balatro. Play Go-Stop against cunning AI opponents!",
     "orientation": "landscape",
     "prefer_related_applications": false,
+    "categories": ["games", "entertainment"],
+    "lang": "ko",
+    "scope": ".",
     "icons": [
         {
             "src": "icons/Icon-192.png",
