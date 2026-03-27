@@ -1019,7 +1019,7 @@ p.a2Y()
 return p},
 aIA(a){return new A.a_p($.ae,a)},
 atw(){var s,r,q,p,o=v.G,n=o.window,m=A.aIg(n.navigator)
-if(m==null||m.length===0)return B.ow
+if(m==null||m.length===0)return B.ox
 s=A.b([],t.ss)
 for(n=m.length,r=0;r<m.length;m.length===n||(0,A.w)(m),++r){q=m[r]
 p=new o.Intl.Locale(q)
@@ -10629,8 +10629,8 @@ break
 case 4:s=l.a
 s===$&&A.a()
 s=A.bl(s,200)
-r=A.bl(A.ZV(l,B.ox,B.Qw),24)
-q=A.bl(A.ZV(l,B.ox,B.a1q),32)
+r=A.bl(A.ZV(l,B.oy,B.Qw),24)
+q=A.bl(A.ZV(l,B.oy,B.a1q),32)
 p=A.bl(l.a,10)
 o=A.bl(l.a,12)
 l.d===$&&A.a()
@@ -45912,7 +45912,7 @@ n=o.e
 o=o.cx
 r=q.gaah()
 q.a.toString
-return new A.Co(p,p,p,new A.am8(),p,p,p,p,p,n,B.ahw,p,p,p,B.a3j,q.gaap(),o,p,B.arz,s,p,r,p,p,B.ow,!1,!1,p,p,p,new A.oM(q,t.bT))},
+return new A.Co(p,p,p,new A.am8(),p,p,p,p,p,n,B.ahw,p,p,p,B.a3j,q.gaap(),o,p,B.arz,s,p,r,p,p,B.ox,!1,!1,p,p,p,new A.oM(q,t.bT))},
 N(a){var s,r=this.a4p(a)
 this.a.toString
 s=this.d
@@ -79615,7 +79615,7 @@ s=2
 return A.r(A.f6(),$async$kp)
 case 2:o=m.c7(b.a.i(0,"card_skin"))
 n=o==null?"classic":o
-try{q.sfU(B.b.nF(B.ov,new A.Y1(n)))}catch(l){q.sfU(B.mS)}return A.D(null,r)}})
+try{q.sfU(B.b.nF(B.ow,new A.Y1(n)))}catch(l){q.sfU(B.mS)}return A.D(null,r)}})
 return A.E($async$kp,r)},
 iE(a){return this.Zn(a)},
 Zn(a){var s=0,r=A.F(t.H),q=this
@@ -79674,7 +79674,7 @@ s=2
 return A.r(A.f6(),$async$kp)
 case 2:o=m.c7(b.a.i(0,"front_skin"))
 n=o==null?"original":o
-try{q.sfU(B.b.nF(B.oy,new A.a0F(n)))}catch(l){q.sfU(B.dE)}return A.D(null,r)}})
+try{q.sfU(B.b.nF(B.ov,new A.a0F(n)))}catch(l){q.sfU(B.dE)}return A.D(null,r)}})
 return A.E($async$kp,r)},
 iE(a){return this.Zo(a)},
 Zo(a){var s=0,r=A.F(t.H),q=this
@@ -81509,11 +81509,11 @@ l=A.I(new A.a0(B.oF,new A.aoB(e,b),l),l.h("ap.E"))
 l=A.qi(B.bL,l,6,6)
 i=A.a1("\ud83c\udfa8 "+a.a9("cardSkinFront"),d,d,d,B.lE,d)
 h=t.km
-h=A.I(new A.a0(B.oy,new A.aoC(e),h),h.h("ap.E"))
+h=A.I(new A.a0(B.ov,new A.aoC(e),h),h.h("ap.E"))
 h=A.qi(B.bL,h,8,8)
 g=A.a1("\ud83c\udccf "+a.a9("cardSkinBack"),d,d,d,B.lE,d)
 f=t.FZ
-f=A.I(new A.a0(B.ov,new A.aoD(e),f),f.h("ap.E"))
+f=A.I(new A.a0(B.ow,new A.aoD(e),f),f.h("ap.E"))
 return A.ei(d,A.ax(d,A.cX(A.ei(d,A.ax(d,A.Bl(A.bG(A.b([n,B.hf,B.b_,k,B.bV,j,B.bW,B.hf,B.bV,m,B.b_,l,B.bW,B.hf,B.bV,i,B.b_,h,B.bW,B.hf,B.bV,g,B.b_,A.qi(B.bL,f,8,8)],o),B.au,B.z,B.ap),d,B.a0,d,d,B.aw),B.v,d,new A.ah(0,1/0,0,s.a.b*0.85),new A.aE(B.ey,d,q,r,p,d,B.E),d,d,d,B.jG,d,d,360),B.a0,!1,d,d,d,d,d,d,d,d,d,d,d,d,d,d,new A.aoE(),d,d,d,d,d,d),d,d),B.v,B.a3,d,d,d,d,d,d,d,d,d),B.a0,!1,d,d,d,d,d,d,d,d,d,d,d,d,d,d,c,d,d,d,d,d,d)},
 MF(a,b,c,d,e,f){var s,r,q,p,o=null,n=B.c.aG(b*100),m=c?B.aQ.a_(0.15):B.bg.a_(0.15),l=A.b0(10)
 if(c)s="\ud83d\udd07"
@@ -88426,7 +88426,7 @@ B.IK=new A.fk("Expected envelope, got nothing",null,null)
 B.bp=new A.fk("Message corrupted",null,null)
 B.hl=new A.yc(0)
 B.dE=new A.f_("Original","\ud83c\udfb4",null,0,"original")
-B.oa=new A.f_("Manga","\ud83d\udcd6","assets/images/cards_manga",1,"manga")
+B.oa=new A.f_("Manga","\ud83d\udcd6","assets/images/cards_manga_v2",1,"manga")
 B.IL=new A.yg(null)
 B.cV=new A.Ja(0,"accepted")
 B.bq=new A.Ja(1,"rejected")
@@ -88836,16 +88836,16 @@ B.io=new A.ln(5,"end")
 B.P_=s([B.cD,B.dd,B.c0,B.fw,B.b5,B.io],A.af("z<ln>"))
 B.Q_=s([B.iR,B.iS],A.af("z<wp>"))
 B.Qw=s([18,15,10,12,15,18,15,12,12],t.n)
+B.ov=s([B.dE,B.oa],A.af("z<f_>"))
 B.Sz=s([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298],t.t)
 B.TU=s(["m01_bright","m03_bright","m08_bright","m11_bright","m12_bright"],t.s)
 B.D5=new A.e_("Midnight","assets/images/cards/card_back_midnight.png","\ud83c\udf19",2,"midnight")
 B.D6=new A.e_("Jade","assets/images/cards/card_back_jade.png","\ud83d\udc8e",3,"jade")
 B.D7=new A.e_("Sakura","assets/images/cards/card_back_sakura.png","\ud83c\udf38",4,"sakura")
-B.ov=s([B.mR,B.mS,B.D5,B.D6,B.D7],A.af("z<e_>"))
+B.ow=s([B.mR,B.mS,B.D5,B.D6,B.D7],A.af("z<e_>"))
 B.ads=new A.mz("en",null,"US")
-B.ow=s([B.ads],t.ss)
-B.ox=s([0,41,61,101,131,181,251,301,360],t.n)
-B.oy=s([B.dE,B.oa],A.af("z<f_>"))
+B.ox=s([B.ads],t.ss)
+B.oy=s([0,41,61,101,131,181,251,301,360],t.n)
 B.awm=new A.ly(0,0)
 B.awr=new A.ly(1,0.05)
 B.awp=new A.ly(3,0.08)
