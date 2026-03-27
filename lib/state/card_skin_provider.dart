@@ -59,7 +59,7 @@ final cardSkinProvider = StateNotifierProvider<CardSkinNotifier, CardSkin>(
 /// - (향후 추가 스킨은 assets/images/cards_xxx/ 폴더에 50장 넣으면 자동 적용)
 enum FrontSkin {
   original('Original', '🎴', null),
-  manga('Manga', '📖', 'assets/images/cards_manga');
+  manga('Manga', '📖', 'assets/images/cards_manga_v2');
 
   final String displayName;
   final String emoji;
