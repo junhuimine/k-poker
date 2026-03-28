@@ -145,16 +145,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  /// 게임 시작 + 딜링 애니메이션 (고스톱 방식: 3-4-3 그룹 + 날아가는 효과)
-  void _startGameWithDeal() async {
+  /// 게임 시작 + 딜링 애니메이션 (원래 코드 복원)
+  void _startGameWithDeal() {
     ref.read(gameStateProvider.notifier).startGame();
     AudioManager().startBgmLoop();
     final gameState = ref.read(gameStateProvider);
-
-    final screenW = MediaQuery.of(context).size.width;
-    final screenH = MediaQuery.of(context).size.height;
-    final deckPos = Offset(30, screenH * 0.4);
-    final random = Random();
 
     setState(() {
       _isDealing = true;
@@ -165,96 +160,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _flyingCards = [];
     });
 
-    // 고스톱 딜링: 상대3 → 바닥4 → 나3 → 상대3 → 바닥4 → 나3 → 상대4 → 나4
-    final dealGroups = <(String, int)>[
-      ('opponent', 3), ('field', 4), ('player', 3),
-      ('opponent', 3), ('field', 4), ('player', 3),
-      ('opponent', 4), ('player', 4),
-    ];
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    for (final (area, count) in dealGroups) {
-      if (!mounted) return;
-
-      final startIdx = area == 'opponent' ? _dealtOpponentCount
-          : area == 'field' ? _dealtFieldCount
-          : _dealtPlayerCount;
-
-      // STEP 1: 카드 날리기 (아직 자리에 안 깔림)
-      final List<FlyingCard> groupCards = [];
-      for (int i = 0; i < count; i++) {
-        final idx = startIdx + i;
-        Offset to;
-        CardInstance card;
-        bool faceDown = false;
-
-        switch (area) {
-          case 'opponent':
-            to = Offset(screenW * 0.3 + idx * 42, 60);
-            card = gameState.opponentHand[idx];
-            faceDown = true;
-            break;
-          case 'field':
-            to = Offset(screenW * 0.25 + idx * 65, screenH * 0.35);
-            card = gameState.field[idx];
-            break;
-          default:
-            to = Offset(screenW * 0.2 + idx * 78, screenH - 150);
-            card = gameState.playerHand[idx];
-            break;
-        }
-
-        groupCards.add(FlyingCard(
-          card: card,
-          from: deckPos,
-          to: to,
-          startAngle: -0.2 + random.nextDouble() * 0.1,
-          endAngle: (random.nextDouble() - 0.5) * 0.1,
-          isFaceDown: faceDown,
-          delay: Duration(milliseconds: i * 50),
-          duration: const Duration(milliseconds: 300),
-          size: faceDown ? 38 : (area == 'field' ? 50 : 72),
-          style: 'deal',
-        ));
-      }
-
-      // 날리기만 (카드는 아직 자리에 안 깔림)
-      setState(() {
-        _visibleDeckCount -= count;
-        _flyingCards = groupCards;
-      });
-      AudioManager().cardPlay();
-
-      // STEP 2: 애니메이션 끝나면 카드를 자리에 깔기
-      await Future.delayed(const Duration(milliseconds: 320));
-      if (!mounted) return;
-
-      setState(() {
-        switch (area) {
-          case 'opponent':
-            _dealtOpponentCount += count;
-            break;
-          case 'field':
-            _dealtFieldCount += count;
-            break;
-          case 'player':
-            _dealtPlayerCount += count;
-            break;
-        }
-        _flyingCards = [];
-      });
-
-      await Future.delayed(const Duration(milliseconds: 80));
-    }
-
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (mounted) {
-      setState(() {
-        _isDealing = false;
-        _flyingCards = [];
-      });
-    }
+    _runDealSequence(gameState);
   }
 
   void _runDealSequence(dynamic gameState) async {
@@ -448,8 +354,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             CardAnimationOverlay(
               flyingCards: _flyingCards,
               onAllComplete: () {
-                // 딜링 중에는 딜링 코드가 _flyingCards를 관리
-                if (mounted && !_isDealing) setState(() => _flyingCards = []);
+                if (mounted) setState(() => _flyingCards = []);
               },
             ),
 

@@ -29,8 +29,8 @@ class AudioManager {
     final prefs = await SharedPreferences.getInstance();
     _bgmVolume = prefs.getDouble('bgm_volume') ?? 0.2;
     _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.2;
-    _bgmMuted = prefs.getBool('bgm_muted') ?? false;
-    _sfxMuted = prefs.getBool('sfx_muted') ?? false;
+    _bgmMuted = prefs.getBool('bgm_muted') ?? true;
+    _sfxMuted = prefs.getBool('sfx_muted') ?? true;
     
     _bgmPlayer.setReleaseMode(ReleaseMode.loop);
     await _bgmPlayer.setVolume(_bgmMuted ? 0 : _bgmVolume);

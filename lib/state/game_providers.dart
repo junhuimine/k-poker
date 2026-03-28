@@ -83,22 +83,24 @@ class GameState extends _$GameState {
     return const RoundState();
   }
 
-  /// 게임 시작 (딜링) — 저장된 라운드가 있으면 복원
-  Future<void> startGame() async {
+  /// 게임 시작 (딜링)
+  void startGame() {
     ref.read(gameEventsProvider.notifier).clear();
     ref.read(goStopPendingProvider.notifier).hide();
+    final runState = ref.read(runStateNotifierProvider);
+    state = GameEngine.createInitialState(run: runState);
+    ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
+  }
 
-    // 저장된 라운드 복원 시도
+  /// 저장된 라운드 복원 (앱 시작 시 호출)
+  Future<bool> restoreSavedRound() async {
     final savedRound = await GameSaveManager.loadRound();
     if (savedRound != null && !savedRound.isFinished) {
       state = savedRound;
       ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
-      return;
+      return true;
     }
-
-    final runState = ref.read(runStateNotifierProvider);
-    state = GameEngine.createInitialState(run: runState);
-    ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
+    return false;
   }
 
   /// 총통 감지 (핸드에 같은 월 4장)
