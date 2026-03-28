@@ -138,12 +138,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  /// 게임 시작 + 딜링 애니메이션
-  void _startGameWithDeal() {
+  /// 게임 시작 + 딜링 애니메이션 (간소화: 깜빡임 방지)
+  void _startGameWithDeal() async {
     ref.read(gameStateProvider.notifier).startGame();
-    AudioManager().startBgmLoop(); // BGM 10곡 순환 시작
-    final gameState = ref.read(gameStateProvider);
+    AudioManager().startBgmLoop();
 
+    // 딜링 상태 시작 (카드 0장부터)
     setState(() {
       _isDealing = true;
       _dealtOpponentCount = 0;
@@ -153,8 +153,45 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _flyingCards = [];
     });
 
-    // 딜링 시퀀스: 덱 위치에서 각 영역으로 한 장씩
-    _runDealSequence(gameState);
+    // 빠른 딜링: 그룹별로 한번에 표시 (setState 최소화)
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // 바닥 8장 한번에
+    setState(() {
+      _dealtFieldCount = 8;
+      _visibleDeckCount = 40;
+    });
+    AudioManager().cardPlay();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // 상대 10장 한번에
+    setState(() {
+      _dealtOpponentCount = 10;
+      _visibleDeckCount = 30;
+    });
+    AudioManager().cardPlay();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // 내 10장 한번에
+    setState(() {
+      _dealtPlayerCount = 10;
+      _visibleDeckCount = 20;
+    });
+    AudioManager().cardPlay();
+
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+
+    // 딜링 완료
+    setState(() {
+      _isDealing = false;
+      _flyingCards = [];
+    });
   }
 
   void _runDealSequence(dynamic gameState) async {
@@ -215,30 +252,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
           continue;
       }
 
-      // 카드 하나 날려보내기
+      // 카드 하나 날려보내기 (setState 1회로 통합)
       final random = Random();
-      final throwAngle = (random.nextDouble() - 0.5) * 0.15; // 약간의 랜덤 회전
+      final throwAngle = (random.nextDouble() - 0.5) * 0.15;
 
       setState(() {
         _visibleDeckCount--;
-        _flyingCards = [
-          FlyingCard(
-            card: card,
-            from: deckPos,
-            to: to,
-            startAngle: -0.3,
-            endAngle: throwAngle,
-            isFaceDown: faceDown,
-            duration: const Duration(milliseconds: 500),
-            size: faceDown ? 38 : (target.area == 'field' ? 50 : 72),
-          ),
-        ];
-      });
-
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // 해당 영역에 카드 추가
-      setState(() {
         switch (target.area) {
           case 'field':
             _dealtFieldCount = target.index + 1;
@@ -250,7 +269,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
             _dealtPlayerCount = target.index + 1;
             break;
         }
+        _flyingCards = [
+          FlyingCard(
+            card: card,
+            from: deckPos,
+            to: to,
+            startAngle: -0.3,
+            endAngle: throwAngle,
+            isFaceDown: faceDown,
+            duration: const Duration(milliseconds: 400),
+            size: faceDown ? 38 : (target.area == 'field' ? 50 : 72),
+            style: 'deal',
+          ),
+        ];
       });
+
+      await Future.delayed(const Duration(milliseconds: 250));
     }
 
     // 딜링 완료
