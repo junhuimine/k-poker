@@ -113,6 +113,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
       'assets/images/cards/m08_bright.png',
       'assets/images/cards/m11_bright.png',
       'assets/images/cards/m12_bright.png',
+      // 배경 이미지 (깜빡임 방지)
+      'assets/images/backgrounds/bg_stage1.png',
+      'assets/images/backgrounds/bg_stage2.png',
+      'assets/images/backgrounds/bg_stage3.png',
+      'assets/images/backgrounds/bg_stage4.png',
+      'assets/images/backgrounds/bg_stage5.png',
+      'assets/images/backgrounds/bg_stage6.png',
     ];
 
     final futures = importantAssets.map((path) {
@@ -170,12 +177,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
     for (final (area, count) in dealGroups) {
       if (!mounted) return;
 
-      // 이 그룹의 카드들이 동시에 날아감
-      final List<FlyingCard> groupCards = [];
       final startIdx = area == 'opponent' ? _dealtOpponentCount
           : area == 'field' ? _dealtFieldCount
           : _dealtPlayerCount;
 
+      // STEP 1: 카드 날리기 (아직 자리에 안 깔림)
+      final List<FlyingCard> groupCards = [];
       for (int i = 0; i < count; i++) {
         final idx = startIdx + i;
         Offset to;
@@ -192,7 +199,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             to = Offset(screenW * 0.25 + idx * 65, screenH * 0.35);
             card = gameState.field[idx];
             break;
-          default: // player
+          default:
             to = Offset(screenW * 0.2 + idx * 78, screenH - 150);
             card = gameState.playerHand[idx];
             break;
@@ -205,12 +212,23 @@ class _GameScreenState extends ConsumerState<GameScreen>
           startAngle: -0.2 + random.nextDouble() * 0.1,
           endAngle: (random.nextDouble() - 0.5) * 0.1,
           isFaceDown: faceDown,
-          delay: Duration(milliseconds: i * 60),
-          duration: const Duration(milliseconds: 350),
+          delay: Duration(milliseconds: i * 50),
+          duration: const Duration(milliseconds: 300),
           size: faceDown ? 38 : (area == 'field' ? 50 : 72),
           style: 'deal',
         ));
       }
+
+      // 날리기만 (카드는 아직 자리에 안 깔림)
+      setState(() {
+        _visibleDeckCount -= count;
+        _flyingCards = groupCards;
+      });
+      AudioManager().cardPlay();
+
+      // STEP 2: 애니메이션 끝나면 카드를 자리에 깔기
+      await Future.delayed(const Duration(milliseconds: 320));
+      if (!mounted) return;
 
       setState(() {
         switch (area) {
@@ -224,11 +242,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
             _dealtPlayerCount += count;
             break;
         }
-        _visibleDeckCount -= count;
-        _flyingCards = groupCards;
+        _flyingCards = [];
       });
-      AudioManager().cardPlay();
-      await Future.delayed(const Duration(milliseconds: 350));
+
+      await Future.delayed(const Duration(milliseconds: 80));
     }
 
     await Future.delayed(const Duration(milliseconds: 200));
