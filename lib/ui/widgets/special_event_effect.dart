@@ -6,16 +6,19 @@ library;
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../i18n/app_strings.dart';
 
 /// 이벤트 타입에 따라 다른 이펙트를 재생하는 풀스크린 오버레이 위젯
 class SpecialEventEffect extends StatefulWidget {
-  final String eventType; // 'ppeok', 'chok', 'tadak', 'sweep', 'chok_sweep', 'ppeok_eat', 'double_ppeok', 'triple_ppeok', 'bomb', 족보이름 등
+  final String eventType; // 'ppeok', 'chok', 'tadak', 'sweep', 'chok_sweep', 'ppeok_eat', 'double_ppeok', 'triple_ppeok', 'bomb', 족보 i18n key 등
   final VoidCallback? onComplete;
+  final AppStrings? strings; // i18n 번역용 (null이면 기본 한국어)
 
   const SpecialEventEffect({
     super.key,
     required this.eventType,
     this.onComplete,
+    this.strings,
   });
 
   @override
@@ -434,162 +437,183 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
   }
 
   _TextConfig _getTextConfig(String type) {
+    final s = widget.strings;
+    // i18n 헬퍼: key가 있으면 번역, 없으면 fallback
+    String tr(String key, [String fallback = '']) =>
+        s != null ? s.ui(key) : fallback;
+
     switch (type) {
       case 'ppeok':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '💥',
           iconSize: 64,
-          text: '뻑',
+          text: tr('event_ppeok', 'Ppuck'),
           fontSize: 52,
           letterSpacing: 12,
           textColor: Colors.amber,
           glowColor: Colors.orange,
-          bgColor: Color(0xFF1A0A00),
-          bgColor2: Color(0xFF2E1500),
+          bgColor: const Color(0xFF1A0A00),
+          bgColor2: const Color(0xFF2E1500),
           borderColor: Colors.orange,
         );
       case 'double_ppeok':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '🔥🔥',
           iconSize: 56,
-          text: '연뻑',
+          text: tr('event_double_ppeok', 'Double Ppuck'),
           fontSize: 48,
           letterSpacing: 10,
-          subText: '+3점',
-          textColor: Color(0xFFFF3D00),
+          subText: tr('event_double_ppeok_sub', '+3 pts'),
+          textColor: const Color(0xFFFF3D00),
           glowColor: Colors.red,
-          bgColor: Color(0xFF2A0000),
-          bgColor2: Color(0xFF4A0000),
+          bgColor: const Color(0xFF2A0000),
+          bgColor2: const Color(0xFF4A0000),
           borderColor: Colors.red,
         );
       case 'triple_ppeok':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '🔥🔥🔥',
           iconSize: 52,
-          text: '삼뻑',
+          text: tr('event_triple_ppeok', 'Triple Ppuck'),
           fontSize: 56,
           letterSpacing: 14,
-          subText: '즉시 승리',
+          subText: tr('event_triple_ppeok_sub', 'Instant Win'),
           textColor: Colors.white,
-          glowColor: Color(0xFFFF1744),
-          bgColor: Color(0xFF4A0000),
-          bgColor2: Color(0xFF7A0000),
-          borderColor: Color(0xFFFF1744),
+          glowColor: const Color(0xFFFF1744),
+          bgColor: const Color(0xFF4A0000),
+          bgColor2: const Color(0xFF7A0000),
+          borderColor: const Color(0xFFFF1744),
         );
       case 'chok':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '✌️',
           iconSize: 60,
-          text: '쪽',
+          text: tr('event_chok', 'Jjok'),
           fontSize: 52,
           letterSpacing: 10,
           textColor: Colors.cyanAccent,
           glowColor: Colors.cyan,
-          bgColor: Color(0xFF001A2E),
-          bgColor2: Color(0xFF002A4A),
+          bgColor: const Color(0xFF001A2E),
+          bgColor2: const Color(0xFF002A4A),
           borderColor: Colors.cyanAccent,
         );
       case 'chok_sweep':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '✌️🌊',
           iconSize: 56,
-          text: '쪽쓸',
+          text: tr('event_chok_sweep', 'Jjok Sweep'),
           fontSize: 48,
           letterSpacing: 10,
-          subText: '피 2장 빼앗기',
+          subText: tr('event_chok_sweep_sub', 'Steal 2 Junks'),
           textColor: Colors.tealAccent,
           glowColor: Colors.teal,
-          bgColor: Color(0xFF001A1A),
-          bgColor2: Color(0xFF003333),
+          bgColor: const Color(0xFF001A1A),
+          bgColor2: const Color(0xFF003333),
           borderColor: Colors.tealAccent,
         );
       case 'tadak':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '⚡',
           iconSize: 64,
-          text: '따닥',
+          text: tr('event_tadak', 'Ttadak'),
           fontSize: 48,
           letterSpacing: 10,
           textColor: Colors.purpleAccent,
           glowColor: Colors.deepPurple,
-          bgColor: Color(0xFF0A001A),
-          bgColor2: Color(0xFF1A0033),
+          bgColor: const Color(0xFF0A001A),
+          bgColor2: const Color(0xFF1A0033),
           borderColor: Colors.purpleAccent,
         );
       case 'sweep':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '🌊',
           iconSize: 64,
-          text: '쓸',
+          text: tr('event_sweep', 'Sweep'),
           fontSize: 56,
           letterSpacing: 14,
           textColor: Colors.lightBlueAccent,
           glowColor: Colors.blue,
-          bgColor: Color(0xFF00001A),
-          bgColor2: Color(0xFF000033),
+          bgColor: const Color(0xFF00001A),
+          bgColor2: const Color(0xFF000033),
           borderColor: Colors.lightBlueAccent,
         );
       case 'ppeok_eat':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '😈',
           iconSize: 60,
-          text: '뻑 먹기',
+          text: tr('event_ppeok_eat', 'Ppuck Eat'),
           fontSize: 42,
           letterSpacing: 8,
-          subText: '4장 흡수',
+          subText: tr('event_ppeok_eat_sub', 'Absorb 4 cards'),
           textColor: Colors.orangeAccent,
           glowColor: Colors.deepOrange,
-          bgColor: Color(0xFF1A0500),
-          bgColor2: Color(0xFF2E0A00),
+          bgColor: const Color(0xFF1A0500),
+          bgColor2: const Color(0xFF2E0A00),
           borderColor: Colors.orangeAccent,
         );
       case 'self_ppeok':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '🔥😈',
           iconSize: 58,
-          text: '자뻑',
+          text: tr('event_self_ppeok', 'Self Ppuck'),
           fontSize: 48,
           letterSpacing: 10,
-          subText: '4장 + 피 2장 빼앗기!',
-          textColor: Color(0xFFFF6D00),
-          glowColor: Color(0xFFFF3D00),
-          bgColor: Color(0xFF2A0500),
-          bgColor2: Color(0xFF4A0A00),
-          borderColor: Color(0xFFFF6D00),
+          subText: tr('event_self_ppeok_sub', '4 cards + Steal 2 Junks!'),
+          textColor: const Color(0xFFFF6D00),
+          glowColor: const Color(0xFFFF3D00),
+          bgColor: const Color(0xFF2A0500),
+          bgColor2: const Color(0xFF4A0A00),
+          borderColor: const Color(0xFFFF6D00),
         );
       case 'bomb':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '💣',
           iconSize: 70,
-          text: '폭탄',
+          text: tr('event_bomb', 'Bomb'),
           fontSize: 52,
           letterSpacing: 12,
           textColor: Colors.yellow,
           glowColor: Colors.orange,
-          bgColor: Color(0xFF1A0A00),
-          bgColor2: Color(0xFF331500),
+          bgColor: const Color(0xFF1A0A00),
+          bgColor2: const Color(0xFF331500),
           borderColor: Colors.yellow,
         );
       case 'chongtong':
-        return const _TextConfig(
+        return _TextConfig(
           icon: '🎆',
           iconSize: 70,
-          text: '총통',
+          text: tr('event_chongtong', 'Chongtong'),
           fontSize: 56,
           letterSpacing: 14,
-          subText: '4장 즉시 획득',
+          subText: tr('event_chongtong_sub', 'Capture 4 cards instantly'),
           textColor: Colors.yellow,
           glowColor: Colors.orange,
-          bgColor: Color(0xFF1A0A00),
-          bgColor2: Color(0xFF331500),
+          bgColor: const Color(0xFF1A0A00),
+          bgColor2: const Color(0xFF331500),
           borderColor: Colors.yellow,
         );
+      case 'shake':
+        return _TextConfig(
+          icon: '🫨',
+          iconSize: 70,
+          text: tr('event_shake', 'Shake!'),
+          fontSize: 52,
+          letterSpacing: 10,
+          subText: tr('event_shake_sub', 'Score x2!'),
+          textColor: Colors.amber,
+          glowColor: Colors.orangeAccent,
+          bgColor: const Color(0xFF1A1000),
+          bgColor2: const Color(0xFF332200),
+          borderColor: Colors.amber,
+        );
       default:
-        // 족보 달성(오광, 삼광, 홍단 등)
+        // 족보 달성 — i18n 키로 번역 (ogwang, samgwang, hongdan 등)
+        final yakuUiKey = 'yaku_$type'; // 예: 'ogwang' -> 'yaku_ogwang'
+        final displayText = tr(yakuUiKey, type);
         return _TextConfig(
           icon: _getYakuEmoji(type),
           iconSize: 56,
-          text: type,
+          text: displayText,
           fontSize: 40,
           letterSpacing: 6,
           textColor: const Color(0xFFFFD700),
@@ -603,15 +627,15 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
 
   String _getYakuEmoji(String yaku) {
     const map = {
-      '오광': '🌟',
-      '사광': '⭐',
-      '삼광': '✨',
-      '비삼광': '🌧️',
-      '홍단': '🔴',
-      '청단': '🔵',
-      '초단': '🟢',
-      '고도리': '🐦',
-      '오끗': '🦌',
+      'ogwang': '🌟',
+      'sagwang': '⭐',
+      'bisagwang': '⭐',
+      'samgwang': '✨',
+      'bisamgwang': '🌧️',
+      'hongdan': '🔴',
+      'cheongdan': '🔵',
+      'chodan': '🟢',
+      'godori': '🐦',
     };
     return map[yaku] ?? '🎴';
   }

@@ -48,6 +48,19 @@ class RoundState with _$RoundState {
 
     // 아이템 효과 추적용
     @Default(false) bool mentalGuardUsed, // T-002 멘탈가드 사용 여부 (1회용)
+    @Default(false) bool bombUsed,        // 이 라운드에서 폭탄/총통 사용 여부 (c_bomb_fuse용)
+    @Default(false) bool gloveUsedThisTurn, // t_cheaters_glove 이번 턴 사용 여부
+    @Default(false) bool ppukBonusUsed,   // ps_ppuk_inducer 이번 판 보너스 사용 여부
+    @Default(false) bool flowerLordUsed,  // ps_flower_lord 이번 판 사용 여부
+    @Default(false) bool rewindUsed,      // ps_time_rewind 이번 판 사용 여부
+    @Default(false) bool hadTripleMonth,  // ps_flower_bomb: 핸드에 같은 월 3장 보유 여부
+
+    // 흔들기: 핸드에 같은 월 3장 보유 시 선언, 승리 시 점수 2배
+    @Default(false) bool isShaking,       // 흔들기 선언 여부
+    @Default(0) int shakeMonth,           // 흔들기 선언한 월 (0 = 미선언)
+
+    // 점수 상세 breakdown (라운드 종료 오버레이 표시용)
+    @Default([]) List<Map<String, dynamic>> scoreBreakdown,
   }) = _RoundState;
 
   factory RoundState.fromJson(Map<String, dynamic> json) => _$RoundStateFromJson(json);

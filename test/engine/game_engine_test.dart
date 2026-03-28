@@ -75,14 +75,24 @@ void main() {
   });
 
   group('GameEngine.getBombMonth 테스트', () {
-    test('같은 월 3장 = 폭탄', () {
+    test('같은 월 3장 + 바닥에 같은 월 = 폭탄', () {
       final hand = allCards.where((c) => c.month == 1).take(3).map(_inst).toList();
-      expect(GameEngine.getBombMonth(hand), 1);
+      // 바닥에 같은 월 카드가 최소 1장 있어야 폭탄 성립
+      final field = [_inst(allCards.firstWhere((c) => c.month == 1))];
+      expect(GameEngine.getBombMonth(hand, field), 1);
+    });
+
+    test('같은 월 3장 + 바닥에 같은 월 없음 = null', () {
+      final hand = allCards.where((c) => c.month == 1).take(3).map(_inst).toList();
+      // 바닥에 1월 카드가 없으면 폭탄 불가
+      final field = [_inst(allCards.firstWhere((c) => c.month == 2))];
+      expect(GameEngine.getBombMonth(hand, field), isNull);
     });
 
     test('같은 월 2장 = null', () {
       final hand = allCards.where((c) => c.month == 1).take(2).map(_inst).toList();
-      expect(GameEngine.getBombMonth(hand), isNull);
+      final field = [_inst(allCards.firstWhere((c) => c.month == 1))];
+      expect(GameEngine.getBombMonth(hand, field), isNull);
     });
   });
 
@@ -144,29 +154,38 @@ void main() {
   });
 
   group('GameEngine.playBomb 테스트', () {
-    test('폭탄 실행 -- 같은 월 3장 일괄 획득', () {
+    test('폭탄 실행 -- 같은 월 3장 + 바닥 동월 1장 일괄 획득', () {
       var state = GameEngine.createInitialState();
       // 핸드에 1월 카드 3장 배치
-      final month1Cards = allCards.where((c) => c.month == 1).take(3).map(_inst).toList();
+      final month1All = allCards.where((c) => c.month == 1).toList();
+      final month1Hand = month1All.take(3).map(_inst).toList();
+      // 바닥에 1월 카드 1장 보장 (폭탄 조건: 바닥 동월 필수)
+      final month1Field = _inst(month1All.last);
+      final otherField = state.field.where((c) => c.def.month != 1).take(5).toList();
       state = state.copyWith(
-        playerHand: [...month1Cards, ...state.playerHand.where((c) => c.def.month != 1)],
+        playerHand: [...month1Hand, ...state.playerHand.where((c) => c.def.month != 1)],
+        field: [month1Field, ...otherField],
       );
 
       final result = GameEngine.playBomb(state, 1);
       expect(result.lastSpecialEvent, 'bomb');
-      // 폭탄 카드 3장 + 바닥 같은 월 카드가 획득됨
       final capturedMonth1 = result.playerCaptured.where((c) => c.def.month == 1).length;
       expect(capturedMonth1, greaterThanOrEqualTo(3));
     });
 
     test('폭탄 후 덱드로 카드 2장 보충', () {
       var state = GameEngine.createInitialState();
-      final month1Cards = allCards.where((c) => c.month == 1).take(3).map(_inst).toList();
+      final month1All = allCards.where((c) => c.month == 1).toList();
+      final month1Hand = month1All.take(3).map(_inst).toList();
+      final month1Field = _inst(month1All.last);
+      final otherField = state.field.where((c) => c.def.month != 1).take(5).toList();
       final otherCards = state.playerHand.where((c) => c.def.month != 1).toList();
-      state = state.copyWith(playerHand: [...month1Cards, ...otherCards]);
+      state = state.copyWith(
+        playerHand: [...month1Hand, ...otherCards],
+        field: [month1Field, ...otherField],
+      );
 
       final result = GameEngine.playBomb(state, 1);
-      // 핸드에 덱드로 카드 존재
       final deckDraws = result.playerHand.where((c) => c.isDeckDraw).length;
       expect(deckDraws, greaterThanOrEqualTo(1));
     });

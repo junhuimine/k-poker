@@ -1,10 +1,9 @@
-/// K-Poker -- 카드/스킬/아이템 데이터 무결성 테스트
+/// K-Poker -- 카드/아이템 데이터 무결성 테스트
 library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:k_poker/data/all_cards.dart';
-import 'package:k_poker/data/skills.dart';
-import 'package:k_poker/data/item_library.dart';
+import 'package:k_poker/data/item_catalog.dart';
 import 'package:k_poker/models/card_def.dart';
 
 void main() {
@@ -93,70 +92,52 @@ void main() {
     });
   });
 
-  group('스킬 데이터 무결성', () {
-    test('전체 스킬 32개', () {
-      expect(allSkills.length, 32);
+  group('아이템 카탈로그 무결성', () {
+    test('전체 아이템 51개', () {
+      expect(itemCatalog.length, 51);
     });
 
-    test('등급별 분포: Common 12, Rare 10, Epic 6, Legendary 4', () {
-      expect(allSkills.where((s) => s.rarity == SkillRarity.common).length, 12);
-      expect(allSkills.where((s) => s.rarity == SkillRarity.rare).length, 10);
-      expect(allSkills.where((s) => s.rarity == SkillRarity.epic).length, 6);
-      expect(allSkills.where((s) => s.rarity == SkillRarity.legendary).length, 4);
+    test('슬롯별 분포: 패시브 29, 부적 9, 액티브 6, 소모품 6, 비밀 1(패시브)', () {
+      expect(getItemsBySlot(ItemSlot.passiveAlways).length, 30); // 29 + 비밀 1
+      expect(getItemsBySlot(ItemSlot.talisman).length, 9);
+      expect(getItemsBySlot(ItemSlot.activeInGame).length, 6);
+      expect(getItemsBySlot(ItemSlot.consumableRound).length, 6);
     });
 
-    test('스킬 ID 유일', () {
-      final ids = allSkills.map((s) => s.id).toSet();
-      expect(ids.length, allSkills.length);
+    test('아이템 ID 유일', () {
+      final ids = itemCatalog.map((i) => i.id).toSet();
+      expect(ids.length, itemCatalog.length);
     });
 
-    test('모든 스킬에 nameKo 존재', () {
-      for (final skill in allSkills) {
-        expect(skill.nameKo.isNotEmpty, isTrue, reason: '${skill.id}의 nameKo 비어있음');
+    test('모든 아이템에 nameKo 존재', () {
+      for (final item in itemCatalog) {
+        expect(item.nameKo.isNotEmpty, isTrue, reason: '${item.id}의 nameKo 비어있음');
       }
     });
 
-    test('모든 스킬에 shopCost > 0', () {
-      for (final skill in allSkills) {
-        expect(skill.shopCost, greaterThan(0), reason: '${skill.id}의 shopCost <= 0');
+    test('모든 아이템에 baseCost > 0', () {
+      for (final item in itemCatalog) {
+        expect(item.baseCost, greaterThan(0), reason: '${item.id}의 baseCost <= 0');
       }
     });
-  });
 
-  group('부적 데이터 무결성', () {
-    test('전체 부적 7개', () {
-      expect(allTalismans.length, 7);
-    });
-
-    test('부적 ID 유일', () {
-      final ids = allTalismans.map((t) => t.id).toSet();
-      expect(ids.length, allTalismans.length);
-    });
-  });
-
-  group('상점 아이템 데이터 무결성', () {
-    test('액티브 스킬 3개', () {
-      expect(shopActiveSkills.length, 3);
-    });
-
-    test('라운드 소모품 3개', () {
-      expect(shopPreRoundItems.length, 3);
-    });
-
-    test('영구 부적 2개', () {
-      expect(shopPassiveTalismans.length, 2);
-    });
-
-    test('findItemById -- 모든 아이템 검색 가능', () {
-      for (final item in [...shopActiveSkills, ...shopPreRoundItems, ...shopPassiveTalismans]) {
-        final found = findItemById(item.id);
+    test('findCatalogItem -- 모든 아이템 검색 가능', () {
+      for (final item in itemCatalog) {
+        final found = findCatalogItem(item.id);
         expect(found, isNotNull, reason: '${item.id} 검색 실패');
         expect(found!.nameKo, item.nameKo);
       }
     });
 
-    test('findItemById -- 없는 ID는 null', () {
-      expect(findItemById('nonexistent'), isNull);
+    test('findCatalogItem -- 없는 ID는 null', () {
+      expect(findCatalogItem('nonexistent'), isNull);
+    });
+
+    test('findCatalogItem -- 레거시 ID 호환', () {
+      // P-001 -> c_gwang_scanner
+      final found = findCatalogItem('P-001');
+      expect(found, isNotNull);
+      expect(found!.id, 'c_gwang_scanner');
     });
   });
 }

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_providers.dart';
 import '../../models/card_def.dart';
 import '../../data/stage_config.dart';
+import '../../data/item_catalog.dart';
 import '../../i18n/app_strings.dart';
 import '../../i18n/locale_provider.dart';
 
@@ -396,15 +397,24 @@ class MySkillsBlock extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appStr = ref.watch(appStringsProvider);
-    final skills = run.activeSkills as List<dynamic>;
-    final talismans = run.activeTalismans as List<dynamic>;
+    final gameState = ref.watch(gameStateProvider);
+    final isPlayerTurn = gameState.currentTurn == 'player' && !gameState.isFinished;
+
+    // 신규 시스템: inventorySkills (Map<String, int>) + ownedTalismanIds (List<String>) + ownedPassiveIds (List<String>)
+    final Map<String, int> invSkills = run.inventorySkills as Map<String, int>;
+    final List<String> talismanIds = run.ownedTalismanIds as List<String>;
+    final List<String> passiveIds = run.ownedPassiveIds as List<String>;
+
+    // 수량 > 0인 스킬만 표시
+    final activeEntries = invSkills.entries.where((e) => e.value > 0).toList();
+    final bool hasNothing = activeEntries.isEmpty && talismanIds.isEmpty && passiveIds.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('🎒 ${appStr.ui('skillBag')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        if (skills.isEmpty && talismans.isEmpty)
+        if (hasNothing)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -419,55 +429,136 @@ class MySkillsBlock extends ConsumerWidget {
             spacing: 4,
             runSpacing: 4,
             children: [
-              for (var t in talismans)
-                Tooltip(
-                  message: '${appStr.getItemName(t.id, t.nameKo)}\n${appStr.getItemDesc(t.id, t.description)}',
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.deepPurpleAccent, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(t.emoji, style: const TextStyle(fontSize: 12)),
-                        const SizedBox(width: 2),
-                        Text(appStr.getItemName(t.id, t.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
-                      ],
-                    ),
-                  ),
-                ),
-              for (var s in skills)
-                Tooltip(
-                  message: '${appStr.getItemName(s.id, s.nameKo)}\n${appStr.getItemDesc(s.id, s.description)}',
-                  child: InkWell(
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${appStr.getItemName(s.id, s.nameKo)} ${appStr.ui('skillUsed')}'), duration: const Duration(seconds: 1)));
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.greenAccent, width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(s.emoji, style: const TextStyle(fontSize: 12)),
-                          const SizedBox(width: 2),
-                          Text(appStr.getItemName(s.id, s.nameKo), style: const TextStyle(color: Colors.white, fontSize: 9)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              // 패시브 스킬 — ownedPassiveIds 기반 (노란/주황 테두리)
+              for (var pId in passiveIds)
+                _buildPassiveChip(pId, appStr),
+              // 부적 (영구 패시브) — ownedTalismanIds 기반
+              for (var tId in talismanIds)
+                _buildTalismanChip(tId, appStr),
+              // 액티브 스킬 — inventorySkills 기반
+              for (var entry in activeEntries)
+                _buildSkillChip(context, ref, entry.key, entry.value, isPlayerTurn, appStr),
             ],
           ),
       ],
+    );
+  }
+
+  Widget _buildPassiveChip(String passiveId, AppStrings appStr) {
+    final itemInfo = findCatalogItem(passiveId);
+    final emoji = itemInfo?.emoji ?? '🔮';
+    final name = appStr.getItemName(passiveId, itemInfo?.nameKo ?? passiveId);
+    final desc = appStr.getItemDesc(passiveId, itemInfo?.description ?? '');
+
+    return Tooltip(
+      message: '$name\n$desc',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.orangeAccent, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 12)),
+            const SizedBox(width: 2),
+            Text(name, style: const TextStyle(color: Colors.white, fontSize: 9)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTalismanChip(String talismanId, AppStrings appStr) {
+    final itemInfo = findCatalogItem(talismanId);
+    final emoji = itemInfo?.emoji ?? '📜';
+    final name = appStr.getItemName(talismanId, itemInfo?.nameKo ?? talismanId);
+    final desc = appStr.getItemDesc(talismanId, itemInfo?.description ?? '');
+
+    return Tooltip(
+      message: '$name\n$desc',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.deepPurple.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.deepPurpleAccent, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 12)),
+            const SizedBox(width: 2),
+            Text(name, style: const TextStyle(color: Colors.white, fontSize: 9)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkillChip(
+    BuildContext context,
+    WidgetRef ref,
+    String skillId,
+    int count,
+    bool isPlayerTurn,
+    AppStrings appStr,
+  ) {
+    final itemInfo = findCatalogItem(skillId);
+    final emoji = itemInfo?.emoji ?? '⚡';
+    final name = appStr.getItemName(skillId, itemInfo?.nameKo ?? skillId);
+    final desc = appStr.getItemDesc(skillId, itemInfo?.description ?? '');
+
+    return Tooltip(
+      message: '$name\n$desc',
+      child: InkWell(
+        onTap: isPlayerTurn
+            ? () {
+                ref.read(gameStateProvider.notifier).useActiveSkill(skillId);
+              }
+            : null,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: isPlayerTurn
+                ? Colors.green.withValues(alpha: 0.3)
+                : Colors.grey.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isPlayerTurn ? Colors.greenAccent : Colors.grey,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 12)),
+              const SizedBox(width: 2),
+              Text(name, style: TextStyle(
+                color: isPlayerTurn ? Colors.white : Colors.white38,
+                fontSize: 9,
+              )),
+              const SizedBox(width: 2),
+              // 수량 배지
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text('x$count', style: TextStyle(
+                  color: isPlayerTurn ? Colors.cyanAccent : Colors.white38,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                )),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

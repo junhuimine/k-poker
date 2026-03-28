@@ -53,6 +53,18 @@ _$RoundStateImpl _$$RoundStateImplFromJson(Map<String, dynamic> json) =>
       lastPpeokOwner: json['lastPpeokOwner'] as String? ?? '',
       lastPpeokMonth: (json['lastPpeokMonth'] as num?)?.toInt() ?? 0,
       mentalGuardUsed: json['mentalGuardUsed'] as bool? ?? false,
+      bombUsed: json['bombUsed'] as bool? ?? false,
+      gloveUsedThisTurn: json['gloveUsedThisTurn'] as bool? ?? false,
+      ppukBonusUsed: json['ppukBonusUsed'] as bool? ?? false,
+      flowerLordUsed: json['flowerLordUsed'] as bool? ?? false,
+      rewindUsed: json['rewindUsed'] as bool? ?? false,
+      hadTripleMonth: json['hadTripleMonth'] as bool? ?? false,
+      isShaking: json['isShaking'] as bool? ?? false,
+      shakeMonth: (json['shakeMonth'] as num?)?.toInt() ?? 0,
+      scoreBreakdown: (json['scoreBreakdown'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$RoundStateImplToJson(_$RoundStateImpl instance) =>
@@ -84,4 +96,13 @@ Map<String, dynamic> _$$RoundStateImplToJson(_$RoundStateImpl instance) =>
       'lastPpeokOwner': instance.lastPpeokOwner,
       'lastPpeokMonth': instance.lastPpeokMonth,
       'mentalGuardUsed': instance.mentalGuardUsed,
+      'bombUsed': instance.bombUsed,
+      'gloveUsedThisTurn': instance.gloveUsedThisTurn,
+      'ppukBonusUsed': instance.ppukBonusUsed,
+      'flowerLordUsed': instance.flowerLordUsed,
+      'rewindUsed': instance.rewindUsed,
+      'hadTripleMonth': instance.hadTripleMonth,
+      'isShaking': instance.isShaking,
+      'shakeMonth': instance.shakeMonth,
+      'scoreBreakdown': instance.scoreBreakdown,
     };

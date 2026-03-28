@@ -63,7 +63,10 @@ CardInstance _aiChooseCard(RoundState state) {
     }
 
     // 폭탄 체크 (같은 월 3장)
-    final bombMonth = GameEngine.getBombMonth(List<CardInstance>.from(hand));
+    final bombMonth = GameEngine.getBombMonth(
+      List<CardInstance>.from(hand),
+      List<CardInstance>.from(state.field),
+    );
     if (bombMonth != null && !hand.first.isDeckDraw) {
       state = GameEngine.playBomb(state, bombMonth);
     } else {
@@ -123,7 +126,10 @@ void main() {
 
           if (hand.isEmpty) break;
 
-          final bombMonth = GameEngine.getBombMonth(List<CardInstance>.from(hand));
+          final bombMonth = GameEngine.getBombMonth(
+            List<CardInstance>.from(hand),
+            List<CardInstance>.from(state.field),
+          );
           if (bombMonth != null && !hand.first.isDeckDraw) {
             state = GameEngine.playBomb(state, bombMonth);
           } else {

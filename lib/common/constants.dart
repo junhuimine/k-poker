@@ -20,10 +20,10 @@ class CardSize {
   static const double smallHeight = 67;
 }
 
-/// 딜링 규칙
+/// 딜링 규칙 (2인 맞고 공식: 50장 = 바닥6 + 핸드7x2 + 덱30)
 class DealRules {
-  static const int handSize = 10;
-  static const int fieldSize = 8;
+  static const int handSize = 7;
+  static const int fieldSize = 6;
 }
 
 /// 스테이지 테이블

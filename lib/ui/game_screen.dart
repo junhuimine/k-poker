@@ -10,11 +10,12 @@ import '../state/game_providers.dart';
 import '../state/card_skin_provider.dart';
 import '../engine/game_engine.dart';
 import '../state/audio_manager.dart';
+import '../i18n/app_strings.dart';
 import '../i18n/locale_provider.dart';
 import '../engine/card_matcher.dart';
 import '../models/card_def.dart';
 import '../data/stage_config.dart';
-import '../data/item_library.dart';
+import '../data/item_catalog.dart';
 import 'widgets/hwatu_card.dart';
 import 'widgets/card_animation_overlay.dart';
 import 'settings_overlay.dart';
@@ -256,6 +257,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
         _isDealing = false;
         _flyingCards = [];
       });
+      // 흔들기 체크: 딜링 후 핸드에 같은 월 3장이면 선택 다이얼로그
+      _checkShake();
     }
   }
 
@@ -503,6 +506,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             SpecialEventEffect(
               key: ValueKey('effect_${ref.watch(yakuAnnounceProvider)}'),
               eventType: ref.watch(yakuAnnounceProvider)!,
+              strings: strings,
             ),
 
           if (gameState.isFinished)
@@ -512,7 +516,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
               screenW: _screenW,
               scale: _scale,
               onNextRound: () => _startGameWithDeal(),
-              onShop: () => setState(() => _showShop = true),
+              onShop: () {
+                final run = ref.read(runStateNotifierProvider);
+                ref.read(runStateNotifierProvider.notifier).openShop(run.stage);
+                setState(() => _showShop = true);
+              },
               onRestart: () async {
                 await ref.read(runStateNotifierProvider.notifier).restartRun();
                 _startGameWithDeal();
@@ -799,9 +807,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
   /// 상대 캐릭터 정보 바 (이름 + 점수 + 말풍선 + 체력)
 
 
-  // ─── 상대 핸드 (카드 뒷면) ─────────
+  // ─── 상대 핸드 (카드 뒷면, ps_bluff 시 일부 공개) ─────────
   Widget _buildOpponentHand(dynamic state) {
     final count = _isDealing ? _dealtOpponentCount : state.opponentHand.length;
+    // ps_bluff (허세): 상대 패 첫 2장 공개
+    final runState = ref.watch(runStateNotifierProvider);
+    final revealCount = runState.ownedPassiveIds.contains('ps_bluff') ? 2 : 0;
     return SizedBox(
       height: _opponentHandHeight,
       child: Row(
@@ -810,7 +821,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
           for (var i = 0; i < count && i < state.opponentHand.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize, isFaceDown: true,
+              child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize,
+                isFaceDown: i >= revealCount, // 처음 revealCount장은 앞면
                 skinPath: ref.watch(cardSkinProvider).assetPath),
             ),
         ],
@@ -1028,9 +1040,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
       fieldMonths.add(fc.def.month);
     }
 
-    // 폭탄 감지: 같은 월 3장
+    // 폭탄 감지: 같은 월 3장 + 바닥에 같은 월 1장 이상
     final bombMonth = GameEngine.getBombMonth(
       List<CardInstance>.from(state.playerHand),
+      List<CardInstance>.from(state.field),
     );
 
     return Container(
@@ -1580,7 +1593,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               ),
               content: SizedBox(
                 width: 320,
-                child: availableSkills.isEmpty 
+                child: availableSkills.isEmpty
                   ? Padding(padding: const EdgeInsets.all(16.0), child: Text(s.noSkillAvailable, style: const TextStyle(color: Colors.white70)))
                   : ListView.separated(
                       shrinkWrap: true,
@@ -1589,8 +1602,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       itemBuilder: (ctx, idx) {
                         final skillId = availableSkills[idx].key;
                         final count = availableSkills[idx].value;
-                        final itemInfo = findItemById(skillId);
-                        
+                        final itemInfo = findCatalogItem(skillId);
+
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           tileColor: Colors.blueAccent.withValues(alpha: 0.1),
@@ -1601,7 +1614,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                           trailing: ElevatedButton(
                             onPressed: () {
                               Navigator.of(ctx).pop();
-                              ref.read(gameStateProvider.notifier).useActiveSkill(skillId);
+                              _handleSkillUse(context, ref, skillId);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blueAccent,
@@ -1625,6 +1638,427 @@ class _GameScreenState extends ConsumerState<GameScreen>
         );
       },
     );
+  }
+
+  /// 스킬 사용 분기: 추가 선택이 필요한 스킬은 별도 다이얼로그
+  void _handleSkillUse(BuildContext context, WidgetRef ref, String skillId) {
+    final normalizedId = migrateItemId(skillId);
+    switch (normalizedId) {
+      case 'a_joker':
+        _showJokerSelectDialog(context, ref);
+      case 'a_trick':
+        _showTrickSelectDialog(context, ref);
+      case 'a_card_laundry':
+        _showLaundrySelectDialog(context, ref);
+      case 'a_keen_eye':
+        _showKeenEyeDialog(context, ref);
+      default:
+        ref.read(gameStateProvider.notifier).useActiveSkill(skillId);
+    }
+  }
+
+  /// [조커] 바닥 카드 선택 다이얼로그
+  void _showJokerSelectDialog(BuildContext context, WidgetRef ref) {
+    final gameState = ref.read(gameStateProvider);
+    final s = ref.read(appStringsProvider);
+    if (gameState.field.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('🃏 ${s.selectCardToCapture}', style: const TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: SizedBox(
+          width: 350,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: gameState.field.map((card) {
+              final gradeName = _gradeLabel(card.def.grade, s);
+              return InkWell(
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  ref.read(gameStateProvider.notifier).useJokerOnCard(card);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _gradeColor(card.def.grade).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: _gradeColor(card.def.grade).withValues(alpha: 0.5)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${card.def.month}${s.ui('monthLabel')}', style: TextStyle(color: _gradeColor(card.def.grade), fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(gradeName, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [속임수] 바닥 카드 선택 → 핸드 카드 선택
+  void _showTrickSelectDialog(BuildContext context, WidgetRef ref) {
+    final gameState = ref.read(gameStateProvider);
+    final s = ref.read(appStringsProvider);
+    if (gameState.field.isEmpty || gameState.playerHand.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('🎭 ${s.selectFieldCard}', style: const TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: SizedBox(
+          width: 350,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(gameState.field.length, (i) {
+              final card = gameState.field[i];
+              return InkWell(
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showTrickHandSelect(context, ref, i);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${card.def.month}${s.ui('monthLabel')}', style: const TextStyle(color: Colors.purpleAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(_gradeLabel(card.def.grade, s), style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTrickHandSelect(BuildContext context, WidgetRef ref, int fieldIndex) {
+    final gameState = ref.read(gameStateProvider);
+    final s = ref.read(appStringsProvider);
+    // 핸드 카드의 고유 월 목록
+    final months = gameState.playerHand.map((c) => c.def.month).toSet().toList()..sort();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('🎭 ${s.selectHandCard}', style: const TextStyle(color: Colors.cyan, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: SizedBox(
+          width: 300,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: months.map((month) {
+              return InkWell(
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  ref.read(gameStateProvider.notifier).useTrickOnCards(fieldIndex, month);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.cyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Text('$month${s.ui('monthLabel')}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [카드 세탁] 바닥 카드 선택 다이얼로그
+  void _showLaundrySelectDialog(BuildContext context, WidgetRef ref) {
+    final gameState = ref.read(gameStateProvider);
+    final s = ref.read(appStringsProvider);
+    if (gameState.field.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('🧹 ${s.selectFieldCard}', style: const TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: SizedBox(
+          width: 350,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(gameState.field.length, (i) {
+              final card = gameState.field[i];
+              return InkWell(
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  ref.read(gameStateProvider.notifier).useLaundryOnCard(i);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${card.def.month}${s.ui('monthLabel')}', style: const TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(_gradeLabel(card.def.grade, s), style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [눈썰미] 덱 상위 3장 확인 + 순서 변경 다이얼로그
+  void _showKeenEyeDialog(BuildContext context, WidgetRef ref) {
+    final gameState = ref.read(gameStateProvider);
+    final s = ref.read(appStringsProvider);
+    final deckLen = gameState.deck.length;
+    final topCount = deckLen < 3 ? deckLen : 3;
+    if (topCount == 0) return;
+
+    final topCards = gameState.deck.sublist(0, topCount);
+    // 인덱스 순서 관리용
+    final order = List<int>.generate(topCount, (i) => i);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1A1A2E),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('👁️ ${s.peekTop3}', style: const TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+            content: SizedBox(
+              width: 300,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(order.length, (i) {
+                  final cardIdx = order[i];
+                  final card = topCards[cardIdx];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        // 순서 번호
+                        Container(
+                          width: 24,
+                          height: 24,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text('${i + 1}', style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(width: 8),
+                        // 카드 정보
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _gradeColor(card.def.grade).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: _gradeColor(card.def.grade).withValues(alpha: 0.4)),
+                            ),
+                            child: Text(
+                              '${card.def.month}${s.ui('monthLabel')} ${_gradeLabel(card.def.grade, s)} - ${card.def.nameKo}',
+                              style: TextStyle(color: _gradeColor(card.def.grade), fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // 위로 버튼
+                        if (i > 0)
+                          IconButton(
+                            icon: const Icon(Icons.arrow_upward, size: 18),
+                            color: Colors.white54,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            onPressed: () {
+                              setDialogState(() {
+                                final tmp = order[i];
+                                order[i] = order[i - 1];
+                                order[i - 1] = tmp;
+                              });
+                            },
+                          )
+                        else
+                          const SizedBox(width: 28),
+                        // 아래로 버튼
+                        if (i < order.length - 1)
+                          IconButton(
+                            icon: const Icon(Icons.arrow_downward, size: 18),
+                            color: Colors.white54,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            onPressed: () {
+                              setDialogState(() {
+                                final tmp = order[i];
+                                order[i] = order[i + 1];
+                                order[i + 1] = tmp;
+                              });
+                            },
+                          )
+                        else
+                          const SizedBox(width: 28),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(s.closeBtn, style: const TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  ref.read(gameStateProvider.notifier).useKeenEyeReorder(order);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                ),
+                child: Text(s.confirmBtn, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// 흔들기 체크: 딜링 완료 후 호출
+  void _checkShake() {
+    final shakeMonth = ref.read(gameStateProvider.notifier).getShakeMonth();
+    if (shakeMonth == null) return;
+    final s = ref.read(appStringsProvider);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Text('🫨', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 8),
+            Text(s.shakeTitle, style: const TextStyle(color: Colors.amber, fontSize: 20, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          s.shakeDesc(shakeMonth),
+          style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(s.shakePass, style: const TextStyle(color: Colors.white54, fontSize: 15)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              ref.read(gameStateProvider.notifier).declareShake(shakeMonth);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: Text(s.shakeDeclare, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 카드 등급별 색상 (다이얼로그용)
+  Color _gradeColor(CardGrade grade) {
+    switch (grade) {
+      case CardGrade.bright:
+        return Colors.amber;
+      case CardGrade.animal:
+        return Colors.cyan;
+      case CardGrade.ribbon:
+        return Colors.red;
+      case CardGrade.junk:
+        return Colors.grey;
+    }
+  }
+
+  /// 카드 등급 라벨 (다이얼로그용)
+  String _gradeLabel(CardGrade grade, AppStrings s) {
+    switch (grade) {
+      case CardGrade.bright:
+        return s.ui('cardGradeBright');
+      case CardGrade.animal:
+        return s.ui('cardGradeAnimal');
+      case CardGrade.ribbon:
+        return s.ui('cardGradeRibbon');
+      case CardGrade.junk:
+        return s.ui('cardGradeJunk');
+    }
   }
 }
 

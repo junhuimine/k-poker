@@ -9,7 +9,7 @@ part of 'run_state.dart';
 _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
     _$RunStateImpl(
       stage: (json['stage'] as num?)?.toInt() ?? 1,
-      gold: (json['gold'] as num?)?.toInt() ?? 1000000,
+      gold: (json['gold'] as num?)?.toInt() ?? 0,
       money: (json['money'] as num?)?.toDouble() ?? 50000,
       stageEarned: (json['stageEarned'] as num?)?.toDouble() ?? 0,
       currentOpponentIndex:
@@ -20,6 +20,13 @@ _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       activeTalismanIds: (json['activeTalismanIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      shopState: json['shopState'] == null
+          ? const ShopState()
+          : ShopState.fromJson(json['shopState'] as Map<String, dynamic>),
+      ownedPassiveIds: (json['ownedPassiveIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
@@ -62,6 +69,8 @@ Map<String, dynamic> _$$RunStateImplToJson(_$RunStateImpl instance) =>
       'opponentMoney': instance.opponentMoney,
       'activeSkillIds': instance.activeSkillIds,
       'activeTalismanIds': instance.activeTalismanIds,
+      'shopState': instance.shopState,
+      'ownedPassiveIds': instance.ownedPassiveIds,
       'inventorySkills': instance.inventorySkills,
       'inventoryRoundItems': instance.inventoryRoundItems,
       'equippedRoundItemIds': instance.equippedRoundItemIds,

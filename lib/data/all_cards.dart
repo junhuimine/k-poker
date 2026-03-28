@@ -1,11 +1,12 @@
-/// 🎴 K-Poker — 48장 화투 카드 데이터
-/// 
+/// 🎴 K-Poker — 50장 화투 카드 데이터
+///
+/// 12월 x 4장 = 48장 + 보너스 쌍피 2장 = 총 50장
 /// Single Source of Truth. 이 파일만 수정하면 전체 게임에 반영.
 library;
 
 import '../models/card_def.dart';
 
-/// 48장 카드 전체 정의
+/// 50장 카드 전체 정의 (12월 x 4장 + 보너스 2장)
 final List<CardDef> allCards = [
   // ─── 1월 (松 소나무) ───
   const CardDef(id: 'm01_bright', month: 1, grade: CardGrade.bright, name: 'Pine Crane', nameKo: '송학'),
@@ -87,9 +88,9 @@ final List<CardDef> allCards = [
 /// 총 카드 수
 const int totalCards = 50;
 
-/// 딜링 규칙 (50장: 바닥 8, 플레이어 10, 상대 10, 덱 22)
-const int handSize = 10;
-const int fieldSize = 8;
+/// 딜링 규칙 (50장: 바닥 6, 플레이어 7, 상대 7, 덱 30)
+const int handSize = 7;
+const int fieldSize = 6;
 
 /// 특정 월의 카드 4장 가져오기
 List<CardDef> getCardsByMonth(int month) => allCards.where((c) => c.month == month).toList();

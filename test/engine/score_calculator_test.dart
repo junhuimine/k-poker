@@ -19,7 +19,7 @@ void main() {
       
       final result = ScoreCalculator.calculate(state, run);
       
-      expect(result.appliedYaku, contains('⭐ 오광 (+15)'));
+      expect(result.appliedYaku, contains('yaku_ogwang'));
       expect(result.baseChips, 15);
       // 박 배율: 광박 x2 (5광이고 상대 광 0)
       // penaltyMult = 2.0, skillMult = 1.0 → totalMult = 2.0
@@ -35,7 +35,7 @@ void main() {
       
       final result = ScoreCalculator.calculate(state, run);
       
-      expect(result.appliedYaku, contains('🐦 고도리 (+5)'));
+      expect(result.appliedYaku, contains('yaku_godori'));
       expect(result.baseChips, 5);
       // 동물 3장이라 멍박 없음, Mult = 1.0
       expect(result.multiplier, 1.0);

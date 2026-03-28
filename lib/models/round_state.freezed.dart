@@ -60,7 +60,27 @@ mixin _$RoundState {
   int get lastPpeokMonth =>
       throw _privateConstructorUsedError; // 뻑 난 월 (0 = 없음)
 // 아이템 효과 추적용
-  bool get mentalGuardUsed => throw _privateConstructorUsedError;
+  bool get mentalGuardUsed =>
+      throw _privateConstructorUsedError; // T-002 멘탈가드 사용 여부 (1회용)
+  bool get bombUsed =>
+      throw _privateConstructorUsedError; // 이 라운드에서 폭탄/총통 사용 여부 (c_bomb_fuse용)
+  bool get gloveUsedThisTurn =>
+      throw _privateConstructorUsedError; // t_cheaters_glove 이번 턴 사용 여부
+  bool get ppukBonusUsed =>
+      throw _privateConstructorUsedError; // ps_ppuk_inducer 이번 판 보너스 사용 여부
+  bool get flowerLordUsed =>
+      throw _privateConstructorUsedError; // ps_flower_lord 이번 판 사용 여부
+  bool get rewindUsed =>
+      throw _privateConstructorUsedError; // ps_time_rewind 이번 판 사용 여부
+  bool get hadTripleMonth =>
+      throw _privateConstructorUsedError; // ps_flower_bomb: 핸드에 같은 월 3장 보유 여부
+// 흔들기: 핸드에 같은 월 3장 보유 시 선언, 승리 시 점수 2배
+  bool get isShaking => throw _privateConstructorUsedError; // 흔들기 선언 여부
+  int get shakeMonth =>
+      throw _privateConstructorUsedError; // 흔들기 선언한 월 (0 = 미선언)
+// 점수 상세 breakdown (라운드 종료 오버레이 표시용)
+  List<Map<String, dynamic>> get scoreBreakdown =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this RoundState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -105,7 +125,16 @@ abstract class $RoundStateCopyWith<$Res> {
       int lastStolenPiCount,
       String lastPpeokOwner,
       int lastPpeokMonth,
-      bool mentalGuardUsed});
+      bool mentalGuardUsed,
+      bool bombUsed,
+      bool gloveUsedThisTurn,
+      bool ppukBonusUsed,
+      bool flowerLordUsed,
+      bool rewindUsed,
+      bool hadTripleMonth,
+      bool isShaking,
+      int shakeMonth,
+      List<Map<String, dynamic>> scoreBreakdown});
 }
 
 /// @nodoc
@@ -150,6 +179,15 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
     Object? lastPpeokOwner = null,
     Object? lastPpeokMonth = null,
     Object? mentalGuardUsed = null,
+    Object? bombUsed = null,
+    Object? gloveUsedThisTurn = null,
+    Object? ppukBonusUsed = null,
+    Object? flowerLordUsed = null,
+    Object? rewindUsed = null,
+    Object? hadTripleMonth = null,
+    Object? isShaking = null,
+    Object? shakeMonth = null,
+    Object? scoreBreakdown = null,
   }) {
     return _then(_value.copyWith(
       deck: null == deck
@@ -260,6 +298,42 @@ class _$RoundStateCopyWithImpl<$Res, $Val extends RoundState>
           ? _value.mentalGuardUsed
           : mentalGuardUsed // ignore: cast_nullable_to_non_nullable
               as bool,
+      bombUsed: null == bombUsed
+          ? _value.bombUsed
+          : bombUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      gloveUsedThisTurn: null == gloveUsedThisTurn
+          ? _value.gloveUsedThisTurn
+          : gloveUsedThisTurn // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ppukBonusUsed: null == ppukBonusUsed
+          ? _value.ppukBonusUsed
+          : ppukBonusUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      flowerLordUsed: null == flowerLordUsed
+          ? _value.flowerLordUsed
+          : flowerLordUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      rewindUsed: null == rewindUsed
+          ? _value.rewindUsed
+          : rewindUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hadTripleMonth: null == hadTripleMonth
+          ? _value.hadTripleMonth
+          : hadTripleMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isShaking: null == isShaking
+          ? _value.isShaking
+          : isShaking // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shakeMonth: null == shakeMonth
+          ? _value.shakeMonth
+          : shakeMonth // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBreakdown: null == scoreBreakdown
+          ? _value.scoreBreakdown
+          : scoreBreakdown // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
     ) as $Val);
   }
 }
@@ -299,7 +373,16 @@ abstract class _$$RoundStateImplCopyWith<$Res>
       int lastStolenPiCount,
       String lastPpeokOwner,
       int lastPpeokMonth,
-      bool mentalGuardUsed});
+      bool mentalGuardUsed,
+      bool bombUsed,
+      bool gloveUsedThisTurn,
+      bool ppukBonusUsed,
+      bool flowerLordUsed,
+      bool rewindUsed,
+      bool hadTripleMonth,
+      bool isShaking,
+      int shakeMonth,
+      List<Map<String, dynamic>> scoreBreakdown});
 }
 
 /// @nodoc
@@ -342,6 +425,15 @@ class __$$RoundStateImplCopyWithImpl<$Res>
     Object? lastPpeokOwner = null,
     Object? lastPpeokMonth = null,
     Object? mentalGuardUsed = null,
+    Object? bombUsed = null,
+    Object? gloveUsedThisTurn = null,
+    Object? ppukBonusUsed = null,
+    Object? flowerLordUsed = null,
+    Object? rewindUsed = null,
+    Object? hadTripleMonth = null,
+    Object? isShaking = null,
+    Object? shakeMonth = null,
+    Object? scoreBreakdown = null,
   }) {
     return _then(_$RoundStateImpl(
       deck: null == deck
@@ -452,6 +544,42 @@ class __$$RoundStateImplCopyWithImpl<$Res>
           ? _value.mentalGuardUsed
           : mentalGuardUsed // ignore: cast_nullable_to_non_nullable
               as bool,
+      bombUsed: null == bombUsed
+          ? _value.bombUsed
+          : bombUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      gloveUsedThisTurn: null == gloveUsedThisTurn
+          ? _value.gloveUsedThisTurn
+          : gloveUsedThisTurn // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ppukBonusUsed: null == ppukBonusUsed
+          ? _value.ppukBonusUsed
+          : ppukBonusUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      flowerLordUsed: null == flowerLordUsed
+          ? _value.flowerLordUsed
+          : flowerLordUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      rewindUsed: null == rewindUsed
+          ? _value.rewindUsed
+          : rewindUsed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hadTripleMonth: null == hadTripleMonth
+          ? _value.hadTripleMonth
+          : hadTripleMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isShaking: null == isShaking
+          ? _value.isShaking
+          : isShaking // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shakeMonth: null == shakeMonth
+          ? _value.shakeMonth
+          : shakeMonth // ignore: cast_nullable_to_non_nullable
+              as int,
+      scoreBreakdown: null == scoreBreakdown
+          ? _value._scoreBreakdown
+          : scoreBreakdown // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
     ));
   }
 }
@@ -486,13 +614,23 @@ class _$RoundStateImpl implements _RoundState {
       this.lastStolenPiCount = 0,
       this.lastPpeokOwner = '',
       this.lastPpeokMonth = 0,
-      this.mentalGuardUsed = false})
+      this.mentalGuardUsed = false,
+      this.bombUsed = false,
+      this.gloveUsedThisTurn = false,
+      this.ppukBonusUsed = false,
+      this.flowerLordUsed = false,
+      this.rewindUsed = false,
+      this.hadTripleMonth = false,
+      this.isShaking = false,
+      this.shakeMonth = 0,
+      final List<Map<String, dynamic>> scoreBreakdown = const []})
       : _deck = deck,
         _field = field,
         _playerHand = playerHand,
         _opponentHand = opponentHand,
         _playerCaptured = playerCaptured,
-        _opponentCaptured = opponentCaptured;
+        _opponentCaptured = opponentCaptured,
+        _scoreBreakdown = scoreBreakdown;
 
   factory _$RoundStateImpl.fromJson(Map<String, dynamic> json) =>
       _$$RoundStateImplFromJson(json);
@@ -631,10 +769,55 @@ class _$RoundStateImpl implements _RoundState {
   @override
   @JsonKey()
   final bool mentalGuardUsed;
+// T-002 멘탈가드 사용 여부 (1회용)
+  @override
+  @JsonKey()
+  final bool bombUsed;
+// 이 라운드에서 폭탄/총통 사용 여부 (c_bomb_fuse용)
+  @override
+  @JsonKey()
+  final bool gloveUsedThisTurn;
+// t_cheaters_glove 이번 턴 사용 여부
+  @override
+  @JsonKey()
+  final bool ppukBonusUsed;
+// ps_ppuk_inducer 이번 판 보너스 사용 여부
+  @override
+  @JsonKey()
+  final bool flowerLordUsed;
+// ps_flower_lord 이번 판 사용 여부
+  @override
+  @JsonKey()
+  final bool rewindUsed;
+// ps_time_rewind 이번 판 사용 여부
+  @override
+  @JsonKey()
+  final bool hadTripleMonth;
+// ps_flower_bomb: 핸드에 같은 월 3장 보유 여부
+// 흔들기: 핸드에 같은 월 3장 보유 시 선언, 승리 시 점수 2배
+  @override
+  @JsonKey()
+  final bool isShaking;
+// 흔들기 선언 여부
+  @override
+  @JsonKey()
+  final int shakeMonth;
+// 흔들기 선언한 월 (0 = 미선언)
+// 점수 상세 breakdown (라운드 종료 오버레이 표시용)
+  final List<Map<String, dynamic>> _scoreBreakdown;
+// 흔들기 선언한 월 (0 = 미선언)
+// 점수 상세 breakdown (라운드 종료 오버레이 표시용)
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get scoreBreakdown {
+    if (_scoreBreakdown is EqualUnmodifiableListView) return _scoreBreakdown;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_scoreBreakdown);
+  }
 
   @override
   String toString() {
-    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, winner: $winner, isDraw: $isDraw, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount, playerPpeokCount: $playerPpeokCount, opponentPpeokCount: $opponentPpeokCount, lastSpecialEvent: $lastSpecialEvent, lastStolenPiCount: $lastStolenPiCount, lastPpeokOwner: $lastPpeokOwner, lastPpeokMonth: $lastPpeokMonth, mentalGuardUsed: $mentalGuardUsed)';
+    return 'RoundState(deck: $deck, field: $field, playerHand: $playerHand, opponentHand: $opponentHand, playerCaptured: $playerCaptured, opponentCaptured: $opponentCaptured, currentTurn: $currentTurn, turnNumber: $turnNumber, goCount: $goCount, opponentGoCount: $opponentGoCount, playerScore: $playerScore, opponentScore: $opponentScore, isFinished: $isFinished, winner: $winner, isDraw: $isDraw, baseChips: $baseChips, multiplier: $multiplier, isSweep: $isSweep, comboCount: $comboCount, sweepCount: $sweepCount, playerPpeokCount: $playerPpeokCount, opponentPpeokCount: $opponentPpeokCount, lastSpecialEvent: $lastSpecialEvent, lastStolenPiCount: $lastStolenPiCount, lastPpeokOwner: $lastPpeokOwner, lastPpeokMonth: $lastPpeokMonth, mentalGuardUsed: $mentalGuardUsed, bombUsed: $bombUsed, gloveUsedThisTurn: $gloveUsedThisTurn, ppukBonusUsed: $ppukBonusUsed, flowerLordUsed: $flowerLordUsed, rewindUsed: $rewindUsed, hadTripleMonth: $hadTripleMonth, isShaking: $isShaking, shakeMonth: $shakeMonth, scoreBreakdown: $scoreBreakdown)';
   }
 
   @override
@@ -689,7 +872,25 @@ class _$RoundStateImpl implements _RoundState {
             (identical(other.lastPpeokMonth, lastPpeokMonth) ||
                 other.lastPpeokMonth == lastPpeokMonth) &&
             (identical(other.mentalGuardUsed, mentalGuardUsed) ||
-                other.mentalGuardUsed == mentalGuardUsed));
+                other.mentalGuardUsed == mentalGuardUsed) &&
+            (identical(other.bombUsed, bombUsed) ||
+                other.bombUsed == bombUsed) &&
+            (identical(other.gloveUsedThisTurn, gloveUsedThisTurn) ||
+                other.gloveUsedThisTurn == gloveUsedThisTurn) &&
+            (identical(other.ppukBonusUsed, ppukBonusUsed) ||
+                other.ppukBonusUsed == ppukBonusUsed) &&
+            (identical(other.flowerLordUsed, flowerLordUsed) ||
+                other.flowerLordUsed == flowerLordUsed) &&
+            (identical(other.rewindUsed, rewindUsed) ||
+                other.rewindUsed == rewindUsed) &&
+            (identical(other.hadTripleMonth, hadTripleMonth) ||
+                other.hadTripleMonth == hadTripleMonth) &&
+            (identical(other.isShaking, isShaking) ||
+                other.isShaking == isShaking) &&
+            (identical(other.shakeMonth, shakeMonth) ||
+                other.shakeMonth == shakeMonth) &&
+            const DeepCollectionEquality()
+                .equals(other._scoreBreakdown, _scoreBreakdown));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -722,7 +923,16 @@ class _$RoundStateImpl implements _RoundState {
         lastStolenPiCount,
         lastPpeokOwner,
         lastPpeokMonth,
-        mentalGuardUsed
+        mentalGuardUsed,
+        bombUsed,
+        gloveUsedThisTurn,
+        ppukBonusUsed,
+        flowerLordUsed,
+        rewindUsed,
+        hadTripleMonth,
+        isShaking,
+        shakeMonth,
+        const DeepCollectionEquality().hash(_scoreBreakdown)
       ]);
 
   /// Create a copy of RoundState
@@ -769,7 +979,16 @@ abstract class _RoundState implements RoundState {
       final int lastStolenPiCount,
       final String lastPpeokOwner,
       final int lastPpeokMonth,
-      final bool mentalGuardUsed}) = _$RoundStateImpl;
+      final bool mentalGuardUsed,
+      final bool bombUsed,
+      final bool gloveUsedThisTurn,
+      final bool ppukBonusUsed,
+      final bool flowerLordUsed,
+      final bool rewindUsed,
+      final bool hadTripleMonth,
+      final bool isShaking,
+      final int shakeMonth,
+      final List<Map<String, dynamic>> scoreBreakdown}) = _$RoundStateImpl;
 
   factory _RoundState.fromJson(Map<String, dynamic> json) =
       _$RoundStateImpl.fromJson;
@@ -832,7 +1051,27 @@ abstract class _RoundState implements RoundState {
   int get lastPpeokMonth; // 뻑 난 월 (0 = 없음)
 // 아이템 효과 추적용
   @override
-  bool get mentalGuardUsed;
+  bool get mentalGuardUsed; // T-002 멘탈가드 사용 여부 (1회용)
+  @override
+  bool get bombUsed; // 이 라운드에서 폭탄/총통 사용 여부 (c_bomb_fuse용)
+  @override
+  bool get gloveUsedThisTurn; // t_cheaters_glove 이번 턴 사용 여부
+  @override
+  bool get ppukBonusUsed; // ps_ppuk_inducer 이번 판 보너스 사용 여부
+  @override
+  bool get flowerLordUsed; // ps_flower_lord 이번 판 사용 여부
+  @override
+  bool get rewindUsed; // ps_time_rewind 이번 판 사용 여부
+  @override
+  bool get hadTripleMonth; // ps_flower_bomb: 핸드에 같은 월 3장 보유 여부
+// 흔들기: 핸드에 같은 월 3장 보유 시 선언, 승리 시 점수 2배
+  @override
+  bool get isShaking; // 흔들기 선언 여부
+  @override
+  int get shakeMonth; // 흔들기 선언한 월 (0 = 미선언)
+// 점수 상세 breakdown (라운드 종료 오버레이 표시용)
+  @override
+  List<Map<String, dynamic>> get scoreBreakdown;
 
   /// Create a copy of RoundState
   /// with the given fields replaced by the non-null parameter values.

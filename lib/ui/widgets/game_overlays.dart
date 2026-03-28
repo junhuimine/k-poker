@@ -15,6 +15,7 @@ import '../../models/card_def.dart';
 import '../../data/stage_config.dart';
 import '../../common/responsive.dart';
 import '../../i18n/app_strings.dart';
+import '../../engine/score_calculator.dart';
 import 'hwatu_card.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -573,7 +574,7 @@ class RoundEndOverlay extends ConsumerWidget {
                 ],
               ),
               SizedBox(height: 6 * rs),
-              // 수입/손실 (컴팩트)
+              // 점수 상세 breakdown + 수입/손실
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10 * rs, vertical: 6 * rs),
                 decoration: BoxDecoration(
@@ -582,6 +583,7 @@ class RoundEndOverlay extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
+                    // 점수 비교 헤더
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -590,14 +592,27 @@ class RoundEndOverlay extends ConsumerWidget {
                           style: TextStyle(color: Colors.white, fontSize: 11 * rs)),
                       ],
                     ),
-                    if (isWin) ...[
+                    // 점수 상세 breakdown (승리 시에만)
+                    if (isWin && state.scoreBreakdown.isNotEmpty) ...[
+                      SizedBox(height: 4 * rs),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 100 * rs),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              ..._buildBreakdownRows(state.scoreBreakdown, strings, rs),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ] else if (isWin) ...[
                       SizedBox(height: 2 * rs),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(strings.ui('calculation'), style: TextStyle(color: Colors.white54, fontSize: 10 * rs)),
-                          Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} × ${currency.formatAmount(currency.pointValue)}'
-                            '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
+                          Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} x ${currency.formatAmount(currency.pointValue)}'
+                            '${mult > 1.0 ? ' x ${mult.toStringAsFixed(1)}' : ''}',
                             style: TextStyle(color: Colors.white70, fontSize: 10 * rs)),
                         ],
                       ),
@@ -615,11 +630,6 @@ class RoundEndOverlay extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (state.goCount > 0)
-                Padding(
-                  padding: EdgeInsets.only(top: 4 * rs),
-                  child: Text('🔥 Go ×${state.goCount}', style: TextStyle(color: Colors.orangeAccent, fontSize: 13 * rs)),
-                ),
               SizedBox(height: 10 * rs),
               // 버튼
               Row(
@@ -655,6 +665,68 @@ class RoundEndOverlay extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// 점수 상세 breakdown을 Row 위젯 리스트로 변환
+  List<Widget> _buildBreakdownRows(
+    List<Map<String, dynamic>> breakdownJson,
+    dynamic strings,
+    double rs,
+  ) {
+    final entries = breakdownJson.map((j) => ScoreEntry.fromJson(j)).toList();
+    final List<Widget> rows = [];
+
+    // 기본 점수 항목들
+    final baseEntries = entries.where((e) => !e.isMultiplier).toList();
+    // 배율 항목들
+    final multEntries = entries.where((e) => e.isMultiplier).toList();
+
+    for (final entry in baseEntries) {
+      final label = _resolveBreakdownLabel(entry, strings);
+      rows.add(Padding(
+        padding: EdgeInsets.symmetric(vertical: 1 * rs),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+              style: TextStyle(color: Colors.white70, fontSize: 10 * rs)),
+            Text('+${entry.points}${strings.ui('pointSuffix')}',
+              style: TextStyle(color: const Color(0xFFFFD700), fontSize: 10 * rs, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ));
+    }
+
+    // 배율 항목들
+    for (final entry in multEntries) {
+      final label = _resolveBreakdownLabel(entry, strings);
+      rows.add(Padding(
+        padding: EdgeInsets.symmetric(vertical: 1 * rs),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+              style: TextStyle(color: Colors.orangeAccent.withValues(alpha: 0.9), fontSize: 10 * rs)),
+            Text('x${entry.mult % 1 == 0 ? entry.mult.toInt() : entry.mult.toStringAsFixed(1)}',
+              style: TextStyle(color: Colors.orangeAccent, fontSize: 10 * rs, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ));
+    }
+
+    return rows;
+  }
+
+  /// ScoreEntry의 i18n 키를 번역된 라벨로 변환
+  String _resolveBreakdownLabel(ScoreEntry entry, dynamic strings) {
+    String label = strings.ui(entry.key);
+    // {param} 치환
+    for (final kv in entry.params.entries) {
+      label = label.replaceAll('{${kv.key}}', kv.value);
+    }
+    // ui()에서 키를 찾지 못한 경우 키 자체를 반환
+    if (label.isEmpty) label = entry.key;
+    return label;
   }
 
   Widget _buildBankruptOverlay(BuildContext context, dynamic state, dynamic run, dynamic currency) {

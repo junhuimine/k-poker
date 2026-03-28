@@ -356,6 +356,187 @@ class AppStrings {
         AppLanguage.ko: '재도전!', AppLanguage.en: 'Retry!', AppLanguage.ja: 'リトライ！', AppLanguage.zhCn: '再试！', AppLanguage.zhTw: '再試！',
         AppLanguage.es: '¡Reintentar!', AppLanguage.fr: 'Réessayer !', AppLanguage.de: 'Nochmal!', AppLanguage.pt: 'Tentar novamente!', AppLanguage.th: 'ลองอีกครั้ง!',
       },
+      // ─── [점수 상세 breakdown] ───
+      'scoreDetail': {
+        AppLanguage.ko: '점수 상세', AppLanguage.en: 'Score Detail', AppLanguage.ja: 'スコア詳細', AppLanguage.zhCn: '得分详情', AppLanguage.zhTw: '得分詳情',
+        AppLanguage.es: 'Detalle de puntos', AppLanguage.fr: 'Detail du score', AppLanguage.de: 'Punktedetails', AppLanguage.pt: 'Detalhe dos pontos', AppLanguage.th: 'รายละเอียดคะแนน',
+      },
+      'totalLabel': {
+        AppLanguage.ko: '합계', AppLanguage.en: 'Total', AppLanguage.ja: '合計', AppLanguage.zhCn: '合计', AppLanguage.zhTw: '合計',
+        AppLanguage.es: 'Total', AppLanguage.fr: 'Total', AppLanguage.de: 'Gesamt', AppLanguage.pt: 'Total', AppLanguage.th: 'รวม',
+      },
+      // ─── [족보 이름 (점수 breakdown용)] ───
+      'yaku_ogwang': {
+        AppLanguage.ko: '오광', AppLanguage.en: 'Five Brights', AppLanguage.ja: '五光', AppLanguage.zhCn: '五光', AppLanguage.zhTw: '五光',
+        AppLanguage.es: 'Cinco Brillantes', AppLanguage.fr: 'Cinq Lumieres', AppLanguage.de: 'Funf Lichter', AppLanguage.pt: 'Cinco Brilhantes', AppLanguage.th: 'ห้ากวัง',
+      },
+      'yaku_sagwang': {
+        AppLanguage.ko: '사광', AppLanguage.en: 'Four Brights', AppLanguage.ja: '四光', AppLanguage.zhCn: '四光', AppLanguage.zhTw: '四光',
+        AppLanguage.es: 'Cuatro Brillantes', AppLanguage.fr: 'Quatre Lumieres', AppLanguage.de: 'Vier Lichter', AppLanguage.pt: 'Quatro Brilhantes', AppLanguage.th: 'สี่กวัง',
+      },
+      'yaku_bisagwang': {
+        AppLanguage.ko: '비사광', AppLanguage.en: 'Rainy Four Brights', AppLanguage.ja: '雨四光', AppLanguage.zhCn: '雨四光', AppLanguage.zhTw: '雨四光',
+        AppLanguage.es: 'Cuatro Brillantes con Lluvia', AppLanguage.fr: 'Quatre Lumieres Pluvieuses', AppLanguage.de: 'Regen-Vier-Lichter', AppLanguage.pt: 'Quatro Brilhantes Chuvosos', AppLanguage.th: 'สี่กวังฝน',
+      },
+      'yaku_bisamgwang': {
+        AppLanguage.ko: '비삼광', AppLanguage.en: 'Rainy Three Brights', AppLanguage.ja: '雨三光', AppLanguage.zhCn: '雨三光', AppLanguage.zhTw: '雨三光',
+        AppLanguage.es: 'Tres Brillantes con Lluvia', AppLanguage.fr: 'Trois Lumieres Pluvieuses', AppLanguage.de: 'Regen-Drei-Lichter', AppLanguage.pt: 'Tres Brilhantes Chuvosos', AppLanguage.th: 'สามกวังฝน',
+      },
+      'yaku_samgwang': {
+        AppLanguage.ko: '삼광', AppLanguage.en: 'Three Brights', AppLanguage.ja: '三光', AppLanguage.zhCn: '三光', AppLanguage.zhTw: '三光',
+        AppLanguage.es: 'Tres Brillantes', AppLanguage.fr: 'Trois Lumieres', AppLanguage.de: 'Drei Lichter', AppLanguage.pt: 'Tres Brilhantes', AppLanguage.th: 'สามกวัง',
+      },
+      'yaku_godori': {
+        AppLanguage.ko: '고도리', AppLanguage.en: 'Godori', AppLanguage.ja: 'ゴドリ', AppLanguage.zhCn: '五鸟', AppLanguage.zhTw: '五鳥',
+        AppLanguage.es: 'Godori', AppLanguage.fr: 'Godori', AppLanguage.de: 'Godori', AppLanguage.pt: 'Godori', AppLanguage.th: 'โกโดริ',
+      },
+      'yaku_hongdan': {
+        AppLanguage.ko: '홍단', AppLanguage.en: 'Red Ribbons', AppLanguage.ja: '赤短', AppLanguage.zhCn: '红短', AppLanguage.zhTw: '紅短',
+        AppLanguage.es: 'Cintas Rojas', AppLanguage.fr: 'Rubans Rouges', AppLanguage.de: 'Rote Bander', AppLanguage.pt: 'Fitas Vermelhas', AppLanguage.th: 'แถบแดง',
+      },
+      'yaku_cheongdan': {
+        AppLanguage.ko: '청단', AppLanguage.en: 'Blue Ribbons', AppLanguage.ja: '青短', AppLanguage.zhCn: '青短', AppLanguage.zhTw: '青短',
+        AppLanguage.es: 'Cintas Azules', AppLanguage.fr: 'Rubans Bleus', AppLanguage.de: 'Blaue Bander', AppLanguage.pt: 'Fitas Azuis', AppLanguage.th: 'แถบน้ำเงิน',
+      },
+      'yaku_chodan': {
+        AppLanguage.ko: '초단', AppLanguage.en: 'Grass Ribbons', AppLanguage.ja: '草短', AppLanguage.zhCn: '草短', AppLanguage.zhTw: '草短',
+        AppLanguage.es: 'Cintas Verdes', AppLanguage.fr: 'Rubans Verts', AppLanguage.de: 'Grasbander', AppLanguage.pt: 'Fitas Verdes', AppLanguage.th: 'แถบหญ้า',
+      },
+      'yaku_ribbon_count': {
+        AppLanguage.ko: '띠 {count}장', AppLanguage.en: '{count} Ribbons', AppLanguage.ja: '短冊{count}枚', AppLanguage.zhCn: '{count}条', AppLanguage.zhTw: '{count}條',
+        AppLanguage.es: '{count} Cintas', AppLanguage.fr: '{count} Rubans', AppLanguage.de: '{count} Bander', AppLanguage.pt: '{count} Fitas', AppLanguage.th: 'แถบ {count} ใบ',
+      },
+      'yaku_animal_count': {
+        AppLanguage.ko: '열끗 {count}장', AppLanguage.en: '{count} Animals', AppLanguage.ja: 'タネ{count}枚', AppLanguage.zhCn: '种{count}张', AppLanguage.zhTw: '種{count}張',
+        AppLanguage.es: '{count} Animales', AppLanguage.fr: '{count} Animaux', AppLanguage.de: '{count} Tiere', AppLanguage.pt: '{count} Animais', AppLanguage.th: 'สัตว์ {count} ใบ',
+      },
+      'yaku_junk_count': {
+        AppLanguage.ko: '피 {count}장', AppLanguage.en: '{count} Junks', AppLanguage.ja: 'カス{count}枚', AppLanguage.zhCn: '皮{count}张', AppLanguage.zhTw: '皮{count}張',
+        AppLanguage.es: '{count} Basuras', AppLanguage.fr: '{count} Rebuts', AppLanguage.de: '{count} Schrott', AppLanguage.pt: '{count} Lixos', AppLanguage.th: 'พี {count} ใบ',
+      },
+      'yaku_sweep': {
+        AppLanguage.ko: '쓸 {count}회', AppLanguage.en: '{count} Sweeps', AppLanguage.ja: '掃{count}回', AppLanguage.zhCn: '清{count}次', AppLanguage.zhTw: '清{count}次',
+        AppLanguage.es: '{count} Barridas', AppLanguage.fr: '{count} Balayages', AppLanguage.de: '{count} Feger', AppLanguage.pt: '{count} Varreduras', AppLanguage.th: 'กวาด {count} ครั้ง',
+      },
+      'yaku_go_points': {
+        AppLanguage.ko: '{count}고', AppLanguage.en: '{count} Go', AppLanguage.ja: '{count}ゴー', AppLanguage.zhCn: '{count} Go', AppLanguage.zhTw: '{count} Go',
+        AppLanguage.es: '{count} Go', AppLanguage.fr: '{count} Go', AppLanguage.de: '{count} Go', AppLanguage.pt: '{count} Go', AppLanguage.th: '{count} โก',
+      },
+      'yaku_go_mult': {
+        AppLanguage.ko: '{count}고 배율', AppLanguage.en: '{count} Go Multiplier', AppLanguage.ja: '{count}ゴー倍率', AppLanguage.zhCn: '{count} Go倍率', AppLanguage.zhTw: '{count} Go倍率',
+        AppLanguage.es: 'Multiplicador {count} Go', AppLanguage.fr: 'Multiplicateur {count} Go', AppLanguage.de: '{count} Go-Multiplikator', AppLanguage.pt: 'Multiplicador {count} Go', AppLanguage.th: 'ตัวคูณ {count} โก',
+      },
+      'yaku_talisman_regular': {
+        AppLanguage.ko: '단골손님', AppLanguage.en: 'Regular Customer', AppLanguage.ja: '常連客', AppLanguage.zhCn: '常客', AppLanguage.zhTw: '常客',
+        AppLanguage.es: 'Cliente habitual', AppLanguage.fr: 'Client regulier', AppLanguage.de: 'Stammkunde', AppLanguage.pt: 'Cliente regular', AppLanguage.th: 'ลูกค้าประจำ',
+      },
+      'yaku_cup_as_junk': {
+        AppLanguage.ko: '국화술잔 -> 쌍피', AppLanguage.en: 'Chrysanthemum Cup -> Double Junk', AppLanguage.ja: '菊杯 -> 双皮', AppLanguage.zhCn: '菊花杯 -> 双皮', AppLanguage.zhTw: '菊花杯 -> 雙皮',
+        AppLanguage.es: 'Copa Crisantemo -> Doble Basura', AppLanguage.fr: 'Coupe Chrysantheme -> Double Rebut', AppLanguage.de: 'Chrysanthemen-Becher -> Doppelschrott', AppLanguage.pt: 'Taca Crisantemo -> Duplo Lixo', AppLanguage.th: 'ถ้วยเบญจมาศ -> พีคู่',
+      },
+      'yaku_jackpot': {
+        AppLanguage.ko: '잭팟 티켓', AppLanguage.en: 'Jackpot Ticket', AppLanguage.ja: 'ジャックポットチケット', AppLanguage.zhCn: '大奖票', AppLanguage.zhTw: '大獎票',
+        AppLanguage.es: 'Ticket Jackpot', AppLanguage.fr: 'Ticket Jackpot', AppLanguage.de: 'Jackpot-Ticket', AppLanguage.pt: 'Bilhete Jackpot', AppLanguage.th: 'ตั๋วแจ็คพอต',
+      },
+      // ─── [박 배율] ───
+      'penalty_gwangbak': {
+        AppLanguage.ko: '광박', AppLanguage.en: 'Bright Penalty', AppLanguage.ja: '光朴', AppLanguage.zhCn: '光罚', AppLanguage.zhTw: '光罰',
+        AppLanguage.es: 'Penalizacion Brillante', AppLanguage.fr: 'Penalite Lumiere', AppLanguage.de: 'Licht-Strafe', AppLanguage.pt: 'Penalidade Brilhante', AppLanguage.th: 'โทษกวัง',
+      },
+      'penalty_pibak': {
+        AppLanguage.ko: '피박', AppLanguage.en: 'Junk Penalty', AppLanguage.ja: '皮朴', AppLanguage.zhCn: '皮罚', AppLanguage.zhTw: '皮罰',
+        AppLanguage.es: 'Penalizacion Basura', AppLanguage.fr: 'Penalite Rebut', AppLanguage.de: 'Schrott-Strafe', AppLanguage.pt: 'Penalidade Lixo', AppLanguage.th: 'โทษพี',
+      },
+      'penalty_ttibak': {
+        AppLanguage.ko: '띠박', AppLanguage.en: 'Ribbon Penalty', AppLanguage.ja: '短冊朴', AppLanguage.zhCn: '条罚', AppLanguage.zhTw: '條罰',
+        AppLanguage.es: 'Penalizacion Cinta', AppLanguage.fr: 'Penalite Ruban', AppLanguage.de: 'Band-Strafe', AppLanguage.pt: 'Penalidade Fita', AppLanguage.th: 'โทษแถบ',
+      },
+      'penalty_meongbak': {
+        AppLanguage.ko: '멍박', AppLanguage.en: 'Animal Penalty', AppLanguage.ja: 'タネ朴', AppLanguage.zhCn: '种罚', AppLanguage.zhTw: '種罰',
+        AppLanguage.es: 'Penalizacion Animal', AppLanguage.fr: 'Penalite Animal', AppLanguage.de: 'Tier-Strafe', AppLanguage.pt: 'Penalidade Animal', AppLanguage.th: 'โทษสัตว์',
+      },
+      // ─── [흔들기 보너스 (점수 계산)] ───
+      'shake_bonus': {
+        AppLanguage.ko: '흔들기 x2', AppLanguage.en: 'Shake x2', AppLanguage.ja: '振り x2', AppLanguage.zhCn: '摇动 x2', AppLanguage.zhTw: '搖動 x2',
+        AppLanguage.es: 'Agitar x2', AppLanguage.fr: 'Secouer x2', AppLanguage.de: 'Schütteln x2', AppLanguage.pt: 'Sacudir x2', AppLanguage.th: 'เขย่า x2',
+      },
+      'event_shake': {
+        AppLanguage.ko: '흔들기!', AppLanguage.en: 'Shake!', AppLanguage.ja: '振り！', AppLanguage.zhCn: '摇动！', AppLanguage.zhTw: '搖動！',
+        AppLanguage.es: '¡Agitar!', AppLanguage.fr: 'Secouer !', AppLanguage.de: 'Schütteln!', AppLanguage.pt: 'Sacudir!', AppLanguage.th: 'เขย่า!',
+      },
+      'event_shake_sub': {
+        AppLanguage.ko: '점수 2배!', AppLanguage.en: 'Score x2!', AppLanguage.ja: 'スコア2倍！', AppLanguage.zhCn: '得分翻倍！', AppLanguage.zhTw: '得分翻倍！',
+        AppLanguage.es: '¡Puntuación x2!', AppLanguage.fr: 'Score x2 !', AppLanguage.de: 'Punkte x2!', AppLanguage.pt: 'Pontuação x2!', AppLanguage.th: 'คะแนน x2!',
+      },
+      // ─── [특수 이벤트 이펙트 (i18n)] ───
+      'event_ppeok': {
+        AppLanguage.ko: '뻑', AppLanguage.en: 'Ppuck', AppLanguage.ja: 'ションション', AppLanguage.zhCn: '爆', AppLanguage.zhTw: '爆',
+        AppLanguage.es: 'Ppuck', AppLanguage.fr: 'Ppuck', AppLanguage.de: 'Ppuck', AppLanguage.pt: 'Ppuck', AppLanguage.th: 'ปอก',
+      },
+      'event_double_ppeok': {
+        AppLanguage.ko: '연뻑', AppLanguage.en: 'Double Ppuck', AppLanguage.ja: '連ション', AppLanguage.zhCn: '连爆', AppLanguage.zhTw: '連爆',
+        AppLanguage.es: 'Doble Ppuck', AppLanguage.fr: 'Double Ppuck', AppLanguage.de: 'Doppel-Ppuck', AppLanguage.pt: 'Ppuck Duplo', AppLanguage.th: 'ปอกคู่',
+      },
+      'event_double_ppeok_sub': {
+        AppLanguage.ko: '+3점', AppLanguage.en: '+3 pts', AppLanguage.ja: '+3点', AppLanguage.zhCn: '+3分', AppLanguage.zhTw: '+3分',
+        AppLanguage.es: '+3 pts', AppLanguage.fr: '+3 pts', AppLanguage.de: '+3 Pkt', AppLanguage.pt: '+3 pts', AppLanguage.th: '+3 คะแนน',
+      },
+      'event_triple_ppeok': {
+        AppLanguage.ko: '삼뻑', AppLanguage.en: 'Triple Ppuck', AppLanguage.ja: '三連ション', AppLanguage.zhCn: '三连爆', AppLanguage.zhTw: '三連爆',
+        AppLanguage.es: 'Triple Ppuck', AppLanguage.fr: 'Triple Ppuck', AppLanguage.de: 'Dreifach-Ppuck', AppLanguage.pt: 'Ppuck Triplo', AppLanguage.th: 'ปอกสาม',
+      },
+      'event_triple_ppeok_sub': {
+        AppLanguage.ko: '즉시 승리', AppLanguage.en: 'Instant Win', AppLanguage.ja: '即勝利', AppLanguage.zhCn: '立即获胜', AppLanguage.zhTw: '立即獲勝',
+        AppLanguage.es: 'Victoria instantanea', AppLanguage.fr: 'Victoire instantanee', AppLanguage.de: 'Sofort-Sieg', AppLanguage.pt: 'Vitoria instantanea', AppLanguage.th: 'ชนะทันที',
+      },
+      'event_chok': {
+        AppLanguage.ko: '쪽', AppLanguage.en: 'Jjok', AppLanguage.ja: 'チョク', AppLanguage.zhCn: '接', AppLanguage.zhTw: '接',
+        AppLanguage.es: 'Jjok', AppLanguage.fr: 'Jjok', AppLanguage.de: 'Jjok', AppLanguage.pt: 'Jjok', AppLanguage.th: 'จ็อก',
+      },
+      'event_chok_sweep': {
+        AppLanguage.ko: '쪽쓸', AppLanguage.en: 'Jjok Sweep', AppLanguage.ja: 'チョク掃', AppLanguage.zhCn: '接清', AppLanguage.zhTw: '接清',
+        AppLanguage.es: 'Jjok Barrida', AppLanguage.fr: 'Jjok Balayage', AppLanguage.de: 'Jjok-Fegen', AppLanguage.pt: 'Jjok Varredura', AppLanguage.th: 'จ็อกกวาด',
+      },
+      'event_chok_sweep_sub': {
+        AppLanguage.ko: '피 2장 빼앗기', AppLanguage.en: 'Steal 2 Junks', AppLanguage.ja: 'カス2枚奪取', AppLanguage.zhCn: '抢走2张皮', AppLanguage.zhTw: '搶走2張皮',
+        AppLanguage.es: 'Robar 2 Basuras', AppLanguage.fr: 'Voler 2 Rebuts', AppLanguage.de: '2 Schrott stehlen', AppLanguage.pt: 'Roubar 2 Lixos', AppLanguage.th: 'ขโมย 2 พี',
+      },
+      'event_tadak': {
+        AppLanguage.ko: '따닥', AppLanguage.en: 'Ttadak', AppLanguage.ja: 'タダク', AppLanguage.zhCn: '连击', AppLanguage.zhTw: '連擊',
+        AppLanguage.es: 'Ttadak', AppLanguage.fr: 'Ttadak', AppLanguage.de: 'Ttadak', AppLanguage.pt: 'Ttadak', AppLanguage.th: 'ตะดัก',
+      },
+      'event_sweep': {
+        AppLanguage.ko: '쓸', AppLanguage.en: 'Sweep', AppLanguage.ja: '掃', AppLanguage.zhCn: '清', AppLanguage.zhTw: '清',
+        AppLanguage.es: 'Barrida', AppLanguage.fr: 'Balayage', AppLanguage.de: 'Fegen', AppLanguage.pt: 'Varredura', AppLanguage.th: 'กวาด',
+      },
+      'event_ppeok_eat': {
+        AppLanguage.ko: '뻑 먹기', AppLanguage.en: 'Ppuck Eat', AppLanguage.ja: 'ション食い', AppLanguage.zhCn: '吃爆', AppLanguage.zhTw: '吃爆',
+        AppLanguage.es: 'Comer Ppuck', AppLanguage.fr: 'Manger Ppuck', AppLanguage.de: 'Ppuck Essen', AppLanguage.pt: 'Comer Ppuck', AppLanguage.th: 'กินปอก',
+      },
+      'event_ppeok_eat_sub': {
+        AppLanguage.ko: '4장 흡수', AppLanguage.en: 'Absorb 4 cards', AppLanguage.ja: '4枚吸収', AppLanguage.zhCn: '吸收4张', AppLanguage.zhTw: '吸收4張',
+        AppLanguage.es: 'Absorber 4 cartas', AppLanguage.fr: 'Absorber 4 cartes', AppLanguage.de: '4 Karten absorbieren', AppLanguage.pt: 'Absorver 4 cartas', AppLanguage.th: 'ดูดซับ 4 ใบ',
+      },
+      'event_self_ppeok': {
+        AppLanguage.ko: '자뻑', AppLanguage.en: 'Self Ppuck', AppLanguage.ja: '自ション', AppLanguage.zhCn: '自爆', AppLanguage.zhTw: '自爆',
+        AppLanguage.es: 'Auto Ppuck', AppLanguage.fr: 'Auto Ppuck', AppLanguage.de: 'Selbst-Ppuck', AppLanguage.pt: 'Auto Ppuck', AppLanguage.th: 'ปอกตัวเอง',
+      },
+      'event_self_ppeok_sub': {
+        AppLanguage.ko: '4장 + 피 2장 빼앗기!', AppLanguage.en: '4 cards + Steal 2 Junks!', AppLanguage.ja: '4枚+カス2枚奪取！', AppLanguage.zhCn: '4张+抢走2张皮！', AppLanguage.zhTw: '4張+搶走2張皮！',
+        AppLanguage.es: '4 cartas + Robar 2 Basuras!', AppLanguage.fr: '4 cartes + Voler 2 Rebuts !', AppLanguage.de: '4 Karten + 2 Schrott stehlen!', AppLanguage.pt: '4 cartas + Roubar 2 Lixos!', AppLanguage.th: '4 ใบ + ขโมย 2 พี!',
+      },
+      'event_bomb': {
+        AppLanguage.ko: '폭탄', AppLanguage.en: 'Bomb', AppLanguage.ja: '爆弾', AppLanguage.zhCn: '炸弹', AppLanguage.zhTw: '炸彈',
+        AppLanguage.es: 'Bomba', AppLanguage.fr: 'Bombe', AppLanguage.de: 'Bombe', AppLanguage.pt: 'Bomba', AppLanguage.th: 'ระเบิด',
+      },
+      'event_chongtong': {
+        AppLanguage.ko: '총통', AppLanguage.en: 'Chongtong', AppLanguage.ja: '総統', AppLanguage.zhCn: '总统', AppLanguage.zhTw: '總統',
+        AppLanguage.es: 'Chongtong', AppLanguage.fr: 'Chongtong', AppLanguage.de: 'Chongtong', AppLanguage.pt: 'Chongtong', AppLanguage.th: 'ชงทง',
+      },
+      'event_chongtong_sub': {
+        AppLanguage.ko: '4장 즉시 획득', AppLanguage.en: 'Capture 4 cards instantly', AppLanguage.ja: '4枚即取得', AppLanguage.zhCn: '立即获得4张', AppLanguage.zhTw: '立即獲得4張',
+        AppLanguage.es: 'Capturar 4 cartas al instante', AppLanguage.fr: 'Capturer 4 cartes instantanement', AppLanguage.de: '4 Karten sofort einfangen', AppLanguage.pt: 'Capturar 4 cartas instantaneamente', AppLanguage.th: 'ยึด 4 ใบทันที',
+      },
       // ─── [파산 오버레이] ───
       'bankrupt': {
         AppLanguage.ko: '파산!', AppLanguage.en: 'Bankrupt!', AppLanguage.ja: '破産！', AppLanguage.zhCn: '破产！', AppLanguage.zhTw: '破產！',
@@ -526,12 +707,20 @@ class AppStrings {
         AppLanguage.es: '¡Equipa antes de que empiece la ronda! (Desaparece al terminar)', AppLanguage.fr: 'Equipez avant le début de la manche ! (Disparait a la fin)', AppLanguage.de: 'Vor Rundenbeginn ausrüsten! (Verschwindet bei Rundenende)', AppLanguage.pt: 'Equipe antes da rodada comecar! (Expira ao final)', AppLanguage.th: 'สวมใส่ก่อนเริ่มรอบ! (หายไปเมื่อจบรอบ)',
       },
       'shopPassiveTitle': {
-        AppLanguage.ko: '📜 영구 부적 (패시브)', AppLanguage.en: '📜 Permanent Talisman (Passive)', AppLanguage.ja: '📜 永久お守り (パッシブ)', AppLanguage.zhCn: '📜 永久护符 (被动)', AppLanguage.zhTw: '📜 永久護符 (被動)',
-        AppLanguage.es: '📜 Talisman permanente (Pasivo)', AppLanguage.fr: '📜 Talisman permanent (Passif)', AppLanguage.de: '📜 Permanenter Talisman (Passiv)', AppLanguage.pt: '📜 Talismã permanente (Passivo)', AppLanguage.th: '📜 เครื่องรางถาวร (พาสซีฟ)',
+        AppLanguage.ko: '🔮 패시브 스킬', AppLanguage.en: '🔮 Passive Skills', AppLanguage.ja: '🔮 パッシブスキル', AppLanguage.zhCn: '🔮 被动技能', AppLanguage.zhTw: '🔮 被動技能',
+        AppLanguage.es: '🔮 Habilidades pasivas', AppLanguage.fr: '🔮 Compétences passives', AppLanguage.de: '🔮 Passive Fähigkeiten', AppLanguage.pt: '🔮 Habilidades passivas', AppLanguage.th: '🔮 สกิลพาสซีฟ',
       },
       'shopPassiveSubtitle': {
-        AppLanguage.ko: '한 번 사두면 평생 자동 적용!', AppLanguage.en: 'Buy once and it applies forever!', AppLanguage.ja: '一度買えば永久に自動適用！', AppLanguage.zhCn: '买一次，永久自动生效！', AppLanguage.zhTw: '買一次，永久自動生效！',
-        AppLanguage.es: '¡Compra una vez y se aplica para siempre!', AppLanguage.fr: 'Achetez une fois, actif pour toujours !', AppLanguage.de: 'Einmal kaufen, gilt für immer!', AppLanguage.pt: 'Compre uma vez e vale para sempre!', AppLanguage.th: 'ซื้อครั้งเดียว มีผลตลอดไป!',
+        AppLanguage.ko: '보유만 해도 자동 발동! 시너지를 노려보세요', AppLanguage.en: 'Auto-activates while owned! Aim for synergies', AppLanguage.ja: '所持するだけで自動発動！シナジーを狙おう', AppLanguage.zhCn: '持有即自动生效！追求协同效果吧', AppLanguage.zhTw: '持有即自動生效！追求協同效果吧',
+        AppLanguage.es: '¡Se activa automaticamente al tenerla! Busca sinergias', AppLanguage.fr: "S'active automatiquement ! Visez les synergies", AppLanguage.de: 'Aktiviert sich automatisch! Sucht Synergien', AppLanguage.pt: 'Ativa automaticamente ao possuir! Busque sinergias', AppLanguage.th: 'เปิดใช้งานอัตโนมัติเมื่อถือ! มุ่งหาซินเนอร์จี',
+      },
+      'shopTalismanTitle': {
+        AppLanguage.ko: '📜 영구 부적', AppLanguage.en: '📜 Talismans', AppLanguage.ja: '📜 お守り', AppLanguage.zhCn: '📜 护符', AppLanguage.zhTw: '📜 護符',
+        AppLanguage.es: '📜 Talismanes', AppLanguage.fr: '📜 Talismans', AppLanguage.de: '📜 Talismane', AppLanguage.pt: '📜 Talismãs', AppLanguage.th: '📜 เครื่องราง',
+      },
+      'shopTalismanSubtitle': {
+        AppLanguage.ko: '한 번 사두면 런 전체 적용!', AppLanguage.en: 'Buy once, applies for the entire run!', AppLanguage.ja: '一度買えばラン全体に適用！', AppLanguage.zhCn: '买一次，整个运行生效！', AppLanguage.zhTw: '買一次，整個運行生效！',
+        AppLanguage.es: '¡Compra una vez, aplica durante toda la partida!', AppLanguage.fr: 'Achetez une fois, actif pour toute la partie !', AppLanguage.de: 'Einmal kaufen, gilt für den gesamten Run!', AppLanguage.pt: 'Compre uma vez, vale para toda a partida!', AppLanguage.th: 'ซื้อครั้งเดียว มีผลตลอดรอบ!',
       },
       'shopExit': {
         AppLanguage.ko: '쇼핑 종료 / 대기실로 →', AppLanguage.en: 'Finish Shopping / To Lobby →', AppLanguage.ja: 'ショッピング終了 / ロビーへ →', AppLanguage.zhCn: '结束购物 / 前往大厅 →', AppLanguage.zhTw: '結束購物 / 前往大廳 →',
@@ -1068,6 +1257,78 @@ class AppStrings {
     AppLanguage.pt: 'Fechar', AppLanguage.th: 'ปิด',
   });
 
+  // ─── [액티브 스킬 선택 다이얼로그] ───
+  String get selectCardToCapture => _t({
+    AppLanguage.ko: '획득할 카드를 선택하세요', AppLanguage.en: 'Select a card to capture', AppLanguage.ja: '獲得するカードを選んでください', AppLanguage.zhCn: '选择要获取的牌', AppLanguage.zhTw: '選擇要獲取的牌',
+    AppLanguage.es: 'Selecciona una carta para capturar', AppLanguage.fr: 'Sélectionnez une carte à capturer', AppLanguage.de: 'Wähle eine Karte zum Erfassen', AppLanguage.pt: 'Selecione uma carta para capturar', AppLanguage.th: 'เลือกไพ่ที่ต้องการยึด',
+  });
+  String get selectFieldCard => _t({
+    AppLanguage.ko: '바닥 카드를 선택하세요', AppLanguage.en: 'Select a field card', AppLanguage.ja: '場のカードを選んでください', AppLanguage.zhCn: '选择场上的牌', AppLanguage.zhTw: '選擇場上的牌',
+    AppLanguage.es: 'Selecciona una carta del campo', AppLanguage.fr: 'Sélectionnez une carte du terrain', AppLanguage.de: 'Wähle eine Feldkarte', AppLanguage.pt: 'Selecione uma carta do campo', AppLanguage.th: 'เลือกไพ่ในสนาม',
+  });
+  String get selectHandCard => _t({
+    AppLanguage.ko: '핸드 카드를 선택하세요', AppLanguage.en: 'Select a hand card', AppLanguage.ja: '手札を選んでください', AppLanguage.zhCn: '选择手牌', AppLanguage.zhTw: '選擇手牌',
+    AppLanguage.es: 'Selecciona una carta de la mano', AppLanguage.fr: 'Sélectionnez une carte de la main', AppLanguage.de: 'Wähle eine Handkarte', AppLanguage.pt: 'Selecione uma carta da mão', AppLanguage.th: 'เลือกไพ่ในมือ',
+  });
+  String get peekTop3 => _t({
+    AppLanguage.ko: '덱 상위 3장 확인', AppLanguage.en: 'Peek Top 3 Cards', AppLanguage.ja: 'デッキ上位3枚確認', AppLanguage.zhCn: '查看牌堆顶部3张', AppLanguage.zhTw: '查看牌堆頂部3張',
+    AppLanguage.es: 'Ver 3 cartas superiores', AppLanguage.fr: 'Voir les 3 cartes du dessus', AppLanguage.de: 'Oberste 3 Karten ansehen', AppLanguage.pt: 'Ver 3 cartas do topo', AppLanguage.th: 'ดูไพ่ 3 ใบบนสุด',
+  });
+  String get moveUp => _t({
+    AppLanguage.ko: '위로', AppLanguage.en: 'Up', AppLanguage.ja: '上へ', AppLanguage.zhCn: '上移', AppLanguage.zhTw: '上移',
+    AppLanguage.es: 'Arriba', AppLanguage.fr: 'Haut', AppLanguage.de: 'Hoch', AppLanguage.pt: 'Acima', AppLanguage.th: 'ขึ้น',
+  });
+  String get moveDown => _t({
+    AppLanguage.ko: '아래로', AppLanguage.en: 'Down', AppLanguage.ja: '下へ', AppLanguage.zhCn: '下移', AppLanguage.zhTw: '下移',
+    AppLanguage.es: 'Abajo', AppLanguage.fr: 'Bas', AppLanguage.de: 'Runter', AppLanguage.pt: 'Abaixo', AppLanguage.th: 'ลง',
+  });
+  String get confirmBtn => _t({
+    AppLanguage.ko: '확인', AppLanguage.en: 'Confirm', AppLanguage.ja: '確認', AppLanguage.zhCn: '确认', AppLanguage.zhTw: '確認',
+    AppLanguage.es: 'Confirmar', AppLanguage.fr: 'Confirmer', AppLanguage.de: 'Bestätigen', AppLanguage.pt: 'Confirmar', AppLanguage.th: 'ยืนยัน',
+  });
+  String get noFieldCards => _t({
+    AppLanguage.ko: '바닥에 카드가 없습니다', AppLanguage.en: 'No cards on the field', AppLanguage.ja: '場にカードがありません', AppLanguage.zhCn: '场上没有牌', AppLanguage.zhTw: '場上沒有牌',
+    AppLanguage.es: 'No hay cartas en el campo', AppLanguage.fr: 'Pas de cartes sur le terrain', AppLanguage.de: 'Keine Karten auf dem Feld', AppLanguage.pt: 'Sem cartas no campo', AppLanguage.th: 'ไม่มีไพ่ในสนาม',
+  });
+  String eventSkillTrick(int month) => _t({
+    AppLanguage.ko: '🎭 [속임수] 바닥 카드의 월을 $month월로 변경!', AppLanguage.en: '🎭 [Trick] Changed field card month to $month!', AppLanguage.ja: '🎭 [トリック] 場のカードの月を$month月に変更！', AppLanguage.zhCn: '🎭 [诡计] 将场上牌变为$month月！', AppLanguage.zhTw: '🎭 [詭計] 將場上牌變為$month月！',
+    AppLanguage.es: '🎭 [Truco] ¡Mes cambiado a $month!', AppLanguage.fr: '🎭 [Ruse] Mois changé en $month !', AppLanguage.de: '🎭 [Trick] Monat auf $month geändert!', AppLanguage.pt: '🎭 [Truque] Mês alterado para $month!', AppLanguage.th: '🎭 [อุบาย] เปลี่ยนไพ่เป็นเดือน $month!',
+  });
+  String eventSkillLaundry(String cardName) => _t({
+    AppLanguage.ko: '🧹 [카드 세탁] $cardName을(를) 덱으로 이동!', AppLanguage.en: '🧹 [Card Laundry] Moved $cardName to deck!', AppLanguage.ja: '🧹 [カード洗浄] $cardNameをデッキへ移動！', AppLanguage.zhCn: '🧹 [洗牌] $cardName 移入牌堆！', AppLanguage.zhTw: '🧹 [洗牌] $cardName 移入牌堆！',
+    AppLanguage.es: '🧹 [Lavado] ¡$cardName movida al mazo!', AppLanguage.fr: '🧹 [Blanchiment] $cardName déplacée au paquet !', AppLanguage.de: '🧹 [Karten waschen] $cardName ins Deck verschoben!', AppLanguage.pt: '🧹 [Lavanderia] $cardName movida para o baralho!', AppLanguage.th: '🧹 [ซักไพ่] ย้าย $cardName ไปกองไพ่!',
+  });
+  String get eventSkillKeenEyeReorder => _t({
+    AppLanguage.ko: '👁️ [눈썰미] 덱 상위 3장 순서를 변경했습니다!', AppLanguage.en: '👁️ [Keen Eye] Reordered top 3 deck cards!', AppLanguage.ja: '👁️ [鋭い目] デッキ上位3枚の順番を変更！', AppLanguage.zhCn: '👁️ [锐眼] 重新排列牌堆顶部3张！', AppLanguage.zhTw: '👁️ [銳眼] 重新排列牌堆頂部3張！',
+    AppLanguage.es: '👁️ [Ojo agudo] ¡Reordenadas las 3 cartas superiores!', AppLanguage.fr: '👁️ [Oeil vif] Les 3 cartes du dessus réordonnées !', AppLanguage.de: '👁️ [Scharfes Auge] Oberste 3 Karten neu geordnet!', AppLanguage.pt: '👁️ [Olho aguçado] Reordenadas as 3 cartas do topo!', AppLanguage.th: '👁️ [ตาแหลม] จัดเรียงไพ่ 3 ใบบนสุดใหม่!',
+  });
+  String eventSkillJokerCapture(String cardName) => _t({
+    AppLanguage.ko: '🃏 [조커] $cardName 획득!', AppLanguage.en: '🃏 [Joker] Captured $cardName!', AppLanguage.ja: '🃏 [ジョーカー] $cardName を獲得！', AppLanguage.zhCn: '🃏 [小丑] 获得 $cardName！', AppLanguage.zhTw: '🃏 [小丑] 獲得 $cardName！',
+    AppLanguage.es: '🃏 [Comodín] ¡$cardName capturada!', AppLanguage.fr: '🃏 [Joker] $cardName capturée !', AppLanguage.de: '🃏 [Joker] $cardName erbeutet!', AppLanguage.pt: '🃏 [Coringa] $cardName capturada!', AppLanguage.th: '🃏 [โจ๊กเกอร์] ยึด $cardName!',
+  });
+
+  // ─── [흔들기] ───
+  String get shakeTitle => _t({
+    AppLanguage.ko: '흔들기!', AppLanguage.en: 'Shake!', AppLanguage.ja: '振り！', AppLanguage.zhCn: '摇动！', AppLanguage.zhTw: '搖動！',
+    AppLanguage.es: '¡Agitar!', AppLanguage.fr: 'Secouer !', AppLanguage.de: 'Schütteln!', AppLanguage.pt: 'Sacudir!', AppLanguage.th: 'เขย่า!',
+  });
+  String shakeDesc(int month) => _t({
+    AppLanguage.ko: '핸드에 $month월 카드 3장! 흔들기를 선언하면 이번 판 점수 2배!', AppLanguage.en: 'You have 3 cards of Month $month! Declare Shake for double score this round!', AppLanguage.ja: '手札に$month月のカードが3枚！振りを宣言するとこのラウンドのスコアが2倍！', AppLanguage.zhCn: '手中有$month月3张牌！宣言摇动，本回合得分翻倍！', AppLanguage.zhTw: '手中有$month月3張牌！宣言搖動，本回合得分翻倍！',
+    AppLanguage.es: '¡Tienes 3 cartas del mes $month! ¡Declara Agitar para duplicar la puntuación!', AppLanguage.fr: 'Vous avez 3 cartes du mois $month ! Déclarez Secouer pour doubler le score !', AppLanguage.de: 'Du hast 3 Karten von Monat $month! Schütteln deklarieren für doppelte Punkte!', AppLanguage.pt: 'Você tem 3 cartas do mês $month! Declare Sacudir para dobrar a pontuação!', AppLanguage.th: 'มีไพ่เดือน $month 3 ใบ! ประกาศเขย่าเพื่อคะแนนสองเท่า!',
+  });
+  String get shakeDeclare => _t({
+    AppLanguage.ko: '흔들기 선언', AppLanguage.en: 'Declare Shake', AppLanguage.ja: '振りを宣言', AppLanguage.zhCn: '宣言摇动', AppLanguage.zhTw: '宣言搖動',
+    AppLanguage.es: 'Declarar Agitar', AppLanguage.fr: 'Déclarer Secouer', AppLanguage.de: 'Schütteln deklarieren', AppLanguage.pt: 'Declarar Sacudir', AppLanguage.th: 'ประกาศเขย่า',
+  });
+  String get shakePass => _t({
+    AppLanguage.ko: '패스', AppLanguage.en: 'Pass', AppLanguage.ja: 'パス', AppLanguage.zhCn: '跳过', AppLanguage.zhTw: '跳過',
+    AppLanguage.es: 'Pasar', AppLanguage.fr: 'Passer', AppLanguage.de: 'Passen', AppLanguage.pt: 'Passar', AppLanguage.th: 'ข้าม',
+  });
+  String shakeAnnounce(int month) => _t({
+    AppLanguage.ko: '$month월 흔들기! 점수 2배!', AppLanguage.en: 'Month $month Shake! Score x2!', AppLanguage.ja: '$month月の振り！スコア2倍！', AppLanguage.zhCn: '$month月摇动！得分翻倍！', AppLanguage.zhTw: '$month月搖動！得分翻倍！',
+    AppLanguage.es: '¡Mes $month Agitar! ¡Puntuación x2!', AppLanguage.fr: 'Mois $month Secouer ! Score x2 !', AppLanguage.de: 'Monat $month Schütteln! Punkte x2!', AppLanguage.pt: 'Mês $month Sacudir! Pontuação x2!', AppLanguage.th: 'เขย่าเดือน $month! คะแนน x2!',
+  });
+
   // ─── [AI 캐릭터 대사 번역] ───
   String getAiDialogue(String aiId, String situation, List<String> defaultKoLines) {
     if (defaultKoLines.isEmpty) return '...';
@@ -1140,14 +1401,71 @@ class AppStrings {
   }
 
   static const Map<String, Map<AppLanguage, String>> _itemNames = {
-    'S-001': { AppLanguage.en: 'Exclusive Joker', AppLanguage.ja: '専用ジョーカー', AppLanguage.zhCn: '专属鬼牌', AppLanguage.zhTw: '專屬鬼牌', AppLanguage.es: 'Comodín exclusivo', AppLanguage.fr: 'Joker exclusif', AppLanguage.de: 'Exklusiver Joker', AppLanguage.pt: 'Coringa exclusivo', AppLanguage.th: 'โจ๊กเกอร์พิเศษ' },
-    'S-002': { AppLanguage.en: 'Sniper', AppLanguage.ja: 'スナイパー', AppLanguage.zhCn: '狙击手', AppLanguage.zhTw: '狙擊手', AppLanguage.es: 'Francotirador', AppLanguage.fr: 'Sniper', AppLanguage.de: 'Scharfschütze', AppLanguage.pt: 'Atirador', AppLanguage.th: 'สไนเปอร์' },
-    'S-003': { AppLanguage.en: 'Deck Shuffle', AppLanguage.ja: 'デッキシャッフル', AppLanguage.zhCn: '牌库洗牌', AppLanguage.zhTw: '牌庫洗牌', AppLanguage.es: 'Barajar mazo', AppLanguage.fr: 'Mélange du paquet', AppLanguage.de: 'Deck mischen', AppLanguage.pt: 'Embaralhar', AppLanguage.th: 'สับกองไพ่' },
-    'P-001': { AppLanguage.en: 'Gwang Scanner', AppLanguage.ja: '光スキャナー', AppLanguage.zhCn: '光牌扫描仪', AppLanguage.zhTw: '光牌掃描儀', AppLanguage.es: 'Escáner Gwang', AppLanguage.fr: 'Scanner Gwang', AppLanguage.de: 'Gwang-Scanner', AppLanguage.pt: 'Scanner Gwang', AppLanguage.th: 'สแกนเนอร์กวัง' },
-    'P-002': { AppLanguage.en: 'Safety Helmet', AppLanguage.ja: '安全ヘルメット', AppLanguage.zhCn: '安全头盔', AppLanguage.zhTw: '安全頭盔', AppLanguage.es: 'Casco de seguridad', AppLanguage.fr: 'Casque de sécurité', AppLanguage.de: 'Schutzhelm', AppLanguage.pt: 'Capacete de segurança', AppLanguage.th: 'หมวกนิรภัย' },
+    // Legacy
+    'S-001': { AppLanguage.en: 'Exclusive Joker', AppLanguage.ja: '専用ジョーカー', AppLanguage.zhCn: '专属鬼牌', AppLanguage.zhTw: '專屬鬼牌', AppLanguage.es: 'Comodin exclusivo', AppLanguage.fr: 'Joker exclusif', AppLanguage.de: 'Exklusiver Joker', AppLanguage.pt: 'Coringa exclusivo', AppLanguage.th: 'โจ๊กเกอร์พิเศษ' },
+    'S-002': { AppLanguage.en: 'Sniper', AppLanguage.ja: 'スナイパー', AppLanguage.zhCn: '狙击手', AppLanguage.zhTw: '狙擊手', AppLanguage.es: 'Francotirador', AppLanguage.fr: 'Sniper', AppLanguage.de: 'Scharfschutze', AppLanguage.pt: 'Atirador', AppLanguage.th: 'สไนเปอร์' },
+    'S-003': { AppLanguage.en: 'Deck Shuffle', AppLanguage.ja: 'デッキシャッフル', AppLanguage.zhCn: '牌库洗牌', AppLanguage.zhTw: '牌庫洗牌', AppLanguage.es: 'Barajar mazo', AppLanguage.fr: 'Melange du paquet', AppLanguage.de: 'Deck mischen', AppLanguage.pt: 'Embaralhar', AppLanguage.th: 'สับกองไพ่' },
+    'P-001': { AppLanguage.en: 'Gwang Scanner', AppLanguage.ja: '光スキャナー', AppLanguage.zhCn: '光牌扫描仪', AppLanguage.zhTw: '光牌掃描儀', AppLanguage.es: 'Escaner Gwang', AppLanguage.fr: 'Scanner Gwang', AppLanguage.de: 'Gwang-Scanner', AppLanguage.pt: 'Scanner Gwang', AppLanguage.th: 'สแกนเนอร์กวัง' },
+    'P-002': { AppLanguage.en: 'Safety Helmet', AppLanguage.ja: '安全ヘルメット', AppLanguage.zhCn: '安全头盔', AppLanguage.zhTw: '安全頭盔', AppLanguage.es: 'Casco de seguridad', AppLanguage.fr: 'Casque de securite', AppLanguage.de: 'Schutzhelm', AppLanguage.pt: 'Capacete de seguranca', AppLanguage.th: 'หมวกนิรภัย' },
     'P-003': { AppLanguage.en: 'Jackpot Ticket', AppLanguage.ja: 'ジャックポットチケット', AppLanguage.zhCn: '头奖入场券', AppLanguage.zhTw: '頭獎入場券', AppLanguage.es: 'Boleto Jackpot', AppLanguage.fr: 'Ticket Jackpot', AppLanguage.de: 'Jackpot-Ticket', AppLanguage.pt: 'Bilhete Jackpot', AppLanguage.th: 'ตั๋วแจ็กพอต' },
-    'T-001': { AppLanguage.en: 'Regular Customer', AppLanguage.ja: '常連客', AppLanguage.zhCn: '常客', AppLanguage.zhTw: '常客', AppLanguage.es: 'Cliente habitual', AppLanguage.fr: 'Client fidèle', AppLanguage.de: 'Stammkunde', AppLanguage.pt: 'Cliente frequente', AppLanguage.th: 'ลูกค้าประจำ' },
+    'T-001': { AppLanguage.en: 'Regular Customer', AppLanguage.ja: '常連客', AppLanguage.zhCn: '常客', AppLanguage.zhTw: '常客', AppLanguage.es: 'Cliente habitual', AppLanguage.fr: 'Client fidele', AppLanguage.de: 'Stammkunde', AppLanguage.pt: 'Cliente frequente', AppLanguage.th: 'ลูกค้าประจำ' },
     'T-002': { AppLanguage.en: 'Mental Guard', AppLanguage.ja: 'メンタルガード', AppLanguage.zhCn: '精神护盾', AppLanguage.zhTw: '精神護盾', AppLanguage.es: 'Guardia mental', AppLanguage.fr: 'Garde mentale', AppLanguage.de: 'Mentalschutz', AppLanguage.pt: 'Guarda mental', AppLanguage.th: 'การ์ดจิตใจ' },
+    // Passive (29)
+    'ps_spring_breeze': { AppLanguage.en: 'Spring Breeze', AppLanguage.ja: '春風', AppLanguage.zhCn: '春风', AppLanguage.zhTw: '春風', AppLanguage.es: 'Brisa primaveral', AppLanguage.fr: 'Brise printaniere', AppLanguage.de: 'Fruhlingsbrise', AppLanguage.pt: 'Brisa da primavera', AppLanguage.th: 'สายลมฤดูใบไม้ผลิ' },
+    'ps_autumn_harvest': { AppLanguage.en: 'Autumn Harvest', AppLanguage.ja: '秋の収穫', AppLanguage.zhCn: '秋收', AppLanguage.zhTw: '秋收', AppLanguage.es: 'Cosecha de otono', AppLanguage.fr: 'Recolte d\'automne', AppLanguage.de: 'Herbsternte', AppLanguage.pt: 'Colheita de outono', AppLanguage.th: 'เก็บเกี่ยวฤดูใบไม้ร่วง' },
+    'ps_summer_heat': { AppLanguage.en: 'Summer Heat', AppLanguage.ja: '夏の熱気', AppLanguage.zhCn: '夏日炎热', AppLanguage.zhTw: '夏日炎熱', AppLanguage.es: 'Calor veraniego', AppLanguage.fr: 'Chaleur estivale', AppLanguage.de: 'Sommerhitze', AppLanguage.pt: 'Calor de verao', AppLanguage.th: 'ความร้อนฤดูร้อน' },
+    'ps_winter_chill': { AppLanguage.en: 'Winter Chill', AppLanguage.ja: '冬の寒波', AppLanguage.zhCn: '冬季寒流', AppLanguage.zhTw: '冬季寒流', AppLanguage.es: 'Frio invernal', AppLanguage.fr: 'Froid hivernal', AppLanguage.de: 'Winterkalte', AppLanguage.pt: 'Frio de inverno', AppLanguage.th: 'ลมหนาวฤดูหนาว' },
+    'ps_junk_collector': { AppLanguage.en: 'Junk Collector', AppLanguage.ja: 'カス集め', AppLanguage.zhCn: '皮牌收集者', AppLanguage.zhTw: '皮牌收集者', AppLanguage.es: 'Coleccionista de basura', AppLanguage.fr: 'Collectionneur de rebuts', AppLanguage.de: 'Schrottsammler', AppLanguage.pt: 'Coletor de lixo', AppLanguage.th: 'นักสะสมพี' },
+    'ps_coin_picker': { AppLanguage.en: 'Coin Picker', AppLanguage.ja: 'コイン拾い', AppLanguage.zhCn: '拾币者', AppLanguage.zhTw: '拾幣者', AppLanguage.es: 'Recoge monedas', AppLanguage.fr: 'Ramasse-pieces', AppLanguage.de: 'Munzsammler', AppLanguage.pt: 'Catador de moedas', AppLanguage.th: 'เก็บเหรียญ' },
+    'ps_insurance': { AppLanguage.en: 'Insurance', AppLanguage.ja: '保険', AppLanguage.zhCn: '保险', AppLanguage.zhTw: '保險', AppLanguage.es: 'Seguro', AppLanguage.fr: 'Assurance', AppLanguage.de: 'Versicherung', AppLanguage.pt: 'Seguro', AppLanguage.th: 'ประกัน' },
+    'ps_junk_luck': { AppLanguage.en: 'Junk Luck', AppLanguage.ja: '幸運のカス', AppLanguage.zhCn: '好运皮牌', AppLanguage.zhTw: '好運皮牌', AppLanguage.es: 'Suerte de basura', AppLanguage.fr: 'Chance de rebut', AppLanguage.de: 'Schrottgluck', AppLanguage.pt: 'Sorte de lixo', AppLanguage.th: 'โชคพี' },
+    'ps_skilled_hand': { AppLanguage.en: 'Skilled Hand', AppLanguage.ja: '熟練の手', AppLanguage.zhCn: '老练之手', AppLanguage.zhTw: '老練之手', AppLanguage.es: 'Mano habil', AppLanguage.fr: 'Main habile', AppLanguage.de: 'Geschickte Hand', AppLanguage.pt: 'Mao habil', AppLanguage.th: 'มือชำนาญ' },
+    'ps_bluff': { AppLanguage.en: 'Bluff', AppLanguage.ja: 'ハッタリ', AppLanguage.zhCn: '虚张声势', AppLanguage.zhTw: '虛張聲勢', AppLanguage.es: 'Farol', AppLanguage.fr: 'Bluff', AppLanguage.de: 'Bluff', AppLanguage.pt: 'Blefe', AppLanguage.th: 'บลัฟ' },
+    'ps_full_moon': { AppLanguage.en: 'Full Moon', AppLanguage.ja: '満月', AppLanguage.zhCn: '满月', AppLanguage.zhTw: '滿月', AppLanguage.es: 'Luna llena', AppLanguage.fr: 'Pleine lune', AppLanguage.de: 'Vollmond', AppLanguage.pt: 'Lua cheia', AppLanguage.th: 'พระจันทร์เต็มดวง' },
+    'ps_golden_eagle': { AppLanguage.en: 'Golden Eagle', AppLanguage.ja: '金鷲', AppLanguage.zhCn: '金鹰', AppLanguage.zhTw: '金鷹', AppLanguage.es: 'Aguila dorada', AppLanguage.fr: 'Aigle dore', AppLanguage.de: 'Goldadler', AppLanguage.pt: 'Aguia dourada', AppLanguage.th: 'นกอินทรีทอง' },
+    'ps_gambler': { AppLanguage.en: 'Gambler', AppLanguage.ja: '勝負師', AppLanguage.zhCn: '赌徒', AppLanguage.zhTw: '賭徒', AppLanguage.es: 'Apostador', AppLanguage.fr: 'Joueur', AppLanguage.de: 'Spieler', AppLanguage.pt: 'Apostador', AppLanguage.th: 'นักพนัน' },
+    'ps_nagari_memory': { AppLanguage.en: 'Nagari Memory', AppLanguage.ja: '流れの記憶', AppLanguage.zhCn: '流局记忆', AppLanguage.zhTw: '流局記憶', AppLanguage.es: 'Memoria Nagari', AppLanguage.fr: 'Memoire Nagari', AppLanguage.de: 'Nagari-Erinnerung', AppLanguage.pt: 'Memoria Nagari', AppLanguage.th: 'ความจำนาการิ' },
+    'ps_dark_horse': { AppLanguage.en: 'Dark Horse', AppLanguage.ja: 'ダークホース', AppLanguage.zhCn: '黑马', AppLanguage.zhTw: '黑馬', AppLanguage.es: 'Caballo oscuro', AppLanguage.fr: 'Outsider', AppLanguage.de: 'Dunkles Pferd', AppLanguage.pt: 'Azarao', AppLanguage.th: 'ม้ามืด' },
+    'ps_double_junk': { AppLanguage.en: 'Double Junk Master', AppLanguage.ja: 'ダブルカスの達人', AppLanguage.zhCn: '双皮大师', AppLanguage.zhTw: '雙皮大師', AppLanguage.es: 'Maestro doble basura', AppLanguage.fr: 'Maitre double rebut', AppLanguage.de: 'Doppelschrott-Meister', AppLanguage.pt: 'Mestre lixo duplo', AppLanguage.th: 'จ้าวพีคู่' },
+    'ps_comeback_king': { AppLanguage.en: 'Comeback King', AppLanguage.ja: '逆転の名手', AppLanguage.zhCn: '逆转之王', AppLanguage.zhTw: '逆轉之王', AppLanguage.es: 'Rey del regreso', AppLanguage.fr: 'Roi du retour', AppLanguage.de: 'Comeback-Konig', AppLanguage.pt: 'Rei da virada', AppLanguage.th: 'ราชาพลิกกลับ' },
+    'ps_flower_viewing': { AppLanguage.en: 'Flower Viewing', AppLanguage.ja: '花見', AppLanguage.zhCn: '赏花', AppLanguage.zhTw: '賞花', AppLanguage.es: 'Contemplacion de flores', AppLanguage.fr: 'Contemplation des fleurs', AppLanguage.de: 'Blumenschau', AppLanguage.pt: 'Contemplacao de flores', AppLanguage.th: 'ชมดอกไม้' },
+    'ps_ribbon_weaver': { AppLanguage.en: 'Ribbon Weaver', AppLanguage.ja: '短冊の匠', AppLanguage.zhCn: '条匠', AppLanguage.zhTw: '條匠', AppLanguage.es: 'Tejedor de cintas', AppLanguage.fr: 'Tisseur de rubans', AppLanguage.de: 'Bandweber', AppLanguage.pt: 'Tecedor de fitas', AppLanguage.th: 'ช่างสานริบบิ้น' },
+    'ps_sweep_master': { AppLanguage.en: 'Sweep Master', AppLanguage.ja: '一掃の達人', AppLanguage.zhCn: '扫荡大师', AppLanguage.zhTw: '掃蕩大師', AppLanguage.es: 'Maestro del barrido', AppLanguage.fr: 'Maitre du balayage', AppLanguage.de: 'Fegemeister', AppLanguage.pt: 'Mestre da varredura', AppLanguage.th: 'จ้าวกวาด' },
+    'ps_rainy_season': { AppLanguage.en: 'Rainy Season', AppLanguage.ja: '梅雨', AppLanguage.zhCn: '梅雨季', AppLanguage.zhTw: '梅雨季', AppLanguage.es: 'Temporada de lluvias', AppLanguage.fr: 'Saison des pluies', AppLanguage.de: 'Regenzeit', AppLanguage.pt: 'Estacao chuvosa', AppLanguage.th: 'ฤดูฝน' },
+    'ps_flower_rain': { AppLanguage.en: 'Flower Rain', AppLanguage.ja: '花吹雪', AppLanguage.zhCn: '花雨', AppLanguage.zhTw: '花雨', AppLanguage.es: 'Lluvia de flores', AppLanguage.fr: 'Pluie de fleurs', AppLanguage.de: 'Blutenregen', AppLanguage.pt: 'Chuva de flores', AppLanguage.th: 'ฝนดอกไม้' },
+    'ps_flower_bomb': { AppLanguage.en: 'Flower Bomb', AppLanguage.ja: '花爆弾', AppLanguage.zhCn: '花炸弹', AppLanguage.zhTw: '花炸彈', AppLanguage.es: 'Bomba floral', AppLanguage.fr: 'Bombe florale', AppLanguage.de: 'Blutenbombe', AppLanguage.pt: 'Bomba floral', AppLanguage.th: 'ระเบิดดอกไม้' },
+    'ps_provoke': { AppLanguage.en: 'Provoke', AppLanguage.ja: '挑発', AppLanguage.zhCn: '挑衅', AppLanguage.zhTw: '挑釁', AppLanguage.es: 'Provocar', AppLanguage.fr: 'Provocation', AppLanguage.de: 'Provokation', AppLanguage.pt: 'Provocar', AppLanguage.th: 'ยั่วยุ' },
+    'ps_ppuk_inducer': { AppLanguage.en: 'Ppuk Inducer', AppLanguage.ja: 'ション誘導', AppLanguage.zhCn: '逼爆引导', AppLanguage.zhTw: '逼爆引導', AppLanguage.es: 'Inductor Ppuk', AppLanguage.fr: 'Inducteur Ppuk', AppLanguage.de: 'Ppuk-Ausloser', AppLanguage.pt: 'Indutor Ppuk', AppLanguage.th: 'เครื่องชักจูงปุก' },
+    'ps_legendary_tazza': { AppLanguage.en: 'Legendary Tazza', AppLanguage.ja: '伝説のタジャ', AppLanguage.zhCn: '传奇老千', AppLanguage.zhTw: '傳奇老千', AppLanguage.es: 'Tazza legendario', AppLanguage.fr: 'Tazza legendaire', AppLanguage.de: 'Legendarer Tazza', AppLanguage.pt: 'Tazza lendario', AppLanguage.th: 'ตาซซาในตำนาน' },
+    'ps_gamblers_instinct': { AppLanguage.en: "Gambler's Instinct", AppLanguage.ja: '博打の直感', AppLanguage.zhCn: '赌徒直觉', AppLanguage.zhTw: '賭徒直覺', AppLanguage.es: 'Instinto de jugador', AppLanguage.fr: 'Instinct du joueur', AppLanguage.de: 'Spielerinstinkt', AppLanguage.pt: 'Instinto de jogador', AppLanguage.th: 'สัญชาตญาณนักพนัน' },
+    'ps_time_rewind': { AppLanguage.en: 'Time Rewind', AppLanguage.ja: '時間の巻き戻し', AppLanguage.zhCn: '时光倒流', AppLanguage.zhTw: '時光倒流', AppLanguage.es: 'Rebobinar tiempo', AppLanguage.fr: 'Retour dans le temps', AppLanguage.de: 'Zeitruckspul', AppLanguage.pt: 'Rebobinar tempo', AppLanguage.th: 'ย้อนเวลา' },
+    'ps_flower_lord': { AppLanguage.en: 'Flower Lord', AppLanguage.ja: '花の主', AppLanguage.zhCn: '花主', AppLanguage.zhTw: '花主', AppLanguage.es: 'Senor de las flores', AppLanguage.fr: 'Seigneur des fleurs', AppLanguage.de: 'Blutenherr', AppLanguage.pt: 'Senhor das flores', AppLanguage.th: 'เจ้าแห่งดอกไม้' },
+    // Talisman (9)
+    't_lucky_coin': { AppLanguage.en: 'Lucky Coin', AppLanguage.ja: '幸運のコイン', AppLanguage.zhCn: '幸运硬币', AppLanguage.zhTw: '幸運硬幣', AppLanguage.es: 'Moneda de la suerte', AppLanguage.fr: 'Piece porte-bonheur', AppLanguage.de: 'Glucksmunze', AppLanguage.pt: 'Moeda da sorte', AppLanguage.th: 'เหรียญนำโชค' },
+    't_gambler_soul': { AppLanguage.en: "Gambler's Soul", AppLanguage.ja: '勝負師の魂', AppLanguage.zhCn: '赌徒之魂', AppLanguage.zhTw: '賭徒之魂', AppLanguage.es: 'Alma de apostador', AppLanguage.fr: 'Ame du joueur', AppLanguage.de: 'Spielerseele', AppLanguage.pt: 'Alma de apostador', AppLanguage.th: 'วิญญาณนักพนัน' },
+    't_mountain_charm': { AppLanguage.en: 'Mountain Charm', AppLanguage.ja: '高嶺山のお守り', AppLanguage.zhCn: '高岭山护符', AppLanguage.zhTw: '高嶺山護符', AppLanguage.es: 'Amuleto de montana', AppLanguage.fr: 'Charme de montagne', AppLanguage.de: 'Bergamulett', AppLanguage.pt: 'Amuleto da montanha', AppLanguage.th: 'เครื่องรางภูเขา' },
+    't_moonlight_pouch': { AppLanguage.en: 'Moonlight Pouch', AppLanguage.ja: '月光の袋', AppLanguage.zhCn: '月光袋', AppLanguage.zhTw: '月光袋', AppLanguage.es: 'Bolsa de luz lunar', AppLanguage.fr: 'Pochette au clair de lune', AppLanguage.de: 'Mondlichtbeutel', AppLanguage.pt: 'Bolsa de luar', AppLanguage.th: 'ถุงแสงจันทร์' },
+    't_dokkaebi_mallet': { AppLanguage.en: 'Dokkaebi Mallet', AppLanguage.ja: '鬼の金棒', AppLanguage.zhCn: '鬼怪棒槌', AppLanguage.zhTw: '鬼怪棒槌', AppLanguage.es: 'Mazo Dokkaebi', AppLanguage.fr: 'Maillet Dokkaebi', AppLanguage.de: 'Dokkaebi-Hammer', AppLanguage.pt: 'Malho Dokkaebi', AppLanguage.th: 'ค้อนด็อกแกบี' },
+    't_samshin_granny': { AppLanguage.en: 'Samshin Granny', AppLanguage.ja: '三神ばあさん', AppLanguage.zhCn: '三神老奶奶', AppLanguage.zhTw: '三神老奶奶', AppLanguage.es: 'Abuela Samshin', AppLanguage.fr: 'Grand-mere Samshin', AppLanguage.de: 'Samshin-Oma', AppLanguage.pt: 'Vovo Samshin', AppLanguage.th: 'ย่าซัมชิน' },
+    't_cheaters_glove': { AppLanguage.en: "Cheater's Glove", AppLanguage.ja: 'イカサマの手袋', AppLanguage.zhCn: '骗子手套', AppLanguage.zhTw: '騙子手套', AppLanguage.es: 'Guante de tramposo', AppLanguage.fr: 'Gant du tricheur', AppLanguage.de: 'Betrugerhandschuh', AppLanguage.pt: 'Luva de trapaceiro', AppLanguage.th: 'ถุงมือขี้โกง' },
+    't_golden_mat': { AppLanguage.en: 'Golden Mat', AppLanguage.ja: '黄金の花札盤', AppLanguage.zhCn: '黄金花牌台', AppLanguage.zhTw: '黃金花牌檯', AppLanguage.es: 'Tapete dorado', AppLanguage.fr: 'Tapis dore', AppLanguage.de: 'Goldene Matte', AppLanguage.pt: 'Tapete dourado', AppLanguage.th: 'เสื่อทอง' },
+    't_gwangbak_shield': { AppLanguage.en: 'Gwangbak Shield', AppLanguage.ja: '光罰シールド', AppLanguage.zhCn: '光罚护盾', AppLanguage.zhTw: '光罰護盾', AppLanguage.es: 'Escudo Gwangbak', AppLanguage.fr: 'Bouclier Gwangbak', AppLanguage.de: 'Gwangbak-Schild', AppLanguage.pt: 'Escudo Gwangbak', AppLanguage.th: 'โล่กวังบัก' },
+    // Active (6)
+    'a_joker': { AppLanguage.en: 'Exclusive Joker', AppLanguage.ja: '専用ジョーカー', AppLanguage.zhCn: '专属鬼牌', AppLanguage.zhTw: '專屬鬼牌', AppLanguage.es: 'Comodin exclusivo', AppLanguage.fr: 'Joker exclusif', AppLanguage.de: 'Exklusiver Joker', AppLanguage.pt: 'Coringa exclusivo', AppLanguage.th: 'โจ๊กเกอร์พิเศษ' },
+    'a_sniper': { AppLanguage.en: 'Sniper', AppLanguage.ja: 'スナイパー', AppLanguage.zhCn: '狙击手', AppLanguage.zhTw: '狙擊手', AppLanguage.es: 'Francotirador', AppLanguage.fr: 'Sniper', AppLanguage.de: 'Scharfschutze', AppLanguage.pt: 'Atirador', AppLanguage.th: 'สไนเปอร์' },
+    'a_shuffle': { AppLanguage.en: 'Deck Shuffle', AppLanguage.ja: 'デッキシャッフル', AppLanguage.zhCn: '牌库洗牌', AppLanguage.zhTw: '牌庫洗牌', AppLanguage.es: 'Barajar mazo', AppLanguage.fr: 'Melange du paquet', AppLanguage.de: 'Deck mischen', AppLanguage.pt: 'Embaralhar', AppLanguage.th: 'สับกองไพ่' },
+    'a_trick': { AppLanguage.en: 'Trick', AppLanguage.ja: 'トリック', AppLanguage.zhCn: '欺诈', AppLanguage.zhTw: '欺詐', AppLanguage.es: 'Truco', AppLanguage.fr: 'Tour', AppLanguage.de: 'Trick', AppLanguage.pt: 'Truque', AppLanguage.th: 'กลโกง' },
+    'a_keen_eye': { AppLanguage.en: 'Keen Eye', AppLanguage.ja: '鋭い目', AppLanguage.zhCn: '锐眼', AppLanguage.zhTw: '銳眼', AppLanguage.es: 'Ojo agudo', AppLanguage.fr: 'Oeil vif', AppLanguage.de: 'Scharfes Auge', AppLanguage.pt: 'Olho aguado', AppLanguage.th: 'ตาคม' },
+    'a_card_laundry': { AppLanguage.en: 'Card Laundry', AppLanguage.ja: 'カードロンダリング', AppLanguage.zhCn: '洗牌', AppLanguage.zhTw: '洗牌', AppLanguage.es: 'Lavado de cartas', AppLanguage.fr: 'Blanchiment de cartes', AppLanguage.de: 'Kartenwasche', AppLanguage.pt: 'Lavagem de cartas', AppLanguage.th: 'ซักไพ่' },
+    // Consumable (6)
+    'c_gwang_scanner': { AppLanguage.en: 'Gwang Scanner', AppLanguage.ja: '光スキャナー', AppLanguage.zhCn: '光牌扫描仪', AppLanguage.zhTw: '光牌掃描儀', AppLanguage.es: 'Escaner Gwang', AppLanguage.fr: 'Scanner Gwang', AppLanguage.de: 'Gwang-Scanner', AppLanguage.pt: 'Scanner Gwang', AppLanguage.th: 'สแกนเนอร์กวัง' },
+    'c_safety_helmet': { AppLanguage.en: 'Safety Helmet', AppLanguage.ja: '安全ヘルメット', AppLanguage.zhCn: '安全头盔', AppLanguage.zhTw: '安全頭盔', AppLanguage.es: 'Casco de seguridad', AppLanguage.fr: 'Casque de securite', AppLanguage.de: 'Schutzhelm', AppLanguage.pt: 'Capacete de seguranca', AppLanguage.th: 'หมวกนิรภัย' },
+    'c_jackpot_ticket': { AppLanguage.en: 'Jackpot Ticket', AppLanguage.ja: 'ジャックポットチケット', AppLanguage.zhCn: '头奖入场券', AppLanguage.zhTw: '頭獎入場券', AppLanguage.es: 'Boleto Jackpot', AppLanguage.fr: 'Ticket Jackpot', AppLanguage.de: 'Jackpot-Ticket', AppLanguage.pt: 'Bilhete Jackpot', AppLanguage.th: 'ตั๋วแจ็กพอต' },
+    'c_pi_magnet': { AppLanguage.en: 'Pi Magnet', AppLanguage.ja: 'カス磁石', AppLanguage.zhCn: '皮牌磁铁', AppLanguage.zhTw: '皮牌磁鐵', AppLanguage.es: 'Iman Pi', AppLanguage.fr: 'Aimant Pi', AppLanguage.de: 'Pi-Magnet', AppLanguage.pt: 'Ima Pi', AppLanguage.th: 'แม่เหล็กพี' },
+    'c_ribbon_polish': { AppLanguage.en: 'Ribbon Polish', AppLanguage.ja: '短冊磨き', AppLanguage.zhCn: '条带抛光', AppLanguage.zhTw: '條帶拋光', AppLanguage.es: 'Pulidor de cintas', AppLanguage.fr: 'Polish de rubans', AppLanguage.de: 'Bandpolitur', AppLanguage.pt: 'Polimento de fitas', AppLanguage.th: 'ขัดริบบิ้น' },
+    'c_bomb_fuse': { AppLanguage.en: 'Bomb Fuse', AppLanguage.ja: '爆弾導火線', AppLanguage.zhCn: '炸弹引线', AppLanguage.zhTw: '炸彈引線', AppLanguage.es: 'Mecha de bomba', AppLanguage.fr: 'Meche de bombe', AppLanguage.de: 'Bombenzunder', AppLanguage.pt: 'Pavio de bomba', AppLanguage.th: 'ชนวนระเบิด' },
+    // Secret (1)
+    'x_ogwang_crown': { AppLanguage.en: "Five Brights Crown", AppLanguage.ja: '五光の王冠', AppLanguage.zhCn: '五光王冠', AppLanguage.zhTw: '五光王冠', AppLanguage.es: 'Corona de Cinco Brillantes', AppLanguage.fr: 'Couronne des Cinq Lumieres', AppLanguage.de: 'Krone der Funf Lichter', AppLanguage.pt: 'Coroa dos Cinco Brilhantes', AppLanguage.th: 'มงกุฎห้ากวัง' },
   };
 
   static const Map<String, Map<AppLanguage, String>> _itemDescs = {
@@ -1234,11 +1552,63 @@ class AppStrings {
       AppLanguage.zhCn: '当你打出爆（Ppeok）时，首次防御对手将其吃掉。',
       AppLanguage.zhTw: '當你打出爆（Ppeok）時，首次防禦對手將其吃掉。',
       AppLanguage.es: 'Defiende una vez cuando el oponente intenta capturar tus cartas al hacer Ppeok (fallo de bomba).',
-      AppLanguage.fr: 'Défend une fois contre la capture de vos cartes par l\'adversaire lors d\'un Ppeok (échec de bombe).',
-      AppLanguage.de: 'Verteidigt einmal dagegen, dass der Gegner deine Karten bei einem Ppeok (Bombenfehler) einfängt.',
-      AppLanguage.pt: 'Defende uma vez contra o oponente capturar suas cartas quando você faz um Ppeok (falha de bomba).',
+      AppLanguage.fr: 'Defend une fois contre la capture de vos cartes par l\'adversaire lors d\'un Ppeok (echec de bombe).',
+      AppLanguage.de: 'Verteidigt einmal dagegen, dass der Gegner deine Karten bei einem Ppeok (Bombenfehler) einfangt.',
+      AppLanguage.pt: 'Defende uma vez contra o oponente capturar suas cartas quando voce faz um Ppeok (falha de bomba).',
       AppLanguage.th: 'ป้องกันหนึ่งครั้งเมื่อคู่ต่อสู้พยายามยึดไพ่ของคุณตอนทำปอก (ระเบิดพลาด)',
     },
+    // New item descriptions (using ItemDef.description as English, short form for other langs)
+    'ps_spring_breeze': { AppLanguage.en: '+3 chips per card captured in months 1-3', AppLanguage.ja: '1~3月カード1枚毎に+3 chips', AppLanguage.zhCn: '1~3月每张+3 chips', AppLanguage.zhTw: '1~3月每張+3 chips', AppLanguage.es: '+3 chips por carta de meses 1-3', AppLanguage.fr: '+3 chips par carte des mois 1-3', AppLanguage.de: '+3 Chips pro Karte der Monate 1-3', AppLanguage.pt: '+3 chips por carta dos meses 1-3', AppLanguage.th: '+3 ชิปต่อไพ่เดือน 1-3' },
+    'ps_autumn_harvest': { AppLanguage.en: '+3 chips per card captured in months 9-11', AppLanguage.ja: '9~11月カード1枚毎に+3 chips', AppLanguage.zhCn: '9~11月每张+3 chips', AppLanguage.zhTw: '9~11月每張+3 chips', AppLanguage.es: '+3 chips por carta de meses 9-11', AppLanguage.fr: '+3 chips par carte des mois 9-11', AppLanguage.de: '+3 Chips pro Karte der Monate 9-11', AppLanguage.pt: '+3 chips por carta dos meses 9-11', AppLanguage.th: '+3 ชิปต่อไพ่เดือน 9-11' },
+    'ps_summer_heat': { AppLanguage.en: '+3 chips per card captured in months 6-8', AppLanguage.ja: '6~8月カード1枚毎に+3 chips', AppLanguage.zhCn: '6~8月每张+3 chips', AppLanguage.zhTw: '6~8月每張+3 chips', AppLanguage.es: '+3 chips por carta de meses 6-8', AppLanguage.fr: '+3 chips par carte des mois 6-8', AppLanguage.de: '+3 Chips pro Karte der Monate 6-8', AppLanguage.pt: '+3 chips por carta dos meses 6-8', AppLanguage.th: '+3 ชิปต่อไพ่เดือน 6-8' },
+    'ps_winter_chill': { AppLanguage.en: 'December cards +8 chips', AppLanguage.ja: '12月カード+8 chips', AppLanguage.zhCn: '12月卡+8 chips', AppLanguage.zhTw: '12月卡+8 chips', AppLanguage.es: 'Cartas de diciembre +8 chips', AppLanguage.fr: 'Cartes de decembre +8 chips', AppLanguage.de: 'Dezember-Karten +8 Chips', AppLanguage.pt: 'Cartas de dezembro +8 chips', AppLanguage.th: 'ไพ่เดือน 12 +8 ชิป' },
+    'ps_junk_collector': { AppLanguage.en: 'Junk threshold reduced from 10 to 8', AppLanguage.ja: 'カス必要枚数10→8', AppLanguage.zhCn: '皮牌所需张数10→8', AppLanguage.zhTw: '皮牌所需張數10→8', AppLanguage.es: 'Umbral de basura 10→8', AppLanguage.fr: 'Seuil de rebuts 10→8', AppLanguage.de: 'Schrottschwelle 10→8', AppLanguage.pt: 'Limite de lixo 10→8', AppLanguage.th: 'ขั้นต่ำพี 10→8' },
+    'ps_coin_picker': { AppLanguage.en: '+5G per remaining score point on victory', AppLanguage.ja: '勝利時残りスコア1点あたり+5G', AppLanguage.zhCn: '胜利时每剩余分+5G', AppLanguage.zhTw: '勝利時每剩餘分+5G', AppLanguage.es: '+5G por punto restante al ganar', AppLanguage.fr: '+5G par point restant en cas de victoire', AppLanguage.de: '+5G pro verbleibendem Punkt bei Sieg', AppLanguage.pt: '+5G por ponto restante na vitoria', AppLanguage.th: '+5G ต่อคะแนนที่เหลือเมื่อชนะ' },
+    'ps_insurance': { AppLanguage.en: 'Nagari loss reduced by 50%', AppLanguage.ja: '流れ損失50%減少', AppLanguage.zhCn: '流局损失减少50%', AppLanguage.zhTw: '流局損失減少50%', AppLanguage.es: 'Perdida por Nagari -50%', AppLanguage.fr: 'Perte Nagari -50%', AppLanguage.de: 'Nagari-Verlust -50%', AppLanguage.pt: 'Perda por Nagari -50%', AppLanguage.th: 'ขาดทุนนาการิ -50%' },
+    'ps_junk_luck': { AppLanguage.en: '25% chance +1 junk on capture', AppLanguage.ja: 'カス獲得時25%で+1枚', AppLanguage.zhCn: '吃皮时25%概率+1张', AppLanguage.zhTw: '吃皮時25%機率+1張', AppLanguage.es: '25% prob. +1 basura al capturar', AppLanguage.fr: '25% chance +1 rebut a la capture', AppLanguage.de: '25% Chance +1 Schrott beim Fangen', AppLanguage.pt: '25% chance +1 lixo ao capturar', AppLanguage.th: '25% ได้+1 พี' },
+    'ps_skilled_hand': { AppLanguage.en: '15% chance for an extra flip', AppLanguage.ja: '15%で追加めくり', AppLanguage.zhCn: '15%概率额外翻牌', AppLanguage.zhTw: '15%機率額外翻牌', AppLanguage.es: '15% prob. de volteo extra', AppLanguage.fr: '15% chance de retournement extra', AppLanguage.de: '15% Chance auf extra Aufdecken', AppLanguage.pt: '15% chance de virada extra', AppLanguage.th: '15% โอกาสพลิกเพิ่ม' },
+    'ps_bluff': { AppLanguage.en: 'Reveal 2 opponent cards at round start', AppLanguage.ja: 'ラウンド開始時相手の手札2枚公開', AppLanguage.zhCn: '回合开始时揭露对手2张牌', AppLanguage.zhTw: '回合開始時揭露對手2張牌', AppLanguage.es: 'Revelar 2 cartas del oponente al inicio', AppLanguage.fr: 'Reveler 2 cartes adverses au debut', AppLanguage.de: '2 Gegnerkarten zu Rundenbeginn aufdecken', AppLanguage.pt: 'Revelar 2 cartas do oponente no inicio', AppLanguage.th: 'เปิดไพ่คู่ต่อสู้ 2 ใบตอนเริ่ม' },
+    'ps_full_moon': { AppLanguage.en: '+0.5 mult per bright card captured', AppLanguage.ja: '光獲得毎に+0.5 mult', AppLanguage.zhCn: '每获光牌+0.5 mult', AppLanguage.zhTw: '每獲光牌+0.5 mult', AppLanguage.es: '+0.5 mult por carta brillante', AppLanguage.fr: '+0.5 mult par carte lumiere', AppLanguage.de: '+0.5 Mult pro Lichtkarte', AppLanguage.pt: '+0.5 mult por carta brilhante', AppLanguage.th: '+0.5 ตัวคูณต่อไพ่กวัง' },
+    'ps_golden_eagle': { AppLanguage.en: 'x1.5 if you have 5+ animal cards', AppLanguage.ja: '動物5枚以上でx1.5', AppLanguage.zhCn: '5+动物牌x1.5', AppLanguage.zhTw: '5+動物牌x1.5', AppLanguage.es: 'x1.5 con 5+ animales', AppLanguage.fr: 'x1.5 avec 5+ animaux', AppLanguage.de: 'x1.5 bei 5+ Tierkarten', AppLanguage.pt: 'x1.5 com 5+ animais', AppLanguage.th: 'x1.5 เมื่อมี 5+ สัตว์' },
+    'ps_gambler': { AppLanguage.en: '+1 mult per Go declaration', AppLanguage.ja: 'Go宣言毎に+1 mult', AppLanguage.zhCn: '每次Go宣言+1 mult', AppLanguage.zhTw: '每次Go宣言+1 mult', AppLanguage.es: '+1 mult por Go', AppLanguage.fr: '+1 mult par Go', AppLanguage.de: '+1 Mult pro Go', AppLanguage.pt: '+1 mult por Go', AppLanguage.th: '+1 ตัวคูณต่อ Go' },
+    'ps_nagari_memory': { AppLanguage.en: 'x2.0 if you lost the previous round', AppLanguage.ja: '前ラウンド敗北時x2.0', AppLanguage.zhCn: '上局败北时x2.0', AppLanguage.zhTw: '上局敗北時x2.0', AppLanguage.es: 'x2.0 si perdiste la ronda anterior', AppLanguage.fr: 'x2.0 si vous avez perdu le round precedent', AppLanguage.de: 'x2.0 bei Niederlage in der Vorrunde', AppLanguage.pt: 'x2.0 se perdeu a rodada anterior', AppLanguage.th: 'x2.0 ถ้าแพ้รอบก่อน' },
+    'ps_dark_horse': { AppLanguage.en: 'x1.5 to the category with fewest captured', AppLanguage.ja: '最少獲得カテゴリx1.5', AppLanguage.zhCn: '最少分类x1.5', AppLanguage.zhTw: '最少分類x1.5', AppLanguage.es: 'x1.5 a la categoria con menos', AppLanguage.fr: 'x1.5 a la categorie avec le moins', AppLanguage.de: 'x1.5 fur die Kategorie mit den wenigsten', AppLanguage.pt: 'x1.5 para categoria com menos', AppLanguage.th: 'x1.5 หมวดที่มีน้อยสุด' },
+    'ps_double_junk': { AppLanguage.en: 'Double junk counts as 5', AppLanguage.ja: 'ダブルカス5枚換算', AppLanguage.zhCn: '双皮算5张', AppLanguage.zhTw: '雙皮算5張', AppLanguage.es: 'Doble basura cuenta como 5', AppLanguage.fr: 'Double rebut compte pour 5', AppLanguage.de: 'Doppelschrott zahlt als 5', AppLanguage.pt: 'Lixo duplo conta como 5', AppLanguage.th: 'พีคู่นับเป็น 5' },
+    'ps_comeback_king': { AppLanguage.en: 'x1.5 when behind, x0.8 when winning', AppLanguage.ja: '負けてる時x1.5、勝ってる時x0.8', AppLanguage.zhCn: '落后时x1.5 领先时x0.8', AppLanguage.zhTw: '落後時x1.5 領先時x0.8', AppLanguage.es: 'x1.5 perdiendo, x0.8 ganando', AppLanguage.fr: 'x1.5 en retard, x0.8 en tete', AppLanguage.de: 'x1.5 hinten, x0.8 vorne', AppLanguage.pt: 'x1.5 perdendo, x0.8 ganhando', AppLanguage.th: 'x1.5 ตามหลัง x0.8 นำอยู่' },
+    'ps_flower_viewing': { AppLanguage.en: '+8 chips on double match in same turn', AppLanguage.ja: '同ターン2回マッチで+8 chips', AppLanguage.zhCn: '同回合双匹配+8 chips', AppLanguage.zhTw: '同回合雙匹配+8 chips', AppLanguage.es: '+8 chips por doble emparejamiento', AppLanguage.fr: '+8 chips en double match meme tour', AppLanguage.de: '+8 Chips bei Doppelmatch im selben Zug', AppLanguage.pt: '+8 chips por dupla combinacao no mesmo turno', AppLanguage.th: '+8 ชิปจับคู่ 2 ครั้งในเทิร์นเดียว' },
+    'ps_ribbon_weaver': { AppLanguage.en: '+2 mult if 4+ ribbons', AppLanguage.ja: '短冊4枚以上で+2 mult', AppLanguage.zhCn: '4+条+2 mult', AppLanguage.zhTw: '4+條+2 mult', AppLanguage.es: '+2 mult con 4+ cintas', AppLanguage.fr: '+2 mult avec 4+ rubans', AppLanguage.de: '+2 Mult bei 4+ Bandern', AppLanguage.pt: '+2 mult com 4+ fitas', AppLanguage.th: '+2 ตัวคูณเมื่อมี 4+ แถบ' },
+    'ps_sweep_master': { AppLanguage.en: '+0.3 mult per sweep', AppLanguage.ja: '一掃1回毎に+0.3 mult', AppLanguage.zhCn: '每次扫荡+0.3 mult', AppLanguage.zhTw: '每次掃蕩+0.3 mult', AppLanguage.es: '+0.3 mult por barrido', AppLanguage.fr: '+0.3 mult par balayage', AppLanguage.de: '+0.3 Mult pro Fegen', AppLanguage.pt: '+0.3 mult por varredura', AppLanguage.th: '+0.3 ตัวคูณต่อการกวาด' },
+    'ps_rainy_season': { AppLanguage.en: 'December cards match all months', AppLanguage.ja: '12月カードが全月とマッチ', AppLanguage.zhCn: '12月牌匹配所有月', AppLanguage.zhTw: '12月牌匹配所有月', AppLanguage.es: 'Cartas de diciembre emparejan con todo', AppLanguage.fr: 'Cartes decembre associent tous les mois', AppLanguage.de: 'Dezember-Karten passen zu allen Monaten', AppLanguage.pt: 'Cartas de dezembro combinam com todos', AppLanguage.th: 'ไพ่เดือน 12 จับคู่ได้ทุกเดือน' },
+    'ps_flower_rain': { AppLanguage.en: '40% chance junk upgrades to ribbon', AppLanguage.ja: '40%でカスが短冊に昇格', AppLanguage.zhCn: '40%概率皮升格为条', AppLanguage.zhTw: '40%機率皮升格為條', AppLanguage.es: '40% prob. basura sube a cinta', AppLanguage.fr: '40% chance rebut promu en ruban', AppLanguage.de: '40% Chance Schrott wird zu Band', AppLanguage.pt: '40% chance lixo vira fita', AppLanguage.th: '40% พีอัปเป็นแถบ' },
+    'ps_flower_bomb': { AppLanguage.en: 'x3.0 when hand has 3 cards of same month', AppLanguage.ja: '同月3枚ハンド時x3.0', AppLanguage.zhCn: '手中同月3张时x3.0', AppLanguage.zhTw: '手中同月3張時x3.0', AppLanguage.es: 'x3.0 con 3 cartas del mismo mes', AppLanguage.fr: 'x3.0 avec 3 cartes du meme mois', AppLanguage.de: 'x3.0 bei 3 Karten desselben Monats', AppLanguage.pt: 'x3.0 com 3 cartas do mesmo mes', AppLanguage.th: 'x3.0 เมื่อมี 3 ไพ่เดือนเดียวกัน' },
+    'ps_provoke': { AppLanguage.en: 'Reveal hand to opponent for x2.0 score', AppLanguage.ja: '手札公開でスコアx2.0', AppLanguage.zhCn: '展示手牌得分x2.0', AppLanguage.zhTw: '展示手牌得分x2.0', AppLanguage.es: 'Revelar mano para x2.0', AppLanguage.fr: 'Reveler main pour x2.0', AppLanguage.de: 'Hand aufdecken fur x2.0', AppLanguage.pt: 'Revelar mao para x2.0', AppLanguage.th: 'เปิดไพ่ได้คะแนน x2.0' },
+    'ps_ppuk_inducer': { AppLanguage.en: 'Steal 2 extra junk when opponent ppuks', AppLanguage.ja: '相手ションで追加カス2枚奪取', AppLanguage.zhCn: '对手爆时额外夺2皮', AppLanguage.zhTw: '對手爆時額外奪2皮', AppLanguage.es: 'Robar 2 extra al ppuk rival', AppLanguage.fr: 'Voler 2 rebuts extra sur ppuk', AppLanguage.de: '2 extra Schrott bei Gegner-Ppuk', AppLanguage.pt: 'Roubar 2 extra no ppuk inimigo', AppLanguage.th: 'ขโมยพี 2 ใบเมื่อคู่ต่อสู้ปุก' },
+    'ps_legendary_tazza': { AppLanguage.en: 'All mult x2.0', AppLanguage.ja: '全倍率x2.0', AppLanguage.zhCn: '所有倍率x2.0', AppLanguage.zhTw: '所有倍率x2.0', AppLanguage.es: 'Todo mult x2.0', AppLanguage.fr: 'Tout mult x2.0', AppLanguage.de: 'Alle Mult x2.0', AppLanguage.pt: 'Todo mult x2.0', AppLanguage.th: 'ตัวคูณทั้งหมด x2.0' },
+    'ps_gamblers_instinct': { AppLanguage.en: 'Choose 1 of 2 cards from deck each turn', AppLanguage.ja: '毎ターン山から2枚中1枚選択', AppLanguage.zhCn: '每回合从牌库2选1', AppLanguage.zhTw: '每回合從牌庫2選1', AppLanguage.es: 'Elegir 1 de 2 cartas del mazo', AppLanguage.fr: 'Choisir 1 carte sur 2 du paquet', AppLanguage.de: '1 von 2 Karten aus dem Stapel wahlen', AppLanguage.pt: 'Escolher 1 de 2 cartas do baralho', AppLanguage.th: 'เลือก 1 ใน 2 จากกอง' },
+    'ps_time_rewind': { AppLanguage.en: 'Rewind 3 turns once per round', AppLanguage.ja: '1ラウンド1回3ターン巻き戻し', AppLanguage.zhCn: '每局可回溯3回合一次', AppLanguage.zhTw: '每局可回溯3回合一次', AppLanguage.es: 'Rebobinar 3 turnos 1 vez', AppLanguage.fr: 'Rembobiner 3 tours 1 fois', AppLanguage.de: '3 Zuge einmal zuruckspulen', AppLanguage.pt: 'Rebobinar 3 turnos 1 vez', AppLanguage.th: 'ย้อน 3 เทิร์น 1 ครั้ง' },
+    'ps_flower_lord': { AppLanguage.en: 'Rearrange captured card months once', AppLanguage.ja: '獲得カード月変更1回', AppLanguage.zhCn: '重排已获牌月份1次', AppLanguage.zhTw: '重排已獲牌月份1次', AppLanguage.es: 'Reorganizar meses de cartas 1 vez', AppLanguage.fr: 'Reorganiser les mois des cartes 1 fois', AppLanguage.de: 'Kartenmonate einmal umsortieren', AppLanguage.pt: 'Reorganizar meses das cartas 1 vez', AppLanguage.th: 'จัดเรียงเดือนไพ่ใหม่ 1 ครั้ง' },
+    't_lucky_coin': { AppLanguage.en: '20% shop discount', AppLanguage.ja: 'ショップ20%割引', AppLanguage.zhCn: '商店八折', AppLanguage.zhTw: '商店八折', AppLanguage.es: '20% descuento en tienda', AppLanguage.fr: '20% de reduction en boutique', AppLanguage.de: '20% Shoprabatt', AppLanguage.pt: '20% desconto na loja', AppLanguage.th: 'ลด 20% ร้านค้า' },
+    't_gambler_soul': { AppLanguage.en: '+0.5~2.0 mult on 3+ Go', AppLanguage.ja: '3Go以上で+0.5~2.0倍', AppLanguage.zhCn: '3Go以上+0.5~2.0倍', AppLanguage.zhTw: '3Go以上+0.5~2.0倍', AppLanguage.es: '+0.5~2.0 mult con 3+ Go', AppLanguage.fr: '+0.5~2.0 mult avec 3+ Go', AppLanguage.de: '+0.5~2.0 Mult bei 3+ Go', AppLanguage.pt: '+0.5~2.0 mult com 3+ Go', AppLanguage.th: '+0.5~2.0 ตัวคูณเมื่อ 3+ Go' },
+    't_mountain_charm': { AppLanguage.en: 'Animal card score x1.5', AppLanguage.ja: '動物カードスコアx1.5', AppLanguage.zhCn: '动物牌分数x1.5', AppLanguage.zhTw: '動物牌分數x1.5', AppLanguage.es: 'Puntuacion animal x1.5', AppLanguage.fr: 'Score animal x1.5', AppLanguage.de: 'Tierkarten-Punktzahl x1.5', AppLanguage.pt: 'Pontuacao animal x1.5', AppLanguage.th: 'คะแนนสัตว์ x1.5' },
+    't_moonlight_pouch': { AppLanguage.en: 'Random bonus card at round start', AppLanguage.ja: 'ラウンド開始時ランダムボーナスカード', AppLanguage.zhCn: '回合开始时随机奖励牌', AppLanguage.zhTw: '回合開始時隨機獎勵牌', AppLanguage.es: 'Carta bonus aleatoria al inicio', AppLanguage.fr: 'Carte bonus aleatoire au debut', AppLanguage.de: 'Zufalls-Bonuskarte zu Beginn', AppLanguage.pt: 'Carta bonus aleatoria no inicio', AppLanguage.th: 'ไพ่โบนัสสุ่มตอนเริ่มรอบ' },
+    't_dokkaebi_mallet': { AppLanguage.en: '10% chance +2G per junk capture', AppLanguage.ja: 'カス獲得時10%で+2G', AppLanguage.zhCn: '吃皮时10%+2G', AppLanguage.zhTw: '吃皮時10%+2G', AppLanguage.es: '10% prob. +2G al capturar basura', AppLanguage.fr: '10% chance +2G par capture rebut', AppLanguage.de: '10% Chance +2G pro Schrottfang', AppLanguage.pt: '10% chance +2G por captura de lixo', AppLanguage.th: '10% +2G ต่อการจับพี' },
+    't_samshin_granny': { AppLanguage.en: 'Random common passive at run start', AppLanguage.ja: 'ラン開始時ランダムCommonパッシブ', AppLanguage.zhCn: '运行开始时随机Common被动', AppLanguage.zhTw: '運行開始時隨機Common被動', AppLanguage.es: 'Pasiva comun aleatoria al iniciar', AppLanguage.fr: 'Passive commune aleatoire au debut', AppLanguage.de: 'Zufalls-Common-Passive beim Start', AppLanguage.pt: 'Passiva comum aleatoria ao iniciar', AppLanguage.th: 'พาสซีฟ Common สุ่มตอนเริ่ม' },
+    't_cheaters_glove': { AppLanguage.en: 'Card returns to hand on match failure', AppLanguage.ja: 'マッチ失敗時カード手札に戻る', AppLanguage.zhCn: '匹配失败时牌返回手中', AppLanguage.zhTw: '匹配失敗時牌返回手中', AppLanguage.es: 'Carta vuelve a la mano si falla', AppLanguage.fr: 'Carte revient en main si echec', AppLanguage.de: 'Karte kehrt bei Fehlschlag zuruck', AppLanguage.pt: 'Carta volta a mao se falhar', AppLanguage.th: 'ไพ่กลับมือเมื่อจับคู่พลาด' },
+    't_golden_mat': { AppLanguage.en: '+15% gold on victory', AppLanguage.ja: '勝利時ゴールド+15%', AppLanguage.zhCn: '胜利时金币+15%', AppLanguage.zhTw: '勝利時金幣+15%', AppLanguage.es: '+15% oro al ganar', AppLanguage.fr: '+15% or en cas de victoire', AppLanguage.de: '+15% Gold bei Sieg', AppLanguage.pt: '+15% ouro na vitoria', AppLanguage.th: '+15% ทองเมื่อชนะ' },
+    't_gwangbak_shield': { AppLanguage.en: 'Nullifies gwangbak penalty', AppLanguage.ja: '光罰ペナルティ無効化', AppLanguage.zhCn: '光罚无效化', AppLanguage.zhTw: '光罰無效化', AppLanguage.es: 'Anula penalizacion gwangbak', AppLanguage.fr: 'Annule la penalite gwangbak', AppLanguage.de: 'Gwangbak-Strafe aufheben', AppLanguage.pt: 'Anula penalidade gwangbak', AppLanguage.th: 'ยกเลิกโทษกวังบัก' },
+    'a_joker': { AppLanguage.en: 'Capture any 1 card from the field', AppLanguage.ja: '場から好きな1枚を確定獲得', AppLanguage.zhCn: '从场上确定获取1张', AppLanguage.zhTw: '從場上確定獲取1張', AppLanguage.es: 'Captura cualquier carta del campo', AppLanguage.fr: 'Capturez 1 carte du terrain', AppLanguage.de: 'Beliebige 1 Karte vom Feld fangen', AppLanguage.pt: 'Capture qualquer carta do campo', AppLanguage.th: 'ยึดไพ่ 1 ใบจากสนาม' },
+    'a_sniper': { AppLanguage.en: 'Steal 1 card from opponent', AppLanguage.ja: '相手のカード1枚を奪取', AppLanguage.zhCn: '夺取对手1张牌', AppLanguage.zhTw: '奪取對手1張牌', AppLanguage.es: 'Robar 1 carta al oponente', AppLanguage.fr: 'Voler 1 carte a l\'adversaire', AppLanguage.de: '1 Karte vom Gegner stehlen', AppLanguage.pt: 'Roubar 1 carta do oponente', AppLanguage.th: 'ขโมย 1 ใบจากคู่ต่อสู้' },
+    'a_shuffle': { AppLanguage.en: 'Reshuffle field + deck', AppLanguage.ja: '場+山札を再シャッフル', AppLanguage.zhCn: '重洗场+牌库', AppLanguage.zhTw: '重洗場+牌庫', AppLanguage.es: 'Rebarajar campo + mazo', AppLanguage.fr: 'Remelanger terrain + paquet', AppLanguage.de: 'Feld + Stapel neu mischen', AppLanguage.pt: 'Reembaralhar campo + baralho', AppLanguage.th: 'สับสนาม+กองใหม่' },
+    'a_trick': { AppLanguage.en: 'Change month of 1 field card', AppLanguage.ja: '場の1枚の月を変更', AppLanguage.zhCn: '改变场上1张牌的月份', AppLanguage.zhTw: '改變場上1張牌的月份', AppLanguage.es: 'Cambiar mes de 1 carta del campo', AppLanguage.fr: 'Changer le mois d\'1 carte du terrain', AppLanguage.de: 'Monat einer Feldkarte andern', AppLanguage.pt: 'Mudar mes de 1 carta do campo', AppLanguage.th: 'เปลี่ยนเดือนไพ่ 1 ใบ' },
+    'a_keen_eye': { AppLanguage.en: 'View top 3 deck cards', AppLanguage.ja: '山上3枚を確認', AppLanguage.zhCn: '查看牌库顶3张', AppLanguage.zhTw: '查看牌庫頂3張', AppLanguage.es: 'Ver 3 cartas superiores del mazo', AppLanguage.fr: 'Voir 3 cartes du dessus', AppLanguage.de: 'Obere 3 Stapelkarten sehen', AppLanguage.pt: 'Ver 3 cartas do topo', AppLanguage.th: 'ดู 3 ใบบนสุด' },
+    'a_card_laundry': { AppLanguage.en: 'Move 1 field card to deck bottom', AppLanguage.ja: '場の1枚を山底へ', AppLanguage.zhCn: '将场上1张牌移至牌库底', AppLanguage.zhTw: '將場上1張牌移至牌庫底', AppLanguage.es: 'Mover 1 carta al fondo del mazo', AppLanguage.fr: 'Deplacer 1 carte au fond du paquet', AppLanguage.de: '1 Feldkarte unter den Stapel', AppLanguage.pt: 'Mover 1 carta para o fundo', AppLanguage.th: 'ย้าย 1 ใบไปก้นกอง' },
+    'c_gwang_scanner': { AppLanguage.en: 'Increase bright card placement odds on dealing', AppLanguage.ja: '配布時の光カード出現率UP', AppLanguage.zhCn: '发牌时光牌概率提升', AppLanguage.zhTw: '發牌時光牌機率提升', AppLanguage.es: 'Aumentar prob. de brillantes al repartir', AppLanguage.fr: 'Augmenter chances de lumiere au deal', AppLanguage.de: 'Chance auf Lichtkarten beim Austeilen erhohen', AppLanguage.pt: 'Aumentar chance de brilhantes na distribuicao', AppLanguage.th: 'เพิ่มโอกาสกวังตอนแจก' },
+    'c_safety_helmet': { AppLanguage.en: 'Prevent bankruptcy once', AppLanguage.ja: '破産を1回防止', AppLanguage.zhCn: '防止破产一次', AppLanguage.zhTw: '防止破產一次', AppLanguage.es: 'Prevenir bancarrota 1 vez', AppLanguage.fr: 'Prevenir la faillite 1 fois', AppLanguage.de: 'Bankrott einmal verhindern', AppLanguage.pt: 'Prevenir falencia 1 vez', AppLanguage.th: 'ป้องกันล้มละลาย 1 ครั้ง' },
+    'c_jackpot_ticket': { AppLanguage.en: 'x5 final score on victory', AppLanguage.ja: '勝利時最終スコアx5', AppLanguage.zhCn: '胜利时最终分x5', AppLanguage.zhTw: '勝利時最終分x5', AppLanguage.es: 'x5 puntuacion final al ganar', AppLanguage.fr: 'x5 score final en cas de victoire', AppLanguage.de: 'x5 Endpunktzahl bei Sieg', AppLanguage.pt: 'x5 pontuacao final na vitoria', AppLanguage.th: 'x5 คะแนนสุดท้ายเมื่อชนะ' },
+    'c_pi_magnet': { AppLanguage.en: 'Gain extra junk on capture this round', AppLanguage.ja: 'このラウンドカス獲得時+1枚', AppLanguage.zhCn: '本局吃皮时额外+1张', AppLanguage.zhTw: '本局吃皮時額外+1張', AppLanguage.es: '+1 basura extra al capturar esta ronda', AppLanguage.fr: '+1 rebut extra a la capture ce round', AppLanguage.de: '+1 Schrott extra beim Fangen diese Runde', AppLanguage.pt: '+1 lixo extra ao capturar esta rodada', AppLanguage.th: '+1 พีเพิ่มรอบนี้' },
+    'c_ribbon_polish': { AppLanguage.en: 'Double ribbon score this round', AppLanguage.ja: 'このラウンド短冊スコアx2', AppLanguage.zhCn: '本局条带分数x2', AppLanguage.zhTw: '本局條帶分數x2', AppLanguage.es: 'x2 puntuacion de cintas esta ronda', AppLanguage.fr: 'x2 score rubans ce round', AppLanguage.de: 'x2 Band-Punktzahl diese Runde', AppLanguage.pt: 'x2 pontuacao de fitas esta rodada', AppLanguage.th: 'x2 คะแนนแถบรอบนี้' },
+    'c_bomb_fuse': { AppLanguage.en: 'x4 on bomb/chongtong this round', AppLanguage.ja: 'このラウンド爆弾/総統時x4', AppLanguage.zhCn: '本局炸弹/总统x4', AppLanguage.zhTw: '本局炸彈/總統x4', AppLanguage.es: 'x4 en bomba/chongtong esta ronda', AppLanguage.fr: 'x4 sur bombe/chongtong ce round', AppLanguage.de: 'x4 bei Bombe/Chongtong diese Runde', AppLanguage.pt: 'x4 em bomba/chongtong esta rodada', AppLanguage.th: 'x4 ระเบิด/ชงทงรอบนี้' },
+    'x_ogwang_crown': { AppLanguage.en: 'x2.0 with 3+ brights. Unlock: Five Brights once', AppLanguage.ja: '光3枚以上でx2.0 解放条件:五光1回', AppLanguage.zhCn: '3+光牌x2.0 解锁:五光1次', AppLanguage.zhTw: '3+光牌x2.0 解鎖:五光1次', AppLanguage.es: 'x2.0 con 3+ brillantes. Desbloqueo: Cinco Brillantes', AppLanguage.fr: 'x2.0 avec 3+ lumieres. Deblocage: Cinq Lumieres', AppLanguage.de: 'x2.0 bei 3+ Licht. Freischaltung: Funf Lichter', AppLanguage.pt: 'x2.0 com 3+ brilhantes. Desbloquear: Cinco Brilhantes', AppLanguage.th: 'x2.0 เมื่อ 3+ กวัง ปลดล็อค: ห้ากวัง' },
   };
 
   /// 번역 헬퍼
