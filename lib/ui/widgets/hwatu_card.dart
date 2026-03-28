@@ -152,6 +152,7 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
           width: width,
           height: height,
           decoration: BoxDecoration(
+            color: const Color(0xFF1A1A2E), // 로딩 중 어두운 배경 (흰 플래시 방지)
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: widget.card.isDeckDraw
@@ -251,6 +252,11 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
         Image.asset(
           imagePath,
           fit: BoxFit.cover,
+          gaplessPlayback: true,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded || frame != null) return child;
+            return Container(color: const Color(0xFF1A1A2E)); // 로딩 중 어두운 배경
+          },
           errorBuilder: (_, __, ___) => Container(
             color: Colors.grey[800],
             child: Center(
