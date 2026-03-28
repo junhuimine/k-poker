@@ -1091,39 +1091,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _selectableFieldCards = [];
     });
 
-    // ── STEP 1: 내 카드 → 필드 매칭 카드로 던짐 ──
-    setState(() {
-      _flyingCards = [
-        FlyingCard(
-          card: card,
-          from: Offset(screenW * 0.35, screenH - 140),
-          to: Offset(targetX, targetY),
-          startAngle: -0.15 + random.nextDouble() * 0.1,
-          endAngle: 0.12 + random.nextDouble() * 0.08, // 기울어져 착지
-          duration: const Duration(milliseconds: 350),
-          size: 55,
-        ),
-      ];
-    });
+    // ── isDeckDraw 카드: 덱 뒤집기만 수행 (핸드 카드를 바닥에 내지 않음) ──
+    if (card.isDeckDraw) {
+      // 게임 로직 실행 (playTurn 내부에서 덱 뒤집기 + 매칭 처리)
+      ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
 
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (!mounted) return;
 
-    // 게임 로직 실행
-    ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
-
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (!mounted) return;
-
-    // ── STEP 2: 덱에서 카드 뒤집기 → 필드로 던짐 ──
-    final updatedState = ref.read(gameStateProvider);
-    if (updatedState.deck.isNotEmpty) {
+      // 덱 뒤집기 애니메이션
       setState(() {
         _flyingCards = [
           FlyingCard(
-            card: updatedState.deck.isNotEmpty ? updatedState.deck.first : card,
-            from: const Offset(50, 280),  // 덱 위치
-            to: Offset(targetX + 40, targetY + 10),
+            card: card,
+            from: const Offset(50, 280),
+            to: Offset(targetX, targetY),
             startAngle: 0.1,
             endAngle: -0.1 + random.nextDouble() * 0.08,
             duration: const Duration(milliseconds: 350),
@@ -1134,6 +1116,51 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
       await Future.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
+    } else {
+      // ── STEP 1: 내 카드 → 필드 매칭 카드로 던짐 ──
+      setState(() {
+        _flyingCards = [
+          FlyingCard(
+            card: card,
+            from: Offset(screenW * 0.35, screenH - 140),
+            to: Offset(targetX, targetY),
+            startAngle: -0.15 + random.nextDouble() * 0.1,
+            endAngle: 0.12 + random.nextDouble() * 0.08,
+            duration: const Duration(milliseconds: 350),
+            size: 55,
+          ),
+        ];
+      });
+
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (!mounted) return;
+
+      // 게임 로직 실행
+      ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (!mounted) return;
+
+      // ── STEP 2: 덱에서 카드 뒤집기 → 필드로 던짐 ──
+      final updatedState = ref.read(gameStateProvider);
+      if (updatedState.deck.isNotEmpty) {
+        setState(() {
+          _flyingCards = [
+            FlyingCard(
+              card: updatedState.deck.isNotEmpty ? updatedState.deck.first : card,
+              from: const Offset(50, 280),
+              to: Offset(targetX + 40, targetY + 10),
+              startAngle: 0.1,
+              endAngle: -0.1 + random.nextDouble() * 0.08,
+              duration: const Duration(milliseconds: 350),
+              size: 50,
+            ),
+          ];
+        });
+
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (!mounted) return;
+      }
     }
 
     // ── STEP 3: 획득 카드 한 장씩 내 영역으로 ──

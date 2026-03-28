@@ -541,111 +541,116 @@ class RoundEndOverlay extends ConsumerWidget {
             border: Border.all(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, width: 2),
             boxShadow: [BoxShadow(color: (isWin ? Colors.amber : Colors.red).withValues(alpha: 0.3), blurRadius: 30)],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ScoreVersusHeader(state: state, strings: strings),
-              SizedBox(height: 16 * s),
-              Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 48 * s)),
-              SizedBox(height: 8 * s),
-              Text(isWin ? strings.ui('victory') : strings.ui('defeat'),
-                style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32 * s, fontWeight: FontWeight.bold)),
-              SizedBox(height: 12 * s),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    resultBadge('🌟', '$pBright', strings.ui('kwang')),
-                    resultBadge('🐾', '$pAnimal', strings.ui('animal')),
-                    resultBadge('🎀', '$pRibbon', strings.ui('plain')),
-                    resultBadge('🍂', '$pJunk', strings.ui('pi')),
-                    if (state.sweepCount > 0)
-                      resultBadge('🧹', '${state.sweepCount}', strings.ui('sweepLabel')),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ScoreVersusHeader(state: state, strings: strings),
+                  SizedBox(height: 16 * s),
+                  Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 48 * s)),
+                  SizedBox(height: 8 * s),
+                  Text(isWin ? strings.ui('victory') : strings.ui('defeat'),
+                    style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 32 * s, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 12 * s),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text(strings.ui('uiScore'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
-                        Text('${state.playerScore} vs ${state.opponentScore}',
-                          style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        resultBadge('🌟', '$pBright', strings.ui('kwang')),
+                        resultBadge('🐾', '$pAnimal', strings.ui('animal')),
+                        resultBadge('🎀', '$pRibbon', strings.ui('plain')),
+                        resultBadge('🍂', '$pJunk', strings.ui('pi')),
+                        if (state.sweepCount > 0)
+                          resultBadge('🧹', '${state.sweepCount}', strings.ui('sweepLabel')),
                       ],
                     ),
-                    if (isWin) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(strings.ui('calculation'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
-                          Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} × ${currency.formatAmount(currency.pointValue)}'
-                            '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(strings.ui('uiScore'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                            Text('${state.playerScore} vs ${state.opponentScore}',
+                              style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          ],
+                        ),
+                        if (isWin) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(strings.ui('calculation'), style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                              Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} × ${currency.formatAmount(currency.pointValue)}'
+                                '${mult > 1.0 ? ' × ${mult.toStringAsFixed(1)}' : ''}',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            ],
+                          ),
                         ],
+                        const Divider(color: Color(0xFF30363D), height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(isWin ? '💰 ${strings.ui('income')}' : '💸 ${strings.ui('loss')}',
+                              style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                            Text(isWin ? '+${currency.formatAmount(earnings)}' : currency.formatAmount(earnings),
+                              style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (state.goCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text('🔥 Go ×${state.goCount}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16)),
+                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isWin)
+                        OutlinedButton.icon(
+                          onPressed: onShop,
+                          icon: const Text('🛒'),
+                          label: Text(strings.shop),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white70,
+                            side: const BorderSide(color: Color(0xFF30363D)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          ),
+                        ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: onNextRound,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFD700),
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text(isWin ? strings.ui('nextRound') : strings.ui('retry'),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
-                    const Divider(color: Color(0xFF30363D), height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(isWin ? '💰 ${strings.ui('income')}' : '💸 ${strings.ui('loss')}',
-                          style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
-                        Text(isWin ? '+${currency.formatAmount(earnings)}' : currency.formatAmount(earnings),
-                          style: TextStyle(color: isWin ? Colors.greenAccent : Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (state.goCount > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text('🔥 Go ×${state.goCount}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16)),
-                ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isWin)
-                    OutlinedButton.icon(
-                      onPressed: onShop,
-                      icon: const Text('🛒'),
-                      label: Text(strings.shop),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Color(0xFF30363D)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
-                    ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: onNextRound,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFD700),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Text(isWin ? strings.ui('nextRound') : strings.ui('retry'),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

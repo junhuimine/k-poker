@@ -621,7 +621,7 @@ class GameEngine {
     final bombCards = handBombCards.take(3).toList();
     List<CardInstance> capturedInThisTurn = [...bombCards];
 
-    // 덱드로 카드 2장 보충
+    // 덱드로 카드 2장 보충 (클릭하면 덱에서 1장 뒤집어서 바닥 매칭)
     final deckDraw1 = createDeckDrawCard();
     final deckDraw2 = createDeckDrawCard();
 
@@ -629,7 +629,7 @@ class GameEngine {
     final fieldSameMonth = newState.field.where((c) => c.def.month == bombMonth).toList();
     capturedInThisTurn.addAll(fieldSameMonth);
 
-    // 3. 핸드에서 폭탄 카드 제거 + 덱드로 보충
+    // 3. 핸드에서 폭탄 카드 제거 + 덱드로 카드 보충
     if (currentTurn == 'player') {
       final remainingHand = newState.playerHand.where((c) => !bombCards.contains(c)).toList();
       newState = newState.copyWith(playerHand: [...remainingHand, deckDraw1, deckDraw2]);
@@ -708,7 +708,7 @@ class GameEngine {
     // 9. 연뻑 카운터 초기화
     newState = _resetPpeokCount(newState, currentTurn);
 
-    // 10. 턴 전환
+    // 10. 턴 전환 (isDeckDraw 카드는 핸드에 남아서 이후 내 턴에 사용)
     newState = _advanceTurn(newState);
 
     return newState;
