@@ -1412,6 +1412,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
     if (mounted) {
       setState(() => _flyingCards = []);
     }
+
+    // AI 턴 감지 → 실행
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    final stateAfterBomb = ref.read(gameStateProvider);
+    final isPending = ref.read(goStopPendingProvider);
+    if (stateAfterBomb.currentTurn == 'opponent' && !stateAfterBomb.isFinished && !isPending) {
+      await _executeAiTurn();
+    }
   }
 
   // ─── 사이드 패널 ─────────────
