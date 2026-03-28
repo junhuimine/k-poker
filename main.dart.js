@@ -82189,9 +82189,9 @@ j=d<0.05?d*20:1
 i=Math.sin(m)*0.7
 m=B.c.aT(j,0,1)
 h=A.b3(6)
-g=A.b([new A.bS(3+i*4,B.ad,c.a7z("play").a0(i),B.u,18+i*20),new A.bS(0,B.ad,B.w.a0(0.4+i*0.3),new A.n(0,5+i*5),10)],t.V)
+g=A.b([new A.bS(1+i*2,B.ad,c.a7z("play").a0(i*0.5),B.u,12+i*10),new A.bS(0,B.ad,B.w.a0(0.3+i*0.2),new A.n(0,4+i*3),8)],t.V)
 c.a.toString
-return A.fQ(f,A.afG(A.aAA(B.af,n+(e.e-n)*d+l*0.06*p,A.aur(A.ax(f,A.ayk(e.a,B.dF,e.f,!1,f,f,e.x,"assets/images/cards/card_back.png"),B.v,f,f,new A.aF(f,f,f,h,g,f,B.F),f,f,f,f,f,f,f),m)),1+k*0.18),f,f,q+(s.a-q)*d,f,r+(s.b-r)*d+-4*b*d*p+o,f)},
+return A.fQ(f,A.afG(A.aAA(B.af,n+(e.e-n)*d+l*0.06*p,A.aur(A.ax(f,A.ayk(e.a,B.dF,e.f,!1,f,f,e.x,"assets/images/cards/card_back.png"),B.v,f,f,new A.aF(f,f,f,h,g,f,B.F),f,f,f,f,f,f,f),m)),1+k*0.12),f,f,q+(s.a-q)*d,f,r+(s.b-r)*d+-4*b*d*p+o,f)},
 $S:159}
 A.uP.prototype={}
 A.FG.prototype={
