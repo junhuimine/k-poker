@@ -187,10 +187,10 @@ class _CardAnimationOverlayState extends State<CardAnimationOverlay>
                     : 0.0;
             final angle = baseAngle + wobble;
 
-            // ── 크기: 날아가면서 커졌다 원래로 (원근감 강화) ──
+            // ── 크기: 날아가면서 커졌다 원래로 (원근감) ──
             final scaleEffect = style == 'deal'
-                ? 1.0 + sin(t * pi) * 0.06
-                : 1.0 + sin(t * pi) * 0.18;  // 중간에 18% 커짐 (강화)
+                ? 1.0  // 딜링: 크기 변화 없음 (깔끔하게)
+                : 1.0 + sin(t * pi) * 0.12;
 
             // ── 투명도: 페이드인 ──
             final opacity = t < 0.05 ? t * 20 : 1.0;
@@ -210,20 +210,28 @@ class _CardAnimationOverlayState extends State<CardAnimationOverlay>
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
-                        boxShadow: [
-                          // 비행 중 발광 그림자 (강화)
-                          BoxShadow(
-                            color: _getGlowColor(style).withValues(alpha: shadowIntensity),
-                            blurRadius: 18 + shadowIntensity * 20,
-                            spreadRadius: 3 + shadowIntensity * 4,
-                          ),
-                          // 일반 드롭 섀도우 (강화)
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4 + shadowIntensity * 0.3),
-                            blurRadius: 10,
-                            offset: Offset(0, 5 + shadowIntensity * 5),
-                          ),
-                        ],
+                        boxShadow: style == 'deal'
+                          ? [
+                              // 딜링: 가벼운 그림자만 (플래시 방지)
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : [
+                              // 플레이/획득/덱: 발광 + 드롭 섀도우
+                              BoxShadow(
+                                color: _getGlowColor(style).withValues(alpha: shadowIntensity * 0.5),
+                                blurRadius: 12 + shadowIntensity * 10,
+                                spreadRadius: 1 + shadowIntensity * 2,
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3 + shadowIntensity * 0.2),
+                                blurRadius: 8,
+                                offset: Offset(0, 4 + shadowIntensity * 3),
+                              ),
+                            ],
                       ),
                       child: HwatuCard(
                         card: a.card.card,
