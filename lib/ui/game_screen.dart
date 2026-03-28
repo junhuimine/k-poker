@@ -556,13 +556,18 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Widget _buildDynamicBackground(int score) {
     final run = ref.watch(runStateNotifierProvider);
     final stageConfig = getStageConfig(run.stage);
-    return Stack(
+    return RepaintBoundary(child: Stack(
       children: [
         // 고퀄 배경 이미지
         Positioned.fill(
           child: Image.asset(
             'assets/images/backgrounds/${stageConfig.bgFile}',
             fit: BoxFit.cover,
+            gaplessPlayback: true,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) return child;
+              return Container(color: const Color(0xFF0A0A0A));
+            },
             errorBuilder: (_, __, ___) => Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -590,7 +595,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ),
         ),
       ],
-    );
+    ));
   }
 
   // ─── 시작 오버레이 (프리미엄 디자인) ─────────────
