@@ -83,10 +83,19 @@ class GameState extends _$GameState {
     return const RoundState();
   }
 
-  /// 게임 시작 (딜링)
-  void startGame() {
+  /// 게임 시작 (딜링) — 저장된 라운드가 있으면 복원
+  Future<void> startGame() async {
     ref.read(gameEventsProvider.notifier).clear();
     ref.read(goStopPendingProvider.notifier).hide();
+
+    // 저장된 라운드 복원 시도
+    final savedRound = await GameSaveManager.loadRound();
+    if (savedRound != null && !savedRound.isFinished) {
+      state = savedRound;
+      ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
+      return;
+    }
+
     final runState = ref.read(runStateNotifierProvider);
     state = GameEngine.createInitialState(run: runState);
     ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
@@ -252,6 +261,9 @@ class GameState extends _$GameState {
       _handleRoundEnd();
       return;
     }
+
+    // 라운드 중간 자동 저장
+    GameSaveManager.saveRound(state);
   }
 
   /// 특수 이벤트 알림 처리
@@ -367,7 +379,11 @@ class GameState extends _$GameState {
     if (state.playerHand.isEmpty && state.opponentHand.isEmpty && !state.isFinished) {
       state = state.copyWith(isFinished: true, isDraw: true);
       _handleRoundEnd();
+      return;
     }
+
+    // 라운드 중간 자동 저장
+    GameSaveManager.saveRound(state);
   }
 
   /// 고! 선언
@@ -737,7 +753,8 @@ class GameState extends _$GameState {
       }
     }
 
-    // 자동 저장
+    // 자동 저장 (라운드 끝났으므로 라운드 세이브 삭제)
+    GameSaveManager.deleteRoundSave();
     final updatedRun = ref.read(runStateNotifierProvider);
     GameSaveManager.save(updatedRun);
   }
