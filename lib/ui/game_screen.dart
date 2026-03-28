@@ -138,12 +138,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  /// 게임 시작 + 딜링 애니메이션 (간소화: 깜빡임 방지)
+  /// 게임 시작 + 딜링 애니메이션 (고스톱 방식: 3-4-3 그룹 딜링)
   void _startGameWithDeal() async {
     ref.read(gameStateProvider.notifier).startGame();
     AudioManager().startBgmLoop();
 
-    // 딜링 상태 시작 (카드 0장부터)
     setState(() {
       _isDealing = true;
       _dealtOpponentCount = 0;
@@ -153,45 +152,47 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _flyingCards = [];
     });
 
-    // 빠른 딜링: 그룹별로 한번에 표시 (setState 최소화)
+    // 고스톱 딜링 순서: 상대3 → 바닥4 → 나3 → 상대3 → 바닥4 → 나3 → 상대4 → 나4
+    const dealGroups = [
+      ('opponent', 3),  // 상대 3장
+      ('field', 4),     // 바닥 4장
+      ('player', 3),    // 나 3장
+      ('opponent', 3),  // 상대 3장
+      ('field', 4),     // 바닥 4장
+      ('player', 3),    // 나 3장
+      ('opponent', 4),  // 상대 4장
+      ('player', 4),    // 나 4장
+    ];
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    for (final (area, count) in dealGroups) {
+      if (!mounted) return;
+      setState(() {
+        switch (area) {
+          case 'opponent':
+            _dealtOpponentCount += count;
+            break;
+          case 'field':
+            _dealtFieldCount += count;
+            break;
+          case 'player':
+            _dealtPlayerCount += count;
+            break;
+        }
+        _visibleDeckCount -= count;
+      });
+      AudioManager().cardPlay();
+      await Future.delayed(const Duration(milliseconds: 250));
+    }
+
     await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-
-    // 바닥 8장 한번에
-    setState(() {
-      _dealtFieldCount = 8;
-      _visibleDeckCount = 40;
-    });
-    AudioManager().cardPlay();
-
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-
-    // 상대 10장 한번에
-    setState(() {
-      _dealtOpponentCount = 10;
-      _visibleDeckCount = 30;
-    });
-    AudioManager().cardPlay();
-
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-
-    // 내 10장 한번에
-    setState(() {
-      _dealtPlayerCount = 10;
-      _visibleDeckCount = 20;
-    });
-    AudioManager().cardPlay();
-
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-
-    // 딜링 완료
-    setState(() {
-      _isDealing = false;
-      _flyingCards = [];
-    });
+    if (mounted) {
+      setState(() {
+        _isDealing = false;
+        _flyingCards = [];
+      });
+    }
   }
 
   void _runDealSequence(dynamic gameState) async {
