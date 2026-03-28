@@ -81425,7 +81425,7 @@ return s.dx=!s.dx},
 $S:0}
 A.akV.prototype={
 $0(){var s=this.a
-if(s.c!=null)s.K(new A.akS(s))},
+if(s.c!=null&&!s.y)s.K(new A.akS(s))},
 $S:0}
 A.akS.prototype={
 $0(){return this.a.z=A.b([],t.F)},
