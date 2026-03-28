@@ -448,7 +448,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
             CardAnimationOverlay(
               flyingCards: _flyingCards,
               onAllComplete: () {
-                if (mounted) setState(() => _flyingCards = []);
+                // 딜링 중에는 딜링 코드가 _flyingCards를 관리
+                if (mounted && !_isDealing) setState(() => _flyingCards = []);
               },
             ),
 
