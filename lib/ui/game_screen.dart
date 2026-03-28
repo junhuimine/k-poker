@@ -138,10 +138,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  /// 게임 시작 + 딜링 애니메이션 (고스톱 방식: 3-4-3 그룹 딜링)
+  /// 게임 시작 + 딜링 애니메이션 (고스톱 방식: 3-4-3 그룹 + 날아가는 효과)
   void _startGameWithDeal() async {
     ref.read(gameStateProvider.notifier).startGame();
     AudioManager().startBgmLoop();
+    final gameState = ref.read(gameStateProvider);
+
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
+    final deckPos = Offset(30, screenH * 0.4);
+    final random = Random();
 
     setState(() {
       _isDealing = true;
@@ -152,22 +158,60 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _flyingCards = [];
     });
 
-    // 고스톱 딜링 순서: 상대3 → 바닥4 → 나3 → 상대3 → 바닥4 → 나3 → 상대4 → 나4
-    const dealGroups = [
-      ('opponent', 3),  // 상대 3장
-      ('field', 4),     // 바닥 4장
-      ('player', 3),    // 나 3장
-      ('opponent', 3),  // 상대 3장
-      ('field', 4),     // 바닥 4장
-      ('player', 3),    // 나 3장
-      ('opponent', 4),  // 상대 4장
-      ('player', 4),    // 나 4장
+    // 고스톱 딜링: 상대3 → 바닥4 → 나3 → 상대3 → 바닥4 → 나3 → 상대4 → 나4
+    final dealGroups = <(String, int)>[
+      ('opponent', 3), ('field', 4), ('player', 3),
+      ('opponent', 3), ('field', 4), ('player', 3),
+      ('opponent', 4), ('player', 4),
     ];
 
     await Future.delayed(const Duration(milliseconds: 200));
 
     for (final (area, count) in dealGroups) {
       if (!mounted) return;
+
+      // 이 그룹의 카드들이 동시에 날아감
+      final List<FlyingCard> groupCards = [];
+      final startIdx = area == 'opponent' ? _dealtOpponentCount
+          : area == 'field' ? _dealtFieldCount
+          : _dealtPlayerCount;
+
+      for (int i = 0; i < count; i++) {
+        final idx = startIdx + i;
+        Offset to;
+        CardInstance card;
+        bool faceDown = false;
+
+        switch (area) {
+          case 'opponent':
+            to = Offset(screenW * 0.3 + idx * 42, 60);
+            card = gameState.opponentHand[idx];
+            faceDown = true;
+            break;
+          case 'field':
+            to = Offset(screenW * 0.25 + idx * 65, screenH * 0.35);
+            card = gameState.field[idx];
+            break;
+          default: // player
+            to = Offset(screenW * 0.2 + idx * 78, screenH - 150);
+            card = gameState.playerHand[idx];
+            break;
+        }
+
+        groupCards.add(FlyingCard(
+          card: card,
+          from: deckPos,
+          to: to,
+          startAngle: -0.2 + random.nextDouble() * 0.1,
+          endAngle: (random.nextDouble() - 0.5) * 0.1,
+          isFaceDown: faceDown,
+          delay: Duration(milliseconds: i * 60),
+          duration: const Duration(milliseconds: 350),
+          size: faceDown ? 38 : (area == 'field' ? 50 : 72),
+          style: 'deal',
+        ));
+      }
+
       setState(() {
         switch (area) {
           case 'opponent':
@@ -181,12 +225,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
             break;
         }
         _visibleDeckCount -= count;
+        _flyingCards = groupCards;
       });
       AudioManager().cardPlay();
-      await Future.delayed(const Duration(milliseconds: 250));
+      await Future.delayed(const Duration(milliseconds: 350));
     }
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 200));
     if (mounted) {
       setState(() {
         _isDealing = false;
