@@ -203,8 +203,8 @@ class GameState extends _$GameState {
       ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$missLine"');
     }
 
-    // 3. 점수 업데이트 (이전 baseChips 저장 필요 — 고/스톱 판정용)
-    final prevBaseChips = state.baseChips;
+    // 3. 점수 업데이트 (이전 점수 저장 — 고/스톱 판정용)
+    final prevPlayerScore = state.playerScore;
     final prevYaku = state.playerScore > 0
         ? ScoreCalculator.calculate(state, run).appliedYaku
         : <String>[];
@@ -240,11 +240,17 @@ class GameState extends _$GameState {
       return;
     }
 
-    // 5. 고/스톱 판정 (점수 3점 이상 + baseChips가 이전보다 증가했을 때)
-    final prevPoints = state.goCount > 0 ? prevBaseChips : 0;
-    if (scoreResult.finalScore >= 3 && scoreResult.baseChips > prevPoints) {
-      ref.read(goStopPendingProvider.notifier).show();
-      return;
+    // 5. 고/스톱 판정 (점수 기준)
+    if (scoreResult.finalScore >= 3) {
+      if (state.goCount == 0) {
+        // 첫 3점 도달: 무조건 고/스톱 선택
+        ref.read(goStopPendingProvider.notifier).show();
+        return;
+      } else if (scoreResult.finalScore > prevPlayerScore) {
+        // 고 선언 후: 점수가 실제로 올라야만 재판정
+        ref.read(goStopPendingProvider.notifier).show();
+        return;
+      }
     }
 
     // 6. AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
