@@ -8,6 +8,7 @@
 /// - RoundEndOverlay: 라운드 종료 (승리/패배/파산)
 library;
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_providers.dart';
@@ -100,7 +101,7 @@ class GameStartOverlay extends ConsumerWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(6),
                                   child: Image.asset(
-                                    'assets/images/cards/${brightIds[i]}.png',
+                                    'assets/images/cards/${brightIds[i]}.jpg',
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(
                                       color: const Color(0xFF2A1A3A),
@@ -256,7 +257,7 @@ class CardSelectOverlay extends StatelessWidget {
                             boxShadow: [BoxShadow(color: Colors.cyan.withValues(alpha: 0.4), blurRadius: 12)],
                           ),
                           child: AbsorbPointer(
-                            child: HwatuCard(card: fc, size: 90),
+                            child: HwatuCard(card: fc, size: 90, strings: strings),
                           ),
                         ),
                       ),
@@ -382,7 +383,9 @@ class GoStopOverlay extends ConsumerWidget {
     final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
     final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
-    final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk).length;
+    // 실효 피 카운트: 쌍피=2장, 보너스=2장으로 계산
+    final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk)
+        .fold<int>(0, (sum, c) => sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1));
 
     return Container(
       color: Colors.black.withValues(alpha: 0.7),
@@ -430,6 +433,26 @@ class GoStopOverlay extends ConsumerWidget {
                   ],
                 ),
               ),
+              // 흔들기/박 배율 표시
+              if (state.shakeMonths.isNotEmpty || state.multiplier > 1.0) ...[
+                SizedBox(height: 6 * s),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  children: [
+                    if (state.shakeMonths.isNotEmpty)
+                      _multBadge('🫨 Shake x${pow(2, state.shakeMonths.length).toInt()}', Colors.purple, s),
+                    if (state.scoreBreakdown.any((b) => b['key'] == 'penalty_pibak'))
+                      _multBadge('🍂 피박 x2', Colors.orange, s),
+                    if (state.scoreBreakdown.any((b) => b['key'] == 'penalty_gwangbak'))
+                      _multBadge('🌟 광박 x2', Colors.amber, s),
+                    if (state.scoreBreakdown.any((b) => b['key'] == 'penalty_ttibak'))
+                      _multBadge('🎀 띠박 x2', Colors.pink, s),
+                    if (state.scoreBreakdown.any((b) => b['key'] == 'penalty_meongbak'))
+                      _multBadge('🐾 멍박 x2', Colors.teal, s),
+                  ],
+                ),
+              ],
               SizedBox(height: 14 * s),
               Text(
                 state.goCount == 0
@@ -507,7 +530,9 @@ class RoundEndOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWin = state.playerScore > state.opponentScore;
+    // state.winner 우선 (AI 스톱 → opponent 승리 등), 없으면 점수 비교
+    final isWin = state.winner == 'player'
+        || (state.winner == null && state.playerScore > state.opponentScore);
     final run = ref.watch(runStateNotifierProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
     final isBankrupt = !isWin && ref.read(runStateNotifierProvider.notifier).isBankrupt;
@@ -515,13 +540,17 @@ class RoundEndOverlay extends ConsumerWidget {
     final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
     final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
-    final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk).length;
+    // 실효 피 카운트: 쌍피=2장, 보너스=2장으로 계산
+    final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk)
+        .fold<int>(0, (sum, c) => sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1));
 
-    final baseScore = state.baseChips;
     final mult = state.multiplier;
-    final earnings = isWin
-        ? baseScore * currency.pointValue * mult
-        : -(state.opponentScore > 0 ? state.opponentScore : 1) * currency.pointValue;
+    var lossScore = (state.opponentScore > 0 ? state.opponentScore : 1);
+    if (!isWin && state.goCount > 0) lossScore *= 2; // 고박: 내가 고 선언 후 패배 시 2배
+    var earnings = isWin
+        ? state.playerScore * currency.pointValue
+        : -lossScore * currency.pointValue;
+    if (isWin && state.opponentGoCount > 0) earnings *= 2; // 상대 고박 보너스
 
     if (isBankrupt) {
       return _buildBankruptOverlay(context, state, run, currency);
@@ -611,8 +640,8 @@ class RoundEndOverlay extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(strings.ui('calculation'), style: TextStyle(color: Colors.white54, fontSize: 10 * rs)),
-                          Text('${state.baseChips.toInt()}${strings.ui('pointSuffix')} x ${currency.formatAmount(currency.pointValue)}'
-                            '${mult > 1.0 ? ' x ${mult.toStringAsFixed(1)}' : ''}',
+                          Text('${state.playerScore}${strings.ui('pointSuffix')} x ${currency.formatAmount(currency.pointValue)}'
+                            '${state.opponentGoCount > 0 ? ' x2(Go-Bak)' : ''}',
                             style: TextStyle(color: Colors.white70, fontSize: 10 * rs)),
                         ],
                       ),
@@ -836,6 +865,18 @@ class ScoreVersusHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _multBadge(String text, Color color, double s) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 6 * s, vertical: 2 * s),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: color.withValues(alpha: 0.6)),
+    ),
+    child: Text(text, style: TextStyle(color: color, fontSize: 10 * s, fontWeight: FontWeight.bold)),
+  );
 }
 
 Widget _goStopChip(String emoji, String label, int count, Color color) {

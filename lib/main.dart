@@ -3,14 +3,23 @@
 /// 앱 엔트리 포인트. Flutter + Riverpod 기반.
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'services/crazygames.dart';
 import 'ui/game_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // CrazyGames SDK: 로딩 시작 알림 → 초기화
+  if (kIsWeb) {
+    CrazyGamesService.loadingStart();
+    await CrazyGamesService.init();
+  }
+
   // 모바일: 가로 모드 우선 + 상태바/네비게이션 숨기기
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,

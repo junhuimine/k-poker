@@ -28,13 +28,21 @@ class GameEngine {
   // ─────────────────────────────────────────────
   // 새로운 라운드 초기화 (딜링) — 50장 기반
   // ─────────────────────────────────────────────
-  static RoundState createInitialState({RunState? run}) {
+  /// 선(先) 결정: 전판 패자가 선. 첫판이면 랜덤.
+  static String determineFirstTurn(String lastRoundWinner) {
+    if (lastRoundWinner == 'player') return 'opponent';
+    if (lastRoundWinner == 'opponent') return 'player';
+    // 첫판 또는 나가리 → 랜덤
+    return _random.nextBool() ? 'player' : 'opponent';
+  }
+
+  static RoundState createInitialState({RunState? run, String? firstTurn}) {
     List<CardInstance> deck = allCards
         .map((d) => CardInstance(def: d))
         .toList();
 
     // c_gwang_scanner [광 스캐너]: 바닥이나 핸드(앞 20장)에 광카드 배치 확률 대폭 증가
-    final dealZone = fieldSize + handSize * 2; // 6+7+7 = 20
+    final dealZone = fieldSize + handSize * 2; // 8+10+10 = 28
     if (run != null && (run.equippedRoundItemIds.contains('c_gwang_scanner') || run.equippedRoundItemIds.contains('P-001'))) {
       final brights = deck.where((c) => c.def.grade == CardGrade.bright).toList();
       final others = deck.where((c) => c.def.grade != CardGrade.bright).toList();
@@ -54,17 +62,19 @@ class GameEngine {
       deck.shuffle(_random);
     }
 
-    // 50장: 바닥 6, 플레이어 7, 상대 7, 덱 30
+    // 50장: 바닥 8, 플레이어 10, 상대 10, 덱 22 (표준 2인 고스톱)
     final field = deck.sublist(0, fieldSize);
     final playerHand = deck.sublist(fieldSize, fieldSize + handSize);
     final opponentHand = deck.sublist(fieldSize + handSize, fieldSize + handSize * 2);
     final remainingDeck = deck.sublist(fieldSize + handSize * 2);
 
+    final turn = firstTurn ?? 'player';
     var state = RoundState(
       deck: remainingDeck,
       field: field,
       playerHand: playerHand,
       opponentHand: opponentHand,
+      currentTurn: turn,
     );
 
     // 바닥에 보너스 쌍피가 깔려 있으면 → 선(플레이어)이 자동 획득 후 덱에서 보충
@@ -144,17 +154,20 @@ class GameEngine {
     return state;
   }
 
-  /// 딜링 시 바닥에 보너스 카드가 있으면 플레이어가 자동 획득, 덱에서 보충
+  /// 딜링 시 바닥에 보너스 카드가 있으면 선(先)이 자동 획득, 덱에서 보충
   static RoundState _handleBonusCardsOnField(RoundState state) {
     var newState = state;
     var bonusOnField = newState.field.where((c) => c.def.isBonus).toList();
+    final isPlayerFirst = newState.currentTurn == 'player';
 
     while (bonusOnField.isNotEmpty) {
       for (final bonus in bonusOnField) {
-        // 바닥에서 제거
+        // 바닥에서 제거 → 선이 획득
+        final captured = isPlayerFirst ? newState.playerCaptured : newState.opponentCaptured;
         newState = newState.copyWith(
           field: newState.field.where((c) => c != bonus).toList(),
-          playerCaptured: [...newState.playerCaptured, bonus],
+          playerCaptured: isPlayerFirst ? [...captured, bonus] : newState.playerCaptured,
+          opponentCaptured: isPlayerFirst ? newState.opponentCaptured : [...captured, bonus],
         );
         // 덱에서 1장 보충
         if (newState.deck.isNotEmpty) {
@@ -205,19 +218,25 @@ class GameEngine {
   // 폭탄 감지 (핸드 3장 + 바닥에 같은 월 1장 이상 필수)
   // ─────────────────────────────────────────────
   static int? getBombMonth(List<CardInstance> hand, List<CardInstance> field) {
+    final months = getBombMonths(hand, field);
+    return months.isNotEmpty ? months.first : null;
+  }
+
+  /// 폭탄 가능한 모든 월 리스트 (복수 세트 대응)
+  static List<int> getBombMonths(List<CardInstance> hand, List<CardInstance> field) {
     final monthCounts = <int, int>{};
     for (final card in hand) {
       if (card.def.isBonus || card.isDeckDraw) continue;
       monthCounts[card.def.month] = (monthCounts[card.def.month] ?? 0) + 1;
     }
+    final result = <int>[];
     for (final entry in monthCounts.entries) {
       if (entry.value >= 3) {
-        // 바닥에 같은 월 카드가 최소 1장 있어야 폭탄 가능
         final fieldSameMonth = field.where((c) => c.def.month == entry.key).length;
-        if (fieldSameMonth >= 1) return entry.key;
+        if (fieldSameMonth >= 1) result.add(entry.key);
       }
     }
-    return null;
+    return result;
   }
 
   // ─────────────────────────────────────────────

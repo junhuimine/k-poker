@@ -44,7 +44,7 @@ class ShopScreen extends ConsumerWidget {
                 children: [
                   // 랜덤 슬롯
                   if (shopState.slots.isNotEmpty) ...[
-                    _buildSectionTitle(s.ui('shopSecretShop'), 'Stage ${run.stage}'),
+                    _buildSectionTitle(s.ui('shopSecretShop'), s.shopStage(run.stage)),
                     const SizedBox(height: 8),
                     _buildSlotGrid(ref, run, shopState, s),
                     const SizedBox(height: 16),
@@ -109,7 +109,7 @@ class ShopScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Stage ${run.stage}',
+                s.shopStage(run.stage),
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ),
@@ -263,7 +263,7 @@ class ShopScreen extends ConsumerWidget {
           if (!isLocked && !isSold)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: _buildSlotTypeBadge(item.slot),
+              child: _buildSlotTypeBadge(item.slot, s),
             ),
 
           // 구매 버튼 / SOLD OUT / 잠김
@@ -277,9 +277,9 @@ class ShopScreen extends ConsumerWidget {
                       color: Colors.grey.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'SOLD OUT',
-                      style: TextStyle(
+                    child: Text(
+                      s.ui('shopSoldOut'),
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -294,9 +294,9 @@ class ShopScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                         ),
-                        child: const Text(
-                          '🔒 LOCKED',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        child: Text(
+                          s.ui('shopLocked'),
+                          style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                         ),
                       )
                     : ElevatedButton(
@@ -344,7 +344,7 @@ class ShopScreen extends ConsumerWidget {
               : null,
           icon: const Text('🔄', style: TextStyle(fontSize: 18)),
           label: Text(
-            '${s.shopBuyCost(shopState.rerollCost).replaceAll(RegExp(r'G.*'), '')}Reroll (${shopState.rerollCost} G)',
+            s.shopReroll(shopState.rerollCost),
             style: TextStyle(
               color: canAfford ? Colors.amberAccent : Colors.grey,
               fontSize: 15,
@@ -389,9 +389,9 @@ class ShopScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '-- Synergy --',
-            style: TextStyle(
+          Text(
+            s.ui('shopSynergyTitle'),
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class ShopScreen extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${syn.nameKo} ($current/$required)',
+                      '${s.getSynergyName(syn.id, syn.nameKo)} ($current/$required)',
                       style: TextStyle(
                         color: isActive ? Colors.greenAccent : Colors.white38,
                         fontSize: 13,
@@ -424,7 +424,7 @@ class ShopScreen extends ConsumerWidget {
                   ),
                   if (isActive)
                     Text(
-                      _synergyEffectText(syn),
+                      _synergyEffectText(syn, s),
                       style: const TextStyle(color: Colors.greenAccent, fontSize: 12),
                     ),
                 ],
@@ -436,14 +436,14 @@ class ShopScreen extends ConsumerWidget {
     );
   }
 
-  String _synergyEffectText(SynergyDef syn) {
+  String _synergyEffectText(SynergyDef syn, AppStrings s) {
     final parts = <String>[];
     if (syn.bonusChips > 0) parts.add('+${syn.bonusChips} chips');
     if (syn.bonusMult > 0) parts.add('+${syn.bonusMult.toStringAsFixed(1)} mult');
     if (syn.bonusXMult != 1.0) parts.add('x${syn.bonusXMult.toStringAsFixed(1)}');
     if (parts.isEmpty) {
-      // 특수 효과 시너지
-      return syn.descKo.length > 15 ? '${syn.descKo.substring(0, 15)}...' : syn.descKo;
+      final desc = s.getSynergyDesc(syn.id, syn.descKo);
+      return desc.length > 15 ? '${desc.substring(0, 15)}...' : desc;
     }
     return parts.join(' ');
   }
@@ -456,13 +456,13 @@ class ShopScreen extends ConsumerWidget {
     final passiveNames = run.ownedPassiveIds
         .map((String id) => findCatalogItem(id))
         .where((ItemDef? i) => i != null)
-        .map((ItemDef? i) => '${i!.emoji} ${i.nameKo}')
+        .map((ItemDef? i) => '${i!.emoji} ${s.getItemName(i.id, i.nameKo)}')
         .toList();
 
     final talismanNames = run.ownedTalismanIds
         .map((String id) => findCatalogItem(id))
         .where((ItemDef? i) => i != null)
-        .map((ItemDef? i) => '${i!.emoji} ${i.nameKo}')
+        .map((ItemDef? i) => '${i!.emoji} ${s.getItemName(i.id, i.nameKo)}')
         .toList();
 
     final activeEntries = <String>[];
@@ -470,7 +470,7 @@ class ShopScreen extends ConsumerWidget {
       if (entry.value > 0) {
         final item = findCatalogItem(entry.key);
         if (item != null) {
-          activeEntries.add('${item.emoji} ${item.nameKo} x${entry.value}');
+          activeEntries.add('${item.emoji} ${s.getItemName(item.id, item.nameKo)} x${entry.value}');
         }
       }
     }
@@ -488,7 +488,7 @@ class ShopScreen extends ConsumerWidget {
     for (final entry in consumableItems.entries) {
       final item = findCatalogItem(entry.key);
       if (item != null) {
-        consumableEntries.add('${item.emoji} ${item.nameKo} x${entry.value}');
+        consumableEntries.add('${item.emoji} ${s.getItemName(item.id, item.nameKo)} x${entry.value}');
       }
     }
 
@@ -504,9 +504,9 @@ class ShopScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '-- Inventory --',
-              style: TextStyle(
+            Text(
+              s.ui('shopInventoryTitle'),
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -750,21 +750,21 @@ class ShopScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSlotTypeBadge(ItemSlot slot) {
+  Widget _buildSlotTypeBadge(ItemSlot slot, AppStrings s) {
     final String label;
     final Color color;
     switch (slot) {
       case ItemSlot.activeInGame:
-        label = 'Active';
+        label = s.ui('shopSlotActive');
         color = Colors.blueAccent;
       case ItemSlot.passiveAlways:
-        label = 'Passive';
+        label = s.ui('shopSlotPassive');
         color = Colors.purpleAccent;
       case ItemSlot.talisman:
-        label = 'Talisman';
+        label = s.ui('shopSlotTalisman');
         color = Colors.amber;
       case ItemSlot.consumableRound:
-        label = 'Consumable';
+        label = s.ui('shopSlotConsumable');
         color = Colors.greenAccent;
     }
     return Container(
@@ -783,9 +783,7 @@ class ShopScreen extends ConsumerWidget {
   String _getUnlockHint(String itemId, AppStrings s) {
     switch (itemId) {
       case 'x_ogwang_crown':
-        return s.language == AppLanguage.ko
-            ? '해금: 오광 1회 달성'
-            : 'Unlock: Achieve Five Brights once';
+        return s.ui('unlockFiveBrights');
       default:
         return '???';
     }

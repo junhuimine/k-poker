@@ -4,7 +4,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/audio_manager.dart';
-import '../state/card_skin_provider.dart'; // CardSkin + FrontSkin
+import '../state/card_skin_provider.dart';
+import '../state/game_providers.dart';
 import '../i18n/locale_provider.dart';
 import '../i18n/app_strings.dart';
 
@@ -108,7 +109,22 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                       children: AppLanguage.values.map((l) {
                         final isSelected = l == lang;
                         return GestureDetector(
-                          onTap: () => ref.read(localeStateProvider.notifier).setLanguage(l),
+                          onTap: () {
+                            ref.read(localeStateProvider.notifier).setLanguage(l);
+                            // 화폐도 언어에 맞게 변환
+                            final currencyLocale = switch (l) {
+                              AppLanguage.ko => 'ko',
+                              AppLanguage.en => 'en',
+                              AppLanguage.ja => 'ja',
+                              AppLanguage.zhCn || AppLanguage.zhTw => 'zh',
+                              AppLanguage.es => 'es',
+                              AppLanguage.fr => 'fr',
+                              AppLanguage.de => 'de',
+                              AppLanguage.pt => 'pt',
+                              AppLanguage.th => 'th',
+                            };
+                            ref.read(runStateNotifierProvider.notifier).changeCurrency(currencyLocale);
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
@@ -132,44 +148,6 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                     const Divider(color: Color(0xFF30363D)),
                     const SizedBox(height: 12),
 
-                    // 🎴 카드 앞면 스킨
-                    Text('🎨 ${strings.ui('cardSkinFront')}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: FrontSkin.values.map((skin) {
-                        final isActive = skin == ref.watch(frontSkinProvider);
-                        return GestureDetector(
-                          onTap: () => ref.read(frontSkinProvider.notifier).setSkin(skin),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isActive ? Colors.deepPurple.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isActive ? Colors.deepPurpleAccent : Colors.white24,
-                                width: isActive ? 2 : 1,
-                              ),
-                              boxShadow: isActive ? [BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.3), blurRadius: 8)] : null,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(skin.emoji, style: const TextStyle(fontSize: 18)),
-                                const SizedBox(width: 6),
-                                Text(skin.displayName, style: TextStyle(
-                                  color: isActive ? Colors.deepPurpleAccent : Colors.white70,
-                                  fontSize: 13,
-                                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                                )),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
                     const Divider(color: Color(0xFF30363D)),
                     const SizedBox(height: 12),
 

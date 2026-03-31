@@ -55,9 +55,8 @@ class RoundState with _$RoundState {
     @Default(false) bool rewindUsed,      // ps_time_rewind 이번 판 사용 여부
     @Default(false) bool hadTripleMonth,  // ps_flower_bomb: 핸드에 같은 월 3장 보유 여부
 
-    // 흔들기: 핸드에 같은 월 3장 보유 시 선언, 승리 시 점수 2배
-    @Default(false) bool isShaking,       // 흔들기 선언 여부
-    @Default(0) int shakeMonth,           // 흔들기 선언한 월 (0 = 미선언)
+    // 흔들기: 핸드에 같은 월 3장 보유 시 선언, 1벌=2배, 2벌=4배
+    @Default([]) List<int> shakeMonths,   // 흔들기 선언한 월 목록 (빈 리스트 = 미선언)
 
     // 점수 상세 breakdown (라운드 종료 오버레이 표시용)
     @Default([]) List<Map<String, dynamic>> scoreBreakdown,

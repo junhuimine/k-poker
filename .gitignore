@@ -44,4 +44,26 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing
+android/key.properties
+android/upload-keystore.jks
+
 *.zip
+
+# Build outputs & temp
+build_out.txt
+android/build/
+
+# Node / Playwright (QA testing)
+node_modules/
+package.json
+package-lock.json
+test-results/
+test_browser_complete.mjs
+qa_screenshots/
+test_screenshots_complete/
+test/qa-screenshots/
+
+# Claude Code local config
+.claude/worktrees/
+.mcp.json

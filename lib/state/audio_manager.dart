@@ -103,8 +103,8 @@ class AudioManager {
 
   /// BGM 10곡 순환 재생
   static const _allBgm = [
-    'bgm_1.mp3', 'bgm_2.mp3', 'bgm_3.mp3', 'bgm_4.mp3', 'bgm_5.mp3',
-    'bgm_6.mp3', 'bgm_7.mp3', 'bgm_8.mp3', 'bgm_9.mp3', 'bgm_10.mp3',
+    'bgm_1.ogg', 'bgm_2.ogg', 'bgm_3.ogg', 'bgm_4.ogg', 'bgm_5.ogg',
+    'bgm_6.ogg', 'bgm_7.ogg', 'bgm_8.ogg', 'bgm_9.ogg', 'bgm_10.ogg',
   ];
   int _currentBgmIndex = 0;
 

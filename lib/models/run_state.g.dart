@@ -10,11 +10,11 @@ _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
     _$RunStateImpl(
       stage: (json['stage'] as num?)?.toInt() ?? 1,
       gold: (json['gold'] as num?)?.toInt() ?? 0,
-      money: (json['money'] as num?)?.toDouble() ?? 50000,
+      money: (json['money'] as num?)?.toDouble() ?? 50,
       stageEarned: (json['stageEarned'] as num?)?.toDouble() ?? 0,
       currentOpponentIndex:
           (json['currentOpponentIndex'] as num?)?.toInt() ?? 0,
-      opponentMoney: (json['opponentMoney'] as num?)?.toDouble() ?? 0,
+      opponentMoney: (json['opponentMoney'] as num?)?.toDouble() ?? 50,
       activeSkillIds: (json['activeSkillIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -57,6 +57,7 @@ _$RunStateImpl _$$RunStateImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       currencyLocale: json['currencyLocale'] as String? ?? 'ko',
+      lastRoundWinner: json['lastRoundWinner'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$RunStateImplToJson(_$RunStateImpl instance) =>
@@ -82,4 +83,5 @@ Map<String, dynamic> _$$RunStateImplToJson(_$RunStateImpl instance) =>
       'highestMoney': instance.highestMoney,
       'moneyHistory': instance.moneyHistory,
       'currencyLocale': instance.currencyLocale,
+      'lastRoundWinner': instance.lastRoundWinner,
     };

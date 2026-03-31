@@ -4,6 +4,7 @@
 /// 하드코딩 없이 모든 UI 텍스트를 중앙 관리
 library;
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'ai_dialogues_de.dart';
@@ -455,6 +456,47 @@ class AppStrings {
         AppLanguage.ko: '멍박', AppLanguage.en: 'Animal Penalty', AppLanguage.ja: 'タネ朴', AppLanguage.zhCn: '种罚', AppLanguage.zhTw: '種罰',
         AppLanguage.es: 'Penalizacion Animal', AppLanguage.fr: 'Penalite Animal', AppLanguage.de: 'Tier-Strafe', AppLanguage.pt: 'Penalidade Animal', AppLanguage.th: 'โทษสัตว์',
       },
+      // ─── [아이템/시너지 효과 (점수 breakdown)] ───
+      'item_bonus_chips': {
+        AppLanguage.ko: '아이템 보너스', AppLanguage.en: 'Item Bonus', AppLanguage.ja: 'アイテムボーナス', AppLanguage.zhCn: '道具加成', AppLanguage.zhTw: '道具加成',
+        AppLanguage.es: 'Bonificacion de objeto', AppLanguage.fr: 'Bonus objet', AppLanguage.de: 'Gegenstandsbonus', AppLanguage.pt: 'Bonus de item', AppLanguage.th: 'โบนัสไอเทม',
+      },
+      'item_bonus_mult': {
+        AppLanguage.ko: '아이템 배율', AppLanguage.en: 'Item Multiplier', AppLanguage.ja: 'アイテム倍率', AppLanguage.zhCn: '道具倍率', AppLanguage.zhTw: '道具倍率',
+        AppLanguage.es: 'Multiplicador de objeto', AppLanguage.fr: 'Multiplicateur objet', AppLanguage.de: 'Gegenstandsmultiplikator', AppLanguage.pt: 'Multiplicador de item', AppLanguage.th: 'ตัวคูณไอเทม',
+      },
+      'item_bonus_xmult': {
+        AppLanguage.ko: '아이템 곱배율', AppLanguage.en: 'Item xMult', AppLanguage.ja: 'アイテムx倍率', AppLanguage.zhCn: '道具乘倍率', AppLanguage.zhTw: '道具乘倍率',
+        AppLanguage.es: 'xMult de objeto', AppLanguage.fr: 'xMult objet', AppLanguage.de: 'Gegenstands-xMult', AppLanguage.pt: 'xMult de item', AppLanguage.th: 'xMult ไอเทม',
+      },
+      'talisman_gwangbak_shield': {
+        AppLanguage.ko: '광박 방패', AppLanguage.en: 'Bright Penalty Shield', AppLanguage.ja: '光朴シールド', AppLanguage.zhCn: '光罚护盾', AppLanguage.zhTw: '光罰護盾',
+        AppLanguage.es: 'Escudo de penalizacion', AppLanguage.fr: 'Bouclier penalite', AppLanguage.de: 'Lichtstrafen-Schild', AppLanguage.pt: 'Escudo de penalidade', AppLanguage.th: 'โล่โทษกวัง',
+      },
+      'talisman_mountain_charm': {
+        AppLanguage.ko: '산신부적 (열끗 x1.5)', AppLanguage.en: 'Mountain Charm (Animal x1.5)', AppLanguage.ja: '山神のお守り (タネx1.5)', AppLanguage.zhCn: '山神符 (种x1.5)', AppLanguage.zhTw: '山神符 (種x1.5)',
+        AppLanguage.es: 'Amuleto de montana (Animal x1.5)', AppLanguage.fr: 'Charme montagne (Animal x1.5)', AppLanguage.de: 'Bergamulett (Tier x1.5)', AppLanguage.pt: 'Amuleto da montanha (Animal x1.5)', AppLanguage.th: 'เครื่องรางภูเขา (สัตว์ x1.5)',
+      },
+      'consumable_ribbon_polish': {
+        AppLanguage.ko: '띠 광택제 (띠 x2)', AppLanguage.en: 'Ribbon Polish (Ribbon x2)', AppLanguage.ja: '短冊磨き (短冊x2)', AppLanguage.zhCn: '条打磨 (条x2)', AppLanguage.zhTw: '條打磨 (條x2)',
+        AppLanguage.es: 'Pulidor de cintas (Cinta x2)', AppLanguage.fr: 'Polissage ruban (Ruban x2)', AppLanguage.de: 'Bandpolitur (Band x2)', AppLanguage.pt: 'Polidor de fita (Fita x2)', AppLanguage.th: 'ขัดเงาแถบ (แถบ x2)',
+      },
+      'consumable_bomb_fuse': {
+        AppLanguage.ko: '도화선 (폭탄 x4)', AppLanguage.en: 'Bomb Fuse (Bomb x4)', AppLanguage.ja: '導火線 (爆弾x4)', AppLanguage.zhCn: '导火线 (炸弹x4)', AppLanguage.zhTw: '導火線 (炸彈x4)',
+        AppLanguage.es: 'Mecha de bomba (Bomba x4)', AppLanguage.fr: 'Meche bombe (Bombe x4)', AppLanguage.de: 'Bombenzunder (Bombe x4)', AppLanguage.pt: 'Pavio de bomba (Bomba x4)', AppLanguage.th: 'ชนวนระเบิด (ระเบิด x4)',
+      },
+      'synergy_fortress': {
+        AppLanguage.ko: '요새 (박 감소)', AppLanguage.en: 'Fortress (Penalty -25%)', AppLanguage.ja: '要塞 (朴-25%)', AppLanguage.zhCn: '堡垒 (罚-25%)', AppLanguage.zhTw: '堡壘 (罰-25%)',
+        AppLanguage.es: 'Fortaleza (Penalizacion -25%)', AppLanguage.fr: 'Forteresse (Penalite -25%)', AppLanguage.de: 'Festung (Strafe -25%)', AppLanguage.pt: 'Fortaleza (Penalidade -25%)', AppLanguage.th: 'ป้อมปราการ (โทษ -25%)',
+      },
+      'passive_flower_bomb': {
+        AppLanguage.ko: '꽃폭탄 (x3)', AppLanguage.en: 'Flower Bomb (x3)', AppLanguage.ja: '花爆弾 (x3)', AppLanguage.zhCn: '花炸弹 (x3)', AppLanguage.zhTw: '花炸彈 (x3)',
+        AppLanguage.es: 'Bomba de flores (x3)', AppLanguage.fr: 'Bombe florale (x3)', AppLanguage.de: 'Blumenbombe (x3)', AppLanguage.pt: 'Bomba de flores (x3)', AppLanguage.th: 'ระเบิดดอกไม้ (x3)',
+      },
+      'passive_provoke': {
+        AppLanguage.ko: '도발 (x2)', AppLanguage.en: 'Provoke (x2)', AppLanguage.ja: '挑発 (x2)', AppLanguage.zhCn: '挑衅 (x2)', AppLanguage.zhTw: '挑釁 (x2)',
+        AppLanguage.es: 'Provocacion (x2)', AppLanguage.fr: 'Provocation (x2)', AppLanguage.de: 'Provokation (x2)', AppLanguage.pt: 'Provocacao (x2)', AppLanguage.th: 'ยั่วยุ (x2)',
+      },
       // ─── [흔들기 보너스 (점수 계산)] ───
       'shake_bonus': {
         AppLanguage.ko: '흔들기 x2', AppLanguage.en: 'Shake x2', AppLanguage.ja: '振り x2', AppLanguage.zhCn: '摇动 x2', AppLanguage.zhTw: '搖動 x2',
@@ -753,6 +795,43 @@ class AppStrings {
       'brightLabel': {
         AppLanguage.ko: '광', AppLanguage.en: 'Bright', AppLanguage.ja: '光', AppLanguage.zhCn: '光', AppLanguage.zhTw: '光',
         AppLanguage.es: 'Brillante', AppLanguage.fr: 'Lumière', AppLanguage.de: 'Licht', AppLanguage.pt: 'Brilhante', AppLanguage.th: 'กวัง',
+      },
+      // ─── [상점 추가 UI] ───
+      'shopSoldOut': {
+        AppLanguage.ko: '매진', AppLanguage.en: 'SOLD OUT', AppLanguage.ja: '売り切れ', AppLanguage.zhCn: '已售罄', AppLanguage.zhTw: '已售罄',
+        AppLanguage.es: 'AGOTADO', AppLanguage.fr: 'ÉPUISÉ', AppLanguage.de: 'AUSVERKAUFT', AppLanguage.pt: 'ESGOTADO', AppLanguage.th: 'ขายหมดแล้ว',
+      },
+      'shopLocked': {
+        AppLanguage.ko: '🔒 잠김', AppLanguage.en: '🔒 LOCKED', AppLanguage.ja: '🔒 未解放', AppLanguage.zhCn: '🔒 未解锁', AppLanguage.zhTw: '🔒 未解鎖',
+        AppLanguage.es: '🔒 BLOQUEADO', AppLanguage.fr: '🔒 VERROUILLÉ', AppLanguage.de: '🔒 GESPERRT', AppLanguage.pt: '🔒 BLOQUEADO', AppLanguage.th: '🔒 ล็อค',
+      },
+      'shopSynergyTitle': {
+        AppLanguage.ko: '-- 시너지 --', AppLanguage.en: '-- Synergy --', AppLanguage.ja: '-- シナジー --', AppLanguage.zhCn: '-- 协同效果 --', AppLanguage.zhTw: '-- 協同效果 --',
+        AppLanguage.es: '-- Sinergia --', AppLanguage.fr: '-- Synergie --', AppLanguage.de: '-- Synergie --', AppLanguage.pt: '-- Sinergia --', AppLanguage.th: '-- ซินเนอร์จี --',
+      },
+      'shopInventoryTitle': {
+        AppLanguage.ko: '-- 보유 아이템 --', AppLanguage.en: '-- Inventory --', AppLanguage.ja: '-- 所持アイテム --', AppLanguage.zhCn: '-- 持有道具 --', AppLanguage.zhTw: '-- 持有道具 --',
+        AppLanguage.es: '-- Inventario --', AppLanguage.fr: '-- Inventaire --', AppLanguage.de: '-- Inventar --', AppLanguage.pt: '-- Inventário --', AppLanguage.th: '-- กระเป๋า --',
+      },
+      'shopSlotActive': {
+        AppLanguage.ko: '액티브', AppLanguage.en: 'Active', AppLanguage.ja: 'アクティブ', AppLanguage.zhCn: '主动', AppLanguage.zhTw: '主動',
+        AppLanguage.es: 'Activo', AppLanguage.fr: 'Actif', AppLanguage.de: 'Aktiv', AppLanguage.pt: 'Ativo', AppLanguage.th: 'แอคทีฟ',
+      },
+      'shopSlotPassive': {
+        AppLanguage.ko: '패시브', AppLanguage.en: 'Passive', AppLanguage.ja: 'パッシブ', AppLanguage.zhCn: '被动', AppLanguage.zhTw: '被動',
+        AppLanguage.es: 'Pasivo', AppLanguage.fr: 'Passif', AppLanguage.de: 'Passiv', AppLanguage.pt: 'Passivo', AppLanguage.th: 'พาสซีฟ',
+      },
+      'shopSlotTalisman': {
+        AppLanguage.ko: '부적', AppLanguage.en: 'Talisman', AppLanguage.ja: 'お守り', AppLanguage.zhCn: '护符', AppLanguage.zhTw: '護符',
+        AppLanguage.es: 'Talismán', AppLanguage.fr: 'Talisman', AppLanguage.de: 'Talisman', AppLanguage.pt: 'Talismã', AppLanguage.th: 'เครื่องราง',
+      },
+      'shopSlotConsumable': {
+        AppLanguage.ko: '소모품', AppLanguage.en: 'Consumable', AppLanguage.ja: '消耗品', AppLanguage.zhCn: '消耗品', AppLanguage.zhTw: '消耗品',
+        AppLanguage.es: 'Consumible', AppLanguage.fr: 'Consommable', AppLanguage.de: 'Verbrauchbar', AppLanguage.pt: 'Consumível', AppLanguage.th: 'ใช้แล้วหมด',
+      },
+      'unlockFiveBrights': {
+        AppLanguage.ko: '해금: 오광 1회 달성', AppLanguage.en: 'Unlock: Achieve Five Brights once', AppLanguage.ja: '解放: 五光を1回達成', AppLanguage.zhCn: '解锁: 达成一次五光', AppLanguage.zhTw: '解鎖: 達成一次五光',
+        AppLanguage.es: 'Desbloquear: Logra Cinco Brillantes', AppLanguage.fr: 'Débloquer: Obtenez Cinq Lumières', AppLanguage.de: 'Freischalten: Fünf Lichter erreichen', AppLanguage.pt: 'Desbloquear: Conquiste Cinco Brilhantes', AppLanguage.th: 'ปลดล็อค: ทำห้ากวังครั้งหนึ่ง',
       },
     };
     return _t(uiTexts[key] ?? {AppLanguage.ko: key});
@@ -1328,6 +1407,14 @@ class AppStrings {
     AppLanguage.ko: '$month월 흔들기! 점수 2배!', AppLanguage.en: 'Month $month Shake! Score x2!', AppLanguage.ja: '$month月の振り！スコア2倍！', AppLanguage.zhCn: '$month月摇动！得分翻倍！', AppLanguage.zhTw: '$month月搖動！得分翻倍！',
     AppLanguage.es: '¡Mes $month Agitar! ¡Puntuación x2!', AppLanguage.fr: 'Mois $month Secouer ! Score x2 !', AppLanguage.de: 'Monat $month Schütteln! Punkte x2!', AppLanguage.pt: 'Mês $month Sacudir! Pontuação x2!', AppLanguage.th: 'เขย่าเดือน $month! คะแนน x2!',
   });
+  String shakeAllDesc(int count) => _t({
+    AppLanguage.ko: '${count}벌 모두 흔들면 x${pow(2, count).toInt()}배!', AppLanguage.en: 'Shake all $count sets for x${pow(2, count).toInt()}!', AppLanguage.ja: '${count}組全て振りでx${pow(2, count).toInt()}倍！', AppLanguage.zhCn: '全部${count}组摇动x${pow(2, count).toInt()}倍！', AppLanguage.zhTw: '全部${count}組搖動x${pow(2, count).toInt()}倍！',
+    AppLanguage.es: '¡Agita los $count sets para x${pow(2, count).toInt()}!', AppLanguage.fr: 'Secouer les $count sets pour x${pow(2, count).toInt()} !', AppLanguage.de: 'Alle $count Sets schütteln für x${pow(2, count).toInt()}!', AppLanguage.pt: 'Sacudir todos os $count conjuntos para x${pow(2, count).toInt()}!', AppLanguage.th: 'เขย่าทั้ง $count ชุด x${pow(2, count).toInt()} เท่า!',
+  });
+  String get shakeAllDeclare => _t({
+    AppLanguage.ko: '전체 흔들기', AppLanguage.en: 'Shake All', AppLanguage.ja: '全て振り', AppLanguage.zhCn: '全部摇动', AppLanguage.zhTw: '全部搖動',
+    AppLanguage.es: 'Agitar Todo', AppLanguage.fr: 'Tout Secouer', AppLanguage.de: 'Alle Schütteln', AppLanguage.pt: 'Sacudir Tudo', AppLanguage.th: 'เขย่าทั้งหมด',
+  });
 
   // ─── [AI 캐릭터 대사 번역] ───
   String getAiDialogue(String aiId, String situation, List<String> defaultKoLines) {
@@ -1361,6 +1448,32 @@ class AppStrings {
   }
 
   // ─── [상점 동적 텍스트] ───
+  String shopStage(int stage) => _t({
+    AppLanguage.ko: '스테이지 $stage',
+    AppLanguage.en: 'Stage $stage',
+    AppLanguage.ja: 'ステージ $stage',
+    AppLanguage.zhCn: '阶段 $stage',
+    AppLanguage.zhTw: '階段 $stage',
+    AppLanguage.es: 'Etapa $stage',
+    AppLanguage.fr: 'Étape $stage',
+    AppLanguage.de: 'Stufe $stage',
+    AppLanguage.pt: 'Estágio $stage',
+    AppLanguage.th: 'ด่าน $stage',
+  });
+
+  String shopReroll(int cost) => _t({
+    AppLanguage.ko: '리롤 구매 ($cost G)',
+    AppLanguage.en: 'Buy Reroll ($cost G)',
+    AppLanguage.ja: 'リロール購入 ($cost G)',
+    AppLanguage.zhCn: '购买刷新 ($cost G)',
+    AppLanguage.zhTw: '購買刷新 ($cost G)',
+    AppLanguage.es: 'Comprar Reroll ($cost G)',
+    AppLanguage.fr: 'Acheter Reroll ($cost G)',
+    AppLanguage.de: 'Reroll kaufen ($cost G)',
+    AppLanguage.pt: 'Comprar Reroll ($cost G)',
+    AppLanguage.th: 'ซื้อสุ่มใหม่ ($cost G)',
+  });
+
   String shopOwnedCount(int count) => _t({
     AppLanguage.ko: '보유량: $count개',
     AppLanguage.en: 'Owned: $count',
@@ -1386,6 +1499,43 @@ class AppStrings {
     AppLanguage.pt: 'Comprar $cost G',
     AppLanguage.th: 'ซื้อ $cost G',
   });
+
+  // ─── [시너지 번역] ───
+  String getSynergyName(String id, String defaultNameKo) {
+    if (language == AppLanguage.ko) return defaultNameKo;
+    final Map<AppLanguage, String> names = _synergyNames[id] ?? {};
+    return _t(names).isEmpty ? defaultNameKo : _t(names);
+  }
+
+  String getSynergyDesc(String id, String defaultDescKo) {
+    if (language == AppLanguage.ko) return defaultDescKo;
+    final Map<AppLanguage, String> descs = _synergyDescs[id] ?? {};
+    return _t(descs).isEmpty ? defaultDescKo : _t(descs);
+  }
+
+  static const Map<String, Map<AppLanguage, String>> _synergyNames = {
+    'syn_gwang_master': { AppLanguage.en: 'Bright Master', AppLanguage.ja: '光マスター', AppLanguage.zhCn: '光大师', AppLanguage.zhTw: '光大師', AppLanguage.es: 'Maestro Gwang', AppLanguage.fr: 'Maître Gwang', AppLanguage.de: 'Gwang-Meister', AppLanguage.pt: 'Mestre Gwang', AppLanguage.th: 'จ้าวกวัง' },
+    'syn_animal_kingdom': { AppLanguage.en: 'Animal Kingdom', AppLanguage.ja: '動物王国', AppLanguage.zhCn: '动物王国', AppLanguage.zhTw: '動物王國', AppLanguage.es: 'Reino Animal', AppLanguage.fr: 'Royaume Animal', AppLanguage.de: 'Tierreich', AppLanguage.pt: 'Reino Animal', AppLanguage.th: 'อาณาจักรสัตว์' },
+    'syn_ribbon_collector': { AppLanguage.en: 'Ribbon Collector', AppLanguage.ja: '短冊コレクター', AppLanguage.zhCn: '条收集者', AppLanguage.zhTw: '條收集者', AppLanguage.es: 'Coleccionista de Cintas', AppLanguage.fr: 'Collectionneur de Rubans', AppLanguage.de: 'Band-Sammler', AppLanguage.pt: 'Coletor de Fitas', AppLanguage.th: 'นักสะสมริบบิ้น' },
+    'syn_junk_empire': { AppLanguage.en: 'Junk Empire', AppLanguage.ja: 'カス帝国', AppLanguage.zhCn: '皮帝国', AppLanguage.zhTw: '皮帝國', AppLanguage.es: 'Imperio Pi', AppLanguage.fr: 'Empire Pi', AppLanguage.de: 'Pi-Imperium', AppLanguage.pt: 'Império Pi', AppLanguage.th: 'จักรวรรดิพี' },
+    'syn_gamblers_path': { AppLanguage.en: "Gambler's Path", AppLanguage.ja: '勝負師の道', AppLanguage.zhCn: '赌徒之路', AppLanguage.zhTw: '賭徒之路', AppLanguage.es: 'Camino del Jugador', AppLanguage.fr: 'Voie du Joueur', AppLanguage.de: 'Weg des Spielers', AppLanguage.pt: 'Caminho do Jogador', AppLanguage.th: 'เส้นทางนักพนัน' },
+    'syn_demolition': { AppLanguage.en: 'Demolition Expert', AppLanguage.ja: '爆破の達人', AppLanguage.zhCn: '爆破专家', AppLanguage.zhTw: '爆破專家', AppLanguage.es: 'Experto en Demolición', AppLanguage.fr: 'Expert en Démolition', AppLanguage.de: 'Sprengmeister', AppLanguage.pt: 'Especialista em Demolição', AppLanguage.th: 'ผู้เชี่ยวชาญระเบิด' },
+    'syn_tycoon': { AppLanguage.en: 'Tycoon', AppLanguage.ja: '大富豪', AppLanguage.zhCn: '大亨', AppLanguage.zhTw: '大亨', AppLanguage.es: 'Magnate', AppLanguage.fr: 'Magnat', AppLanguage.de: 'Tycoon', AppLanguage.pt: 'Magnata', AppLanguage.th: 'เศรษฐี' },
+    'syn_fortress': { AppLanguage.en: 'Fortress', AppLanguage.ja: '要塞', AppLanguage.zhCn: '要塞', AppLanguage.zhTw: '要塞', AppLanguage.es: 'Fortaleza', AppLanguage.fr: 'Forteresse', AppLanguage.de: 'Festung', AppLanguage.pt: 'Fortaleza', AppLanguage.th: 'ป้อมปราการ' },
+    'syn_tazza_school': { AppLanguage.en: 'Tazza School', AppLanguage.ja: 'タジャ流派', AppLanguage.zhCn: '老千学派', AppLanguage.zhTw: '老千學派', AppLanguage.es: 'Escuela Tazza', AppLanguage.fr: 'École Tazza', AppLanguage.de: 'Tazza-Schule', AppLanguage.pt: 'Escola Tazza', AppLanguage.th: 'สำนักตาซซา' },
+  };
+
+  static const Map<String, Map<AppLanguage, String>> _synergyDescs = {
+    'syn_gwang_master': { AppLanguage.en: 'Gwang tag x3: +3 pts', AppLanguage.ja: '光タグ3個: +3点', AppLanguage.zhCn: '光标签x3: +3分', AppLanguage.zhTw: '光標籤x3: +3分', AppLanguage.es: 'Tag Gwang x3: +3 pts', AppLanguage.fr: 'Tag Gwang x3: +3 pts', AppLanguage.de: 'Gwang-Tag x3: +3 Pkt', AppLanguage.pt: 'Tag Gwang x3: +3 pts', AppLanguage.th: 'แท็กกวัง x3: +3 แต้ม' },
+    'syn_animal_kingdom': { AppLanguage.en: 'Animal tag x3: +0.5 mult per capture', AppLanguage.ja: '動物タグ3個: 捕獲+0.5 mult', AppLanguage.zhCn: '动物标签x3: 捕获+0.5 mult', AppLanguage.zhTw: '動物標籤x3: 捕獲+0.5 mult', AppLanguage.es: 'Tag Animal x3: +0.5 mult', AppLanguage.fr: 'Tag Animal x3: +0.5 mult', AppLanguage.de: 'Tier-Tag x3: +0.5 Mult', AppLanguage.pt: 'Tag Animal x3: +0.5 mult', AppLanguage.th: 'แท็กสัตว์ x3: +0.5 mult' },
+    'syn_ribbon_collector': { AppLanguage.en: 'Ribbon tag x3: 1 pt even under 5', AppLanguage.ja: '短冊タグ3個: 5枚未満でも1点', AppLanguage.zhCn: '条标签x3: 不足5张也得1分', AppLanguage.zhTw: '條標籤x3: 不足5張也得1分', AppLanguage.es: 'Tag Cinta x3: 1 pt con <5', AppLanguage.fr: 'Tag Ruban x3: 1 pt même <5', AppLanguage.de: 'Band-Tag x3: 1 Pkt auch <5', AppLanguage.pt: 'Tag Fita x3: 1 pt mesmo <5', AppLanguage.th: 'แท็กริบบิ้น x3: 1 แต้มแม้ <5' },
+    'syn_junk_empire': { AppLanguage.en: 'Junk tag x3: threshold -1', AppLanguage.ja: 'カスタグ3個: 必要枚数-1', AppLanguage.zhCn: '皮标签x3: 所需张数-1', AppLanguage.zhTw: '皮標籤x3: 所需張數-1', AppLanguage.es: 'Tag Pi x3: umbral -1', AppLanguage.fr: 'Tag Pi x3: seuil -1', AppLanguage.de: 'Pi-Tag x3: Schwelle -1', AppLanguage.pt: 'Tag Pi x3: limiar -1', AppLanguage.th: 'แท็กพี x3: เกณฑ์ -1' },
+    'syn_gamblers_path': { AppLanguage.en: 'Go tag x2: +0.3 mult from 1-Go', AppLanguage.ja: 'Goタグ2個: 1ゴーから+0.3 mult', AppLanguage.zhCn: 'Go标签x2: 1-Go起+0.3 mult', AppLanguage.zhTw: 'Go標籤x2: 1-Go起+0.3 mult', AppLanguage.es: 'Tag Go x2: +0.3 mult desde 1-Go', AppLanguage.fr: 'Tag Go x2: +0.3 mult dès 1-Go', AppLanguage.de: 'Go-Tag x2: +0.3 Mult ab 1-Go', AppLanguage.pt: 'Tag Go x2: +0.3 mult a partir de 1-Go', AppLanguage.th: 'แท็ก Go x2: +0.3 mult ตั้งแต่ 1-Go' },
+    'syn_demolition': { AppLanguage.en: 'Bomb tag x2: +2 chips per sweep', AppLanguage.ja: '爆弾タグ2個: 掃除+2 chips', AppLanguage.zhCn: '炸弹标签x2: 扫荡+2 chips', AppLanguage.zhTw: '炸彈標籤x2: 掃蕩+2 chips', AppLanguage.es: 'Tag Bomba x2: +2 chips', AppLanguage.fr: 'Tag Bombe x2: +2 chips', AppLanguage.de: 'Bomben-Tag x2: +2 Chips', AppLanguage.pt: 'Tag Bomba x2: +2 chips', AppLanguage.th: 'แท็กระเบิด x2: +2 chips' },
+    'syn_tycoon': { AppLanguage.en: 'Economy tag x3: extra 10% discount', AppLanguage.ja: '経済タグ3個: 追加10%割引', AppLanguage.zhCn: '经济标签x3: 额外9折', AppLanguage.zhTw: '經濟標籤x3: 額外9折', AppLanguage.es: 'Tag Economía x3: -10% extra', AppLanguage.fr: 'Tag Économie x3: -10% en plus', AppLanguage.de: 'Wirtschaft-Tag x3: +10% Rabatt', AppLanguage.pt: 'Tag Economia x3: -10% extra', AppLanguage.th: 'แท็กเศรษฐกิจ x3: ลดเพิ่ม 10%' },
+    'syn_fortress': { AppLanguage.en: 'Defense tag x3: bak penalty -25%', AppLanguage.ja: '防御タグ3個: 罰-25%', AppLanguage.zhCn: '防御标签x3: 罚分-25%', AppLanguage.zhTw: '防禦標籤x3: 罰分-25%', AppLanguage.es: 'Tag Defensa x3: penalización -25%', AppLanguage.fr: 'Tag Défense x3: pénalité -25%', AppLanguage.de: 'Verteidigungs-Tag x3: Strafe -25%', AppLanguage.pt: 'Tag Defesa x3: penalidade -25%', AppLanguage.th: 'แท็กป้องกัน x3: โทษ -25%' },
+    'syn_tazza_school': { AppLanguage.en: 'Tazza tag x3: +5 chips per manipulation', AppLanguage.ja: 'タジャタグ3個: 操作+5 chips', AppLanguage.zhCn: '老千标签x3: 操作+5 chips', AppLanguage.zhTw: '老千標籤x3: 操作+5 chips', AppLanguage.es: 'Tag Tazza x3: +5 chips', AppLanguage.fr: 'Tag Tazza x3: +5 chips', AppLanguage.de: 'Tazza-Tag x3: +5 Chips', AppLanguage.pt: 'Tag Tazza x3: +5 chips', AppLanguage.th: 'แท็กตาซซา x3: +5 chips' },
+  };
 
   // ─── [상점 아이템 번역] ───
   String getItemName(String id, String defaultNameKo) {

@@ -1,0 +1,351 @@
+{
+  "startTime": "2026-03-26T11:46:03.267Z",
+  "tests": [
+    {
+      "name": "Page Load (HTTP 200)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:46:16.846Z"
+    },
+    {
+      "name": "Flutter Engine Init (CanvasKit)",
+      "status": "fail",
+      "details": "Timeout waiting for canvas",
+      "time": "2026-03-26T11:46:46.855Z"
+    },
+    {
+      "name": "GameStartOverlay Rendered",
+      "status": "pass",
+      "details": "Splash -> Start screen transition",
+      "time": "2026-03-26T11:46:50.985Z"
+    },
+    {
+      "name": "Canvas Rendering",
+      "status": "fail",
+      "details": "Canvas not found or zero size",
+      "time": "2026-03-26T11:46:50.989Z"
+    },
+    {
+      "name": "Console Errors (Initial Load)",
+      "status": "pass",
+      "details": "0 errors",
+      "time": "2026-03-26T11:46:50.989Z"
+    },
+    {
+      "name": "Settings Overlay Opens",
+      "status": "pass",
+      "details": "Gear icon click -> Settings overlay",
+      "time": "2026-03-26T11:46:52.897Z"
+    },
+    {
+      "name": "Language Switch: Korean (ko)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:46:59.804Z"
+    },
+    {
+      "name": "Language Switch: English (en)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:05.301Z"
+    },
+    {
+      "name": "Language Switch: Japanese (ja)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:10.816Z"
+    },
+    {
+      "name": "Language Switch: Chinese Simplified (zhCn)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:16.316Z"
+    },
+    {
+      "name": "Language Switch: Chinese Traditional (zhTw)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:21.832Z"
+    },
+    {
+      "name": "Language Switch: Spanish (es)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:27.319Z"
+    },
+    {
+      "name": "Language Switch: French (fr)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:32.831Z"
+    },
+    {
+      "name": "Language Switch: German (de)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:38.349Z"
+    },
+    {
+      "name": "Language Switch: Portuguese (pt)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:43.931Z"
+    },
+    {
+      "name": "Language Switch: Thai (th)",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:49.466Z"
+    },
+    {
+      "name": "Tutorial Overlay Opens",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:56.705Z"
+    },
+    {
+      "name": "Tutorial Tab: Dictionary",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:47:58.622Z"
+    },
+    {
+      "name": "Tutorial Tab: Yaku",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:48:00.524Z"
+    },
+    {
+      "name": "Tutorial Tab: Rules",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:48:02.400Z"
+    },
+    {
+      "name": "Game Start + Dealing Animation",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:48:08.181Z"
+    },
+    {
+      "name": "Game Board Rendered",
+      "status": "pass",
+      "details": "Cards dealt, game in progress",
+      "time": "2026-03-26T11:48:12.246Z"
+    },
+    {
+      "name": "Player Card Click",
+      "status": "pass",
+      "details": "First player card interaction",
+      "time": "2026-03-26T11:48:15.114Z"
+    },
+    {
+      "name": "Player Card Click #2",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:48:19.996Z"
+    },
+    {
+      "name": "Mid-Game State",
+      "status": "pass",
+      "details": "Multiple turns played",
+      "time": "2026-03-26T11:48:34.547Z"
+    },
+    {
+      "name": "Side Panel (Desktop)",
+      "status": "pass",
+      "details": "Panel visible at 1280px width",
+      "time": "2026-03-26T11:48:34.632Z"
+    },
+    {
+      "name": "Mobile: Flutter Load",
+      "status": "fail",
+      "details": "",
+      "time": "2026-03-26T11:49:22.608Z"
+    },
+    {
+      "name": "Mobile: Start Screen",
+      "status": "pass",
+      "details": "667x375 landscape",
+      "time": "2026-03-26T11:49:22.664Z"
+    },
+    {
+      "name": "Mobile: Settings Overlay",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:49:25.068Z"
+    },
+    {
+      "name": "Mobile: Game Board",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:49:33.264Z"
+    },
+    {
+      "name": "Tablet: Start Screen",
+      "status": "pass",
+      "details": "1024x768",
+      "time": "2026-03-26T11:50:20.979Z"
+    },
+    {
+      "name": "Tablet: Game Board",
+      "status": "pass",
+      "details": "",
+      "time": "2026-03-26T11:50:27.869Z"
+    },
+    {
+      "name": "Extended Gameplay",
+      "status": "pass",
+      "details": "Played through multiple turns",
+      "time": "2026-03-26T11:51:17.622Z"
+    },
+    {
+      "name": "Total Console Errors",
+      "status": "pass",
+      "details": "0 errors detected",
+      "time": "2026-03-26T11:51:17.622Z"
+    },
+    {
+      "name": "Total Page Errors",
+      "status": "pass",
+      "details": "0 page errors",
+      "time": "2026-03-26T11:51:17.622Z"
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "screenshots": [
+    {
+      "name": "01_splash_loading",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\01_splash_loading.png"
+    },
+    {
+      "name": "02_game_start_overlay",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\02_game_start_overlay.png"
+    },
+    {
+      "name": "03_settings_overlay_ko",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\03_settings_overlay_ko.png"
+    },
+    {
+      "name": "03b_after_close_settings",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\03b_after_close_settings.png"
+    },
+    {
+      "name": "04_lang_ko",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_ko.png"
+    },
+    {
+      "name": "04_lang_en",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_en.png"
+    },
+    {
+      "name": "04_lang_ja",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_ja.png"
+    },
+    {
+      "name": "04_lang_zhCn",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_zhCn.png"
+    },
+    {
+      "name": "04_lang_zhTw",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_zhTw.png"
+    },
+    {
+      "name": "04_lang_es",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_es.png"
+    },
+    {
+      "name": "04_lang_fr",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_fr.png"
+    },
+    {
+      "name": "04_lang_de",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_de.png"
+    },
+    {
+      "name": "04_lang_pt",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_pt.png"
+    },
+    {
+      "name": "04_lang_th",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\04_lang_th.png"
+    },
+    {
+      "name": "05_tutorial_overlay",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\05_tutorial_overlay.png"
+    },
+    {
+      "name": "05b_tutorial_dictionary",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\05b_tutorial_dictionary.png"
+    },
+    {
+      "name": "05c_tutorial_yaku",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\05c_tutorial_yaku.png"
+    },
+    {
+      "name": "05d_tutorial_rules",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\05d_tutorial_rules.png"
+    },
+    {
+      "name": "06_before_game_start",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\06_before_game_start.png"
+    },
+    {
+      "name": "07_game_dealing",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\07_game_dealing.png"
+    },
+    {
+      "name": "08_game_in_progress",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\08_game_in_progress.png"
+    },
+    {
+      "name": "09_after_card_play",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\09_after_card_play.png"
+    },
+    {
+      "name": "10_after_card_play_2",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\10_after_card_play_2.png"
+    },
+    {
+      "name": "11_mid_game",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\11_mid_game.png"
+    },
+    {
+      "name": "12_side_panel",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\12_side_panel.png"
+    },
+    {
+      "name": "13_mobile_start",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\13_mobile_start.png"
+    },
+    {
+      "name": "14_mobile_settings",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\14_mobile_settings.png"
+    },
+    {
+      "name": "15_mobile_game",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\15_mobile_game.png"
+    },
+    {
+      "name": "16_tablet_start",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\16_tablet_start.png"
+    },
+    {
+      "name": "17_tablet_game",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\17_tablet_game.png"
+    },
+    {
+      "name": "18_after_many_turns",
+      "path": "D:\\02_project\\08_k-poker\\test\\qa-screenshots\\18_after_many_turns.png"
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "pass": 32,
+    "fail": 3,
+    "skip": 0
+  },
+  "endTime": "2026-03-26T11:51:17.662Z",
+  "duration": "314.4s"
+}

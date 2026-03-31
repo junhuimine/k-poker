@@ -307,7 +307,7 @@ class MySummaryBlock extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(strings.ui('currentScore'), style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
-              Text('${state.playerScore} × ${state.multiplier.toStringAsFixed(1)}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+              Text('${state.baseChips > 0 ? state.baseChips : state.playerScore} × ${state.multiplier.toStringAsFixed(1)}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -400,19 +400,22 @@ class MySkillsBlock extends ConsumerWidget {
     final gameState = ref.watch(gameStateProvider);
     final isPlayerTurn = gameState.currentTurn == 'player' && !gameState.isFinished;
 
-    // 신규 시스템: inventorySkills (Map<String, int>) + ownedTalismanIds (List<String>) + ownedPassiveIds (List<String>)
     final Map<String, int> invSkills = run.inventorySkills as Map<String, int>;
+    final Map<String, int> invRound = run.inventoryRoundItems as Map<String, int>;
+    final List<String> equippedRound = run.equippedRoundItemIds as List<String>;
     final List<String> talismanIds = run.ownedTalismanIds as List<String>;
     final List<String> passiveIds = run.ownedPassiveIds as List<String>;
 
-    // 수량 > 0인 스킬만 표시
     final activeEntries = invSkills.entries.where((e) => e.value > 0).toList();
-    final bool hasNothing = activeEntries.isEmpty && talismanIds.isEmpty && passiveIds.isEmpty;
+    final roundInvEntries = invRound.entries.where((e) => e.value > 0).toList();
+    final bool hasNothing = activeEntries.isEmpty && talismanIds.isEmpty &&
+        passiveIds.isEmpty && roundInvEntries.isEmpty && equippedRound.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('🎒 ${appStr.ui('skillBag')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text('🎒 ${appStr.ui('skillBag')}', style: const TextStyle(
+            color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         if (hasNothing)
           Container(
@@ -422,144 +425,407 @@ class MySkillsBlock extends ConsumerWidget {
               color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(appStr.ui('noSkills'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30, fontSize: 9)),
+            child: Text(appStr.ui('noSkills'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white30, fontSize: 9)),
           )
         else
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 패시브 스킬 — ownedPassiveIds 기반 (노란/주황 테두리)
-              for (var pId in passiveIds)
-                _buildPassiveChip(pId, appStr),
-              // 부적 (영구 패시브) — ownedTalismanIds 기반
-              for (var tId in talismanIds)
-                _buildTalismanChip(tId, appStr),
-              // 액티브 스킬 — inventorySkills 기반
-              for (var entry in activeEntries)
-                _buildSkillChip(context, ref, entry.key, entry.value, isPlayerTurn, appStr),
+              // ── 패시브 (항상 자동 발동) ──
+              if (passiveIds.isNotEmpty) ...[
+                _sectionLabel('🔮 패시브', Colors.orange),
+                Wrap(spacing: 3, runSpacing: 3, children: [
+                  for (var pId in passiveIds) _buildPassiveChip(pId, appStr),
+                ]),
+                const SizedBox(height: 6),
+              ],
+              // ── 부적 (런 전체 영구 효과) ──
+              if (talismanIds.isNotEmpty) ...[
+                _sectionLabel('📜 부적', Colors.deepPurpleAccent),
+                Wrap(spacing: 3, runSpacing: 3, children: [
+                  for (var tId in talismanIds) _buildTalismanChip(tId, appStr),
+                ]),
+                const SizedBox(height: 6),
+              ],
+              // ── 인게임 액티브 (게임 중 즉발) ──
+              if (activeEntries.isNotEmpty) ...[
+                _sectionLabel('⚡ 즉발', Colors.greenAccent),
+                Wrap(spacing: 3, runSpacing: 3, children: [
+                  for (var e in activeEntries)
+                    _buildActiveChip(context, ref, e.key, e.value,
+                        isPlayerTurn, appStr, gameState),
+                ]),
+                const SizedBox(height: 6),
+              ],
+              // ── 라운드 소모품 (장착/미장착) ──
+              if (equippedRound.isNotEmpty || roundInvEntries.isNotEmpty) ...[
+                _sectionLabel('🎫 라운드 아이템', Colors.tealAccent),
+                Wrap(spacing: 3, runSpacing: 3, children: [
+                  for (var rId in equippedRound)
+                    _buildRoundChip(ref, rId, true, appStr),
+                  for (var e in roundInvEntries)
+                    _buildRoundChip(ref, e.key, false, appStr, count: e.value),
+                ]),
+              ],
             ],
           ),
       ],
     );
   }
 
-  Widget _buildPassiveChip(String passiveId, AppStrings appStr) {
-    final itemInfo = findCatalogItem(passiveId);
-    final emoji = itemInfo?.emoji ?? '🔮';
-    final name = appStr.getItemName(passiveId, itemInfo?.nameKo ?? passiveId);
-    final desc = appStr.getItemDesc(passiveId, itemInfo?.description ?? '');
+  Widget _sectionLabel(String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 3),
+      child: Text(text, style: TextStyle(
+          color: color.withValues(alpha: 0.8),
+          fontSize: 9,
+          fontWeight: FontWeight.bold)),
+    );
+  }
 
+  Widget _buildPassiveChip(String passiveId, AppStrings appStr) {
+    final item = findCatalogItem(passiveId);
+    final name = appStr.getItemName(passiveId, item?.nameKo ?? passiveId);
+    final desc = appStr.getItemDesc(passiveId, item?.descKo ?? item?.description ?? '');
     return Tooltip(
-      message: '$name\n$desc',
+      message: '[$name]\n$desc',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.2),
+          color: Colors.orange.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: Colors.orangeAccent, width: 1),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 2),
-            Text(name, style: const TextStyle(color: Colors.white, fontSize: 9)),
-          ],
-        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(item?.emoji ?? '🔮', style: const TextStyle(fontSize: 11)),
+          const SizedBox(width: 3),
+          Flexible(child: Text(name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 9))),
+          const SizedBox(width: 3),
+          // 항상 켜져있음 표시
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+            decoration: BoxDecoration(
+              color: Colors.greenAccent.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: const Text('ON', style: TextStyle(
+                color: Colors.greenAccent, fontSize: 7, fontWeight: FontWeight.bold)),
+          ),
+        ]),
       ),
     );
   }
 
   Widget _buildTalismanChip(String talismanId, AppStrings appStr) {
-    final itemInfo = findCatalogItem(talismanId);
-    final emoji = itemInfo?.emoji ?? '📜';
-    final name = appStr.getItemName(talismanId, itemInfo?.nameKo ?? talismanId);
-    final desc = appStr.getItemDesc(talismanId, itemInfo?.description ?? '');
-
+    final item = findCatalogItem(talismanId);
+    final name = appStr.getItemName(talismanId, item?.nameKo ?? talismanId);
+    final desc = appStr.getItemDesc(talismanId, item?.descKo ?? item?.description ?? '');
     return Tooltip(
-      message: '$name\n$desc',
+      message: '[$name]\n$desc',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.deepPurple.withValues(alpha: 0.3),
+          color: Colors.deepPurple.withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: Colors.deepPurpleAccent, width: 1),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 2),
-            Text(name, style: const TextStyle(color: Colors.white, fontSize: 9)),
-          ],
-        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(item?.emoji ?? '📜', style: const TextStyle(fontSize: 11)),
+          const SizedBox(width: 3),
+          Flexible(child: Text(name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 9))),
+        ]),
       ),
     );
   }
 
-  Widget _buildSkillChip(
+  Widget _buildActiveChip(
     BuildContext context,
     WidgetRef ref,
     String skillId,
     int count,
     bool isPlayerTurn,
     AppStrings appStr,
+    dynamic gameState,
   ) {
-    final itemInfo = findCatalogItem(skillId);
-    final emoji = itemInfo?.emoji ?? '⚡';
-    final name = appStr.getItemName(skillId, itemInfo?.nameKo ?? skillId);
-    final desc = appStr.getItemDesc(skillId, itemInfo?.description ?? '');
+    final item = findCatalogItem(skillId);
+    final name = appStr.getItemName(skillId, item?.nameKo ?? skillId);
+    final desc = appStr.getItemDesc(skillId, item?.descKo ?? item?.description ?? '');
+    final canUse = isPlayerTurn && count > 0;
+
+    // 타겟 선택이 필요한 스킬 (다이얼로그 호출)
+    final needsTarget = skillId == 'a_joker' || skillId == 'a_card_laundry' ||
+        skillId == 'a_trick' || skillId == 'a_keen_eye';
 
     return Tooltip(
-      message: '$name\n$desc',
-      child: InkWell(
-        onTap: isPlayerTurn
-            ? () {
-                ref.read(gameStateProvider.notifier).useActiveSkill(skillId);
-              }
+      message: '[$name]\n$desc\n${canUse ? "▶ 탭하여 사용" : "상대 턴에는 사용 불가"}',
+      child: GestureDetector(
+        onTap: canUse
+            ? () => needsTarget
+                ? _showTargetDialog(context, ref, skillId, name, appStr, gameState)
+                : ref.read(gameStateProvider.notifier).useActiveSkill(skillId)
             : null,
-        borderRadius: BorderRadius.circular(6),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
           decoration: BoxDecoration(
-            color: isPlayerTurn
-                ? Colors.green.withValues(alpha: 0.3)
-                : Colors.grey.withValues(alpha: 0.2),
+            color: canUse
+                ? Colors.green.withValues(alpha: 0.25)
+                : Colors.grey.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isPlayerTurn ? Colors.greenAccent : Colors.grey,
-              width: 1,
+              color: canUse ? Colors.greenAccent : Colors.grey,
+              width: canUse ? 1.5 : 1,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 2),
-              Text(name, style: TextStyle(
-                color: isPlayerTurn ? Colors.white : Colors.white38,
-                fontSize: 9,
-              )),
-              const SizedBox(width: 2),
-              // 수량 배지
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text('x$count', style: TextStyle(
-                  color: isPlayerTurn ? Colors.cyanAccent : Colors.white38,
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                )),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(item?.emoji ?? '⚡', style: const TextStyle(fontSize: 11)),
+            const SizedBox(width: 3),
+            Flexible(child: Text(name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: canUse ? Colors.white : Colors.white38,
+                    fontSize: 9))),
+            const SizedBox(width: 3),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+              decoration: BoxDecoration(
+                color: canUse
+                    ? Colors.cyanAccent.withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(3),
               ),
-            ],
-          ),
+              child: Text('×$count', style: TextStyle(
+                  color: canUse ? Colors.cyanAccent : Colors.white38,
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold)),
+            ),
+          ]),
         ),
       ),
     );
+  }
+
+  Widget _buildRoundChip(
+    WidgetRef ref,
+    String itemId,
+    bool isEquipped,
+    AppStrings appStr, {
+    int count = 1,
+  }) {
+    final item = findCatalogItem(itemId);
+    final name = appStr.getItemName(itemId, item?.nameKo ?? itemId);
+    final desc = appStr.getItemDesc(itemId, item?.descKo ?? item?.description ?? '');
+
+    return Tooltip(
+      message: '[$name]\n$desc\n${isEquipped ? "✅ 이번 라운드 장착됨" : "▶ 탭하여 장착"}',
+      child: GestureDetector(
+        onTap: isEquipped
+            ? null
+            : () => ref.read(runStateNotifierProvider.notifier).equipRoundItem(itemId),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+          decoration: BoxDecoration(
+            color: isEquipped
+                ? Colors.teal.withValues(alpha: 0.3)
+                : Colors.blueGrey.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isEquipped ? Colors.tealAccent : Colors.blueGrey,
+              width: isEquipped ? 1.5 : 1,
+            ),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(item?.emoji ?? '🎫', style: const TextStyle(fontSize: 11)),
+            const SizedBox(width: 3),
+            Flexible(child: Text(name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: isEquipped ? Colors.tealAccent : Colors.white60,
+                    fontSize: 9))),
+            if (!isEquipped && count > 1) ...[
+              const SizedBox(width: 3),
+              Text('×$count', style: const TextStyle(
+                  color: Colors.white38, fontSize: 8)),
+            ],
+            if (isEquipped) ...[
+              const SizedBox(width: 3),
+              const Text('✓', style: TextStyle(
+                  color: Colors.tealAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+            ],
+          ]),
+        ),
+      ),
+    );
+  }
+
+  void _showTargetDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String skillId,
+    String skillName,
+    AppStrings appStr,
+    dynamic gameState,
+  ) {
+    final field = gameState.field as List;
+    final notifier = ref.read(gameStateProvider.notifier);
+
+    if (skillId == 'a_joker' || skillId == 'a_card_laundry') {
+      if (field.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('바닥에 카드가 없습니다'), duration: const Duration(seconds: 2)),
+        );
+        return;
+      }
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1F2E),
+          title: Text(skillId == 'a_joker' ? '🃏 획득할 카드 선택' : '🧼 덱으로 보낼 카드 선택',
+              style: const TextStyle(color: Colors.white, fontSize: 14)),
+          content: SizedBox(
+            width: 200,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: field.length,
+              separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 1),
+              itemBuilder: (_, i) {
+                final card = field[i];
+                return ListTile(
+                  dense: true,
+                  title: Text(card.def.nameKo ?? card.def.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  subtitle: Text('${card.def.month}월',
+                      style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    if (skillId == 'a_joker') {
+                      notifier.useJokerOnCard(card);
+                    } else {
+                      notifier.useLaundryOnCard(i);
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        ),
+      );
+    } else if (skillId == 'a_keen_eye') {
+      final deck = gameState.deck as List;
+      final topCards = deck.take(3).toList();
+      if (topCards.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('덱이 비어있습니다'), duration: Duration(seconds: 2)),
+        );
+        return;
+      }
+      // 순서 변경: 현재 순서 유지(확인만)로 간소화
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1F2E),
+          title: const Text('👁️ 덱 위 3장 확인',
+              style: TextStyle(color: Colors.white, fontSize: 14)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < topCards.length; i++)
+                ListTile(
+                  dense: true,
+                  leading: Text('${i + 1}위',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  title: Text(topCards[i].def.nameKo ?? topCards[i].def.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  subtitle: Text('${topCards[i].def.month}월',
+                      style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('확인', style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // 역순으로 재배치 (3→2→1)
+                notifier.useKeenEyeReorder(
+                    List.generate(topCards.length, (i) => topCards.length - 1 - i));
+                ref.read(runStateNotifierProvider.notifier).consumeActiveSkill(skillId);
+              },
+              child: const Text('역순으로 바꾸기',
+                  style: TextStyle(color: Colors.cyanAccent)),
+            ),
+          ],
+        ),
+      );
+    } else if (skillId == 'a_trick') {
+      final hand = gameState.playerHand as List;
+      if (field.isEmpty || hand.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('필드 또는 손패가 없습니다'), duration: Duration(seconds: 2)),
+        );
+        return;
+      }
+      // 바닥 카드 선택 → 손패 월로 변경
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1F2E),
+          title: const Text('🃏 변경할 바닥 카드 선택',
+              style: TextStyle(color: Colors.white, fontSize: 14)),
+          content: SizedBox(
+            width: 200,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: field.length,
+              separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 1),
+              itemBuilder: (_, fi) {
+                final fCard = field[fi];
+                return ListTile(
+                  dense: true,
+                  title: Text(fCard.def.nameKo ?? fCard.def.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  subtitle: Text('${fCard.def.month}월 → 내 패 월로 변경',
+                      style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // 손패 중 가장 유리한 월(첫번째) 사용
+                    final handMonths = hand
+                        .where((c) => !c.def.isBonus && !c.isDeckDraw)
+                        .map<int>((c) => c.def.month as int)
+                        .toSet()
+                        .toList();
+                    if (handMonths.isNotEmpty) {
+                      notifier.useTrickOnCards(fi, handMonths.first);
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
 

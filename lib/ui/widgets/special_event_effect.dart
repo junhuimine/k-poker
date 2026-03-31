@@ -636,6 +636,12 @@ class _SpecialEventEffectState extends State<SpecialEventEffect>
       'cheongdan': '🔵',
       'chodan': '🟢',
       'godori': '🐦',
+      'ribbon_count': '🎀',
+      'animal_count': '🦌',
+      'junk_count': '🃏',
+      'go_high': '🔥',
+      'go_low': '💫',
+      'cup_as_junk': '🍶',
     };
     return map[yaku] ?? '🎴';
   }

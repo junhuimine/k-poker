@@ -10,6 +10,7 @@ library;
 
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../i18n/app_strings.dart';
 import '../../models/card_def.dart';
 import 'hwatu_card.dart';
 
@@ -46,12 +47,14 @@ class CardAnimationOverlay extends StatefulWidget {
   final List<FlyingCard> flyingCards;
   final VoidCallback? onAllComplete;
   final String skinPath;
+  final AppStrings? strings;
 
   const CardAnimationOverlay({
     super.key,
     required this.flyingCards,
     this.onAllComplete,
-    this.skinPath = 'assets/images/cards/card_back.png',
+    this.skinPath = 'assets/images/cards/card_back.jpg',
+    this.strings,
   });
 
   @override
@@ -238,6 +241,7 @@ class _CardAnimationOverlayState extends State<CardAnimationOverlay>
                         size: a.card.size,
                         isFaceDown: a.card.isFaceDown,
                         skinPath: widget.skinPath,
+                        strings: widget.strings,
                       ),
                     ),
                   ),

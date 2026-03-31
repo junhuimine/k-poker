@@ -41,7 +41,11 @@ class CardDef with _$CardDef {
   const CardDef._();
 
   /// 카드 이미지 경로
-  String get imagePath => 'assets/images/cards/$id.png';
+  /// _upgraded 접미사가 붙은 가상 카드는 기본 카드 이미지를 사용
+  String get imagePath {
+    final baseId = id.endsWith('_upgraded') ? id.replaceFirst('_upgraded', '') : id;
+    return 'assets/images/cards/$baseId.jpg';
+  }
 }
 
 /// 게임 중 카드 인스턴스 (강화/에디션 상태 포함)

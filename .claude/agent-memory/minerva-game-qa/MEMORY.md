@@ -1,0 +1,2 @@
+- [AI Stop Winner Bug Fix](project_ai_stop_winner_fix.md) -- playAiCard AI stop was missing winner:'opponent', caused dokbak misfire as draw
+- [Score Breakdown i18n Keys](project_score_breakdown_i18n.md) -- 10 item/synergy keys were missing from uiTexts map in app_strings.dart

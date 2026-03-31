@@ -22,13 +22,13 @@ RunState _$RunStateFromJson(Map<String, dynamic> json) {
 mixin _$RunState {
   int get stage => throw _privateConstructorUsedError; // 현재 스테이지 (1~6+)
   int get gold => throw _privateConstructorUsedError; // 골드 (시작값은 newGame에서 설정)
-  double get money => throw _privateConstructorUsedError; // 소지금 (화폐 기준)
+  double get money => throw _privateConstructorUsedError; // 소지금 ($50 시작)
   double get stageEarned =>
       throw _privateConstructorUsedError; // 레거시 (호환용, 미사용)
   int get currentOpponentIndex =>
       throw _privateConstructorUsedError; // 현재 상대 인덱스 (0 또는 1)
   double get opponentMoney =>
-      throw _privateConstructorUsedError; // 현재 상대의 남은 자금
+      throw _privateConstructorUsedError; // 현재 상대의 남은 자금 ($50 = 스테이지1 기본)
 // @deprecated 레거시 호환용 (기존 세이브 역직렬화 지원)
   List<String> get activeSkillIds =>
       throw _privateConstructorUsedError; // @deprecated 레거시 호환용
@@ -52,7 +52,8 @@ mixin _$RunState {
   double get highestMoney => throw _privateConstructorUsedError; // 최고 소지금
   List<double> get moneyHistory =>
       throw _privateConstructorUsedError; // 소지금 그래프용
-  String get currencyLocale => throw _privateConstructorUsedError;
+  String get currencyLocale => throw _privateConstructorUsedError; // 화폐 로케일
+  String get lastRoundWinner => throw _privateConstructorUsedError;
 
   /// Serializes this RunState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -90,7 +91,8 @@ abstract class $RunStateCopyWith<$Res> {
       int highestScore,
       double highestMoney,
       List<double> moneyHistory,
-      String currencyLocale});
+      String currencyLocale,
+      String lastRoundWinner});
 
   $ShopStateCopyWith<$Res> get shopState;
 }
@@ -131,6 +133,7 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
     Object? highestMoney = null,
     Object? moneyHistory = null,
     Object? currencyLocale = null,
+    Object? lastRoundWinner = null,
   }) {
     return _then(_value.copyWith(
       stage: null == stage
@@ -217,6 +220,10 @@ class _$RunStateCopyWithImpl<$Res, $Val extends RunState>
           ? _value.currencyLocale
           : currencyLocale // ignore: cast_nullable_to_non_nullable
               as String,
+      lastRoundWinner: null == lastRoundWinner
+          ? _value.lastRoundWinner
+          : lastRoundWinner // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -260,7 +267,8 @@ abstract class _$$RunStateImplCopyWith<$Res>
       int highestScore,
       double highestMoney,
       List<double> moneyHistory,
-      String currencyLocale});
+      String currencyLocale,
+      String lastRoundWinner});
 
   @override
   $ShopStateCopyWith<$Res> get shopState;
@@ -300,6 +308,7 @@ class __$$RunStateImplCopyWithImpl<$Res>
     Object? highestMoney = null,
     Object? moneyHistory = null,
     Object? currencyLocale = null,
+    Object? lastRoundWinner = null,
   }) {
     return _then(_$RunStateImpl(
       stage: null == stage
@@ -386,6 +395,10 @@ class __$$RunStateImplCopyWithImpl<$Res>
           ? _value.currencyLocale
           : currencyLocale // ignore: cast_nullable_to_non_nullable
               as String,
+      lastRoundWinner: null == lastRoundWinner
+          ? _value.lastRoundWinner
+          : lastRoundWinner // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -396,10 +409,10 @@ class _$RunStateImpl extends _RunState {
   const _$RunStateImpl(
       {this.stage = 1,
       this.gold = 0,
-      this.money = 50000,
+      this.money = 50,
       this.stageEarned = 0,
       this.currentOpponentIndex = 0,
-      this.opponentMoney = 0,
+      this.opponentMoney = 50,
       final List<String> activeSkillIds = const [],
       final List<String> activeTalismanIds = const [],
       this.shopState = const ShopState(),
@@ -414,7 +427,8 @@ class _$RunStateImpl extends _RunState {
       this.highestScore = 0,
       this.highestMoney = 0,
       final List<double> moneyHistory = const [],
-      this.currencyLocale = 'ko'})
+      this.currencyLocale = 'ko',
+      this.lastRoundWinner = ''})
       : _activeSkillIds = activeSkillIds,
         _activeTalismanIds = activeTalismanIds,
         _ownedPassiveIds = ownedPassiveIds,
@@ -439,7 +453,7 @@ class _$RunStateImpl extends _RunState {
   @override
   @JsonKey()
   final double money;
-// 소지금 (화폐 기준)
+// 소지금 ($50 시작)
   @override
   @JsonKey()
   final double stageEarned;
@@ -451,10 +465,10 @@ class _$RunStateImpl extends _RunState {
   @override
   @JsonKey()
   final double opponentMoney;
-// 현재 상대의 남은 자금
+// 현재 상대의 남은 자금 ($50 = 스테이지1 기본)
 // @deprecated 레거시 호환용 (기존 세이브 역직렬화 지원)
   final List<String> _activeSkillIds;
-// 현재 상대의 남은 자금
+// 현재 상대의 남은 자금 ($50 = 스테이지1 기본)
 // @deprecated 레거시 호환용 (기존 세이브 역직렬화 지원)
   @override
   @JsonKey()
@@ -573,10 +587,14 @@ class _$RunStateImpl extends _RunState {
   @override
   @JsonKey()
   final String currencyLocale;
+// 화폐 로케일
+  @override
+  @JsonKey()
+  final String lastRoundWinner;
 
   @override
   String toString() {
-    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, currentOpponentIndex: $currentOpponentIndex, opponentMoney: $opponentMoney, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, shopState: $shopState, ownedPassiveIds: $ownedPassiveIds, inventorySkills: $inventorySkills, inventoryRoundItems: $inventoryRoundItems, equippedRoundItemIds: $equippedRoundItemIds, ownedTalismanIds: $ownedTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale)';
+    return 'RunState(stage: $stage, gold: $gold, money: $money, stageEarned: $stageEarned, currentOpponentIndex: $currentOpponentIndex, opponentMoney: $opponentMoney, activeSkillIds: $activeSkillIds, activeTalismanIds: $activeTalismanIds, shopState: $shopState, ownedPassiveIds: $ownedPassiveIds, inventorySkills: $inventorySkills, inventoryRoundItems: $inventoryRoundItems, equippedRoundItemIds: $equippedRoundItemIds, ownedTalismanIds: $ownedTalismanIds, wins: $wins, losses: $losses, winStreak: $winStreak, highestScore: $highestScore, highestMoney: $highestMoney, moneyHistory: $moneyHistory, currencyLocale: $currencyLocale, lastRoundWinner: $lastRoundWinner)';
   }
 
   @override
@@ -620,7 +638,9 @@ class _$RunStateImpl extends _RunState {
             const DeepCollectionEquality()
                 .equals(other._moneyHistory, _moneyHistory) &&
             (identical(other.currencyLocale, currencyLocale) ||
-                other.currencyLocale == currencyLocale));
+                other.currencyLocale == currencyLocale) &&
+            (identical(other.lastRoundWinner, lastRoundWinner) ||
+                other.lastRoundWinner == lastRoundWinner));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -647,7 +667,8 @@ class _$RunStateImpl extends _RunState {
         highestScore,
         highestMoney,
         const DeepCollectionEquality().hash(_moneyHistory),
-        currencyLocale
+        currencyLocale,
+        lastRoundWinner
       ]);
 
   /// Create a copy of RunState
@@ -688,7 +709,8 @@ abstract class _RunState extends RunState {
       final int highestScore,
       final double highestMoney,
       final List<double> moneyHistory,
-      final String currencyLocale}) = _$RunStateImpl;
+      final String currencyLocale,
+      final String lastRoundWinner}) = _$RunStateImpl;
   const _RunState._() : super._();
 
   factory _RunState.fromJson(Map<String, dynamic> json) =
@@ -699,13 +721,13 @@ abstract class _RunState extends RunState {
   @override
   int get gold; // 골드 (시작값은 newGame에서 설정)
   @override
-  double get money; // 소지금 (화폐 기준)
+  double get money; // 소지금 ($50 시작)
   @override
   double get stageEarned; // 레거시 (호환용, 미사용)
   @override
   int get currentOpponentIndex; // 현재 상대 인덱스 (0 또는 1)
   @override
-  double get opponentMoney; // 현재 상대의 남은 자금
+  double get opponentMoney; // 현재 상대의 남은 자금 ($50 = 스테이지1 기본)
 // @deprecated 레거시 호환용 (기존 세이브 역직렬화 지원)
   @override
   List<String> get activeSkillIds; // @deprecated 레거시 호환용
@@ -736,7 +758,9 @@ abstract class _RunState extends RunState {
   @override
   List<double> get moneyHistory; // 소지금 그래프용
   @override
-  String get currencyLocale;
+  String get currencyLocale; // 화폐 로케일
+  @override
+  String get lastRoundWinner;
 
   /// Create a copy of RunState
   /// with the given fields replaced by the non-null parameter values.

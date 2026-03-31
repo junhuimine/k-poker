@@ -6,7 +6,7 @@ library;
 import 'package:flutter/material.dart';
 import '../../i18n/app_strings.dart';
 import '../../models/card_def.dart';
-import '../../state/card_skin_provider.dart';
+
 
 /// 등급별 보더 색상
 const Map<CardGrade, Color> gradeBorderColors = {
@@ -101,8 +101,6 @@ class HwatuCard extends StatefulWidget {
   final bool isFaceDown;
   final String skinPath;
   final AppStrings? strings;
-  /// 앞면 스킨 (manga 등). null이면 기본 original.
-  final FrontSkin frontSkin;
 
   const HwatuCard({
     super.key,
@@ -112,9 +110,8 @@ class HwatuCard extends StatefulWidget {
     this.isSelected = false,
     this.isField = false,
     this.isFaceDown = false,
-    this.skinPath = 'assets/images/cards/card_back.png',
+    this.skinPath = 'assets/images/cards/card_back.jpg',
     this.strings,
-    this.frontSkin = FrontSkin.original,
   });
 
   @override
@@ -242,8 +239,7 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
   Widget _buildCardFront(double width) {
     final featureLabel = getCardFeatureLabel(widget.card.def, strings: widget.strings);
     final featureColor = getFeatureColor(widget.card.def);
-    final isManga = widget.frontSkin == FrontSkin.manga;
-    final imagePath = widget.frontSkin.getAssetPath(widget.card.def.id);
+    final imagePath = widget.card.def.imagePath;
 
     Widget cardContent = Stack(
       fit: StackFit.expand,
@@ -323,10 +319,6 @@ class _HwatuCardState extends State<HwatuCard> with SingleTickerProviderStateMix
       ],
     );
 
-    // 만화 스킨이면 MangaStyleCard 래퍼 적용
-    if (isManga) {
-      return MangaStyleCard(child: cardContent);
-    }
     return cardContent;
   }
 

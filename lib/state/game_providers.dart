@@ -97,7 +97,8 @@ class GameState extends _$GameState {
     ref.read(runStateNotifierProvider.notifier).applySamshinGranny();
 
     final runState = ref.read(runStateNotifierProvider);
-    state = GameEngine.createInitialState(run: runState);
+    final firstTurn = GameEngine.determineFirstTurn(runState.lastRoundWinner);
+    state = GameEngine.createInitialState(run: runState, firstTurn: firstTurn);
     ref.read(gameEventsProvider.notifier).addEvent('start', _s.eventMatchStart);
   }
 
@@ -295,24 +296,42 @@ class GameState extends _$GameState {
     ref.read(runStateNotifierProvider.notifier).consumeActiveSkill('a_keen_eye');
   }
 
-  /// 흔들기 가능 월 체크 (핸드에 같은 월 3장)
-  int? getShakeMonth() {
-    if (state.isShaking) return null; // 이미 선언됨
+  /// 흔들기 가능한 모든 월 리스트 (이미 선언한 월은 제외)
+  List<int> getShakeMonths() {
     final monthCount = <int, int>{};
     for (final c in state.playerHand) {
       monthCount[c.def.month] = (monthCount[c.def.month] ?? 0) + 1;
     }
-    for (final entry in monthCount.entries) {
-      if (entry.value >= 3) return entry.key;
-    }
-    return null;
+    return monthCount.entries
+        .where((e) => e.value >= 3)
+        .where((e) => !state.shakeMonths.contains(e.key))
+        .map((e) => e.key)
+        .toList();
   }
 
-  /// 흔들기 선언
+  /// 흔들기 선언 (복수 월 가능: 1벌=2배, 2벌=4배)
   void declareShake(int month) {
-    if (state.isShaking) return;
-    state = state.copyWith(isShaking: true, shakeMonth: month);
+    if (state.shakeMonths.contains(month)) return;
+    state = state.copyWith(
+      shakeMonths: [...state.shakeMonths, month],
+    );
     ref.read(gameEventsProvider.notifier).addEvent('shake', _s.shakeAnnounce(month));
+    ref.read(yakuAnnounceProvider.notifier).announce('shake');
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      ref.read(yakuAnnounceProvider.notifier).clear();
+    });
+  }
+
+  /// 전체 흔들기 (가능한 모든 월 한꺼번에 선언)
+  void declareShakeAll(List<int> months) {
+    final newMonths = months.where((m) => !state.shakeMonths.contains(m)).toList();
+    if (newMonths.isEmpty) return;
+    state = state.copyWith(
+      shakeMonths: [...state.shakeMonths, ...newMonths],
+    );
+    for (final month in newMonths) {
+      ref.read(gameEventsProvider.notifier).addEvent('shake', _s.shakeAnnounce(month));
+    }
     ref.read(yakuAnnounceProvider.notifier).announce('shake');
     Future.delayed(const Duration(milliseconds: 2000), () {
       ref.read(yakuAnnounceProvider.notifier).clear();
@@ -348,6 +367,22 @@ class GameState extends _$GameState {
     final prevCaptured = state.playerCaptured.length;
     final run = ref.read(runStateNotifierProvider);
     final nextState = GameEngine.playTurn(state, card, selectedMatch: selectedMatch, run: run);
+
+    // ── 보너스 카드: 즉시 획득 + 덱 1장 핸드 추가 → 턴 소비 없이 리턴 ──
+    if (card.def.isBonus) {
+      // 점수만 갱신하고 고/스톱 판정/턴 전환 없이 리턴 (플레이어가 다시 카드를 냄)
+      final scoreResult = ScoreCalculator.calculate(nextState, run);
+      state = nextState.copyWith(
+        playerScore: scoreResult.finalScore,
+        baseChips: scoreResult.baseChips,
+        multiplier: scoreResult.multiplier,
+        scoreBreakdown: scoreResult.breakdown.map((e) => e.toJson()).toList(),
+      );
+      AudioManager().cardMatch();
+      ref.read(gameEventsProvider.notifier)
+          .addEvent('bonus', _s.eventPlayerMatch(card.def.nameKo, 1));
+      return; // 턴 소비 없음 — 고/스톱 판정 안 함
+    }
 
     // 2. 매칭 피드백 이벤트 + SFX
     final newCaptured = nextState.playerCaptured.length - prevCaptured;
@@ -392,11 +427,14 @@ class GameState extends _$GameState {
     );
 
     // 족보 달성 알림 (#4) — i18n 키로 announce
+    // 'shake'는 선언 시 이미 announce 했으므로 매턴 반복 방지를 위해 제외
     final newYaku = scoreResult.appliedYaku;
     for (final yaku in newYaku) {
+      if (yaku == 'shake') continue; // 흔들기는 declareShake()에서 이미 표시
       if (!prevYaku.contains(yaku)) {
         // yaku_ 접두어 제거하여 이벤트 코드 추출 (SpecialEventEffect 호환)
         final announceKey = _yakuKeyToEventType(yaku);
+        if (announceKey == null) continue; // 이펙트 표시 불필요한 키 스킵
         ref.read(yakuAnnounceProvider.notifier).announce(announceKey);
         Future.delayed(const Duration(milliseconds: 1800), () {
           ref.read(yakuAnnounceProvider.notifier).clear();
@@ -515,6 +553,8 @@ class GameState extends _$GameState {
   void playBomb(int bombMonth) {
     if (state.isFinished || state.currentTurn != 'player') return;
 
+    final prevPlayerScore = state.playerScore; // 고/스톱 판정용 이전 점수
+
     final prevOpJunks = state.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).length;
     final nextState = GameEngine.playBomb(state, bombMonth);
     final newOpJunks = nextState.opponentCaptured.where((c) => c.def.grade == CardGrade.junk).length;
@@ -545,10 +585,17 @@ class GameState extends _$GameState {
       return;
     }
 
-    // 고/스톱 판정
-    if (scoreResult.finalScore >= 3) {
-      ref.read(goStopPendingProvider.notifier).show();
-      return;
+    // 고/스톱 판정 — playCard와 동일한 로직 적용
+    if (scoreResult.finalScore >= 3 && state.deck.isNotEmpty) {
+      if (state.goCount == 0) {
+        // 첫 3점 도달: 무조건 고/스톱 선택
+        ref.read(goStopPendingProvider.notifier).show();
+        return;
+      } else if (scoreResult.finalScore > prevPlayerScore) {
+        // 고 선언 후: 점수가 실제로 올라야만 재판정
+        ref.read(goStopPendingProvider.notifier).show();
+        return;
+      }
     }
 
     // AI 턴 (UI에서 애니메이션과 함께 호출하도록 위임)
@@ -592,6 +639,15 @@ class GameState extends _$GameState {
     // 고 배율은 ScoreCalculator에서만 처리 (이중적용 방지)
     state = state.copyWith(
       goCount: state.goCount + 1,
+    );
+
+    // 고 선언 직후 multiplier 즉시 갱신 (사이드 패널 실시간 반영)
+    final scoreResult = ScoreCalculator.calculate(state, ref.read(runStateNotifierProvider));
+    state = state.copyWith(
+      playerScore: scoreResult.finalScore,
+      baseChips: scoreResult.baseChips,
+      multiplier: scoreResult.multiplier,
+      scoreBreakdown: scoreResult.breakdown.map((e) => e.toJson()).toList(),
     );
 
     if (state.currentTurn == 'opponent') {
@@ -713,7 +769,7 @@ class GameState extends _$GameState {
         final stopLine = _s.getAiDialogue(ai.id, 'stop', ai.dialogues['stop'] ?? ['스톱!']);
         ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$stopLine"');
 
-        state = state.copyWith(isFinished: true);
+        state = state.copyWith(isFinished: true, winner: 'opponent');
         Future.delayed(const Duration(milliseconds: 1500), () {
           ref.read(aiGoStopAnnounceProvider.notifier).clear();
           _handleRoundEnd();
@@ -859,10 +915,10 @@ class GameState extends _$GameState {
           || (aiResult.finalScore >= 5 && ai.goAggressiveness < 0.3);
       
       if (shouldStop) {
-        // AI 스톱!
+        // AI 스톱! → AI 승리 (플레이어가 고를 선언한 상태면 독박)
         ref.read(aiGoStopAnnounceProvider.notifier).announce('stop');
         ref.read(gameEventsProvider.notifier).addEvent('ai_play', _s.eventAiStop);
-        state = state.copyWith(isFinished: true);
+        state = state.copyWith(isFinished: true, winner: 'opponent');
         // 애니메이션 후 라운드 종료 처리 (UI에서 처리)
         Future.delayed(const Duration(milliseconds: 1500), () {
           ref.read(aiGoStopAnnounceProvider.notifier).clear();
@@ -886,8 +942,8 @@ class GameState extends _$GameState {
   }
 
   /// i18n 키를 SpecialEventEffect의 eventType으로 변환
-  /// yaku_ 접두어가 있으면 SpecialEventEffect의 default(족보) 케이스로 전달
-  String _yakuKeyToEventType(String yakuKey) {
+  /// 이펙트 표시 대상이 아닌 키는 null 반환
+  String? _yakuKeyToEventType(String yakuKey) {
     const keyToEvent = {
       'yaku_ogwang': 'ogwang',
       'yaku_sagwang': 'sagwang',
@@ -898,8 +954,22 @@ class GameState extends _$GameState {
       'yaku_hongdan': 'hongdan',
       'yaku_cheongdan': 'cheongdan',
       'yaku_chodan': 'chodan',
+      'yaku_sweep': 'sweep',
     };
-    return keyToEvent[yakuKey] ?? yakuKey;
+    // 이펙트 표시 불필요한 키들 (점수 브레이크다운에서만 표시)
+    if (yakuKey.startsWith('penalty_') ||
+        yakuKey.startsWith('talisman_') ||
+        yakuKey.startsWith('consumable_') ||
+        yakuKey.startsWith('synergy_') ||
+        yakuKey.startsWith('passive_') ||
+        yakuKey.startsWith('yaku_go_') ||
+        yakuKey == 'yaku_ribbon_count' ||
+        yakuKey == 'yaku_animal_count' ||
+        yakuKey == 'yaku_junk_count' ||
+        yakuKey == 'yaku_cup_as_junk') {
+      return null;
+    }
+    return keyToEvent[yakuKey];
   }
 
   /// 라운드 종료 처리 (판돈 정산)
@@ -920,24 +990,27 @@ class GameState extends _$GameState {
     if (isDraw) {
       ref.read(gameEventsProvider.notifier).addEvent('round_end', _s.eventDraw);
       ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "${_s.aiTalkDraw}"');
+      // 나가리 시: 선 결정용 빈 문자열 (다음 판 랜덤)
+      ref.read(runStateNotifierProvider.notifier).setLastRoundWinner('');
       // 나가리 시 골드 손실
       ref.read(runStateNotifierProvider.notifier).onNagari();
     } else {
       // 명시적인 승자가 있으면 우선 적용, 없으면 점수 비교
       final isPlayerWin = state.winner == 'player' || (state.winner == null && state.playerScore > state.opponentScore);
 
+      // 선 결정용: 이번 판 승자 저장
+      ref.read(runStateNotifierProvider.notifier).setLastRoundWinner(isPlayerWin ? 'player' : 'opponent');
+
       if (isPlayerWin) {
         // 플레이어 승리 → AI는 lose 대사
-        var baseScore = state.baseChips > 0 ? state.baseChips : state.playerScore;
+        // playerScore = (baseChips + passiveChips) * multiplier — 패시브 보너스 포함 최종 점수
+        var earnings = state.playerScore * currency.pointValue;
 
         // 상대 고박 (AI가 고를 불렀는데 유저가 스톱으로 이긴 경우 2배)
         if (state.opponentGoCount > 0) {
-          baseScore *= 2;
+          earnings *= 2;
           ref.read(gameEventsProvider.notifier).addEvent('round_end', _s.eventRewardGoBak);
         }
-
-        final mult = state.multiplier;
-        final earnings = baseScore * currency.pointValue * mult;
 
         final loseLine = _s.getAiDialogue(ai.id, 'lose', ai.dialogues['lose'] ?? ['다음엔 지지 않을 거야...']);
         ref.read(gameEventsProvider.notifier).addEvent('ai_talk', '💬 ${ai.emoji} "$loseLine"');
@@ -985,11 +1058,11 @@ class RunStateNotifier extends _$RunStateNotifier {
     if (saved != null) {
       var migrated = saved;
 
-      // 레거시 세이브: opponentMoney가 0이면 현재 스테이지에 맞게 초기화
-      if (migrated.opponentMoney <= 0) {
-        final currency = getCurrencyForLocale(migrated.currencyLocale);
-        final fund = getOpponentFund(migrated.stage, migrated.currentOpponentIndex, currency.pointValue);
-        migrated = migrated.copyWith(opponentMoney: fund);
+      // 세이브 보정: opponentMoney가 0 이하이거나 비정상적이면 현재 스테이지에 맞게 초기화
+      final currency = getCurrencyForLocale(migrated.currencyLocale);
+      final expectedFund = getOpponentFund(migrated.stage, migrated.currentOpponentIndex, currency.pointValue);
+      if (migrated.opponentMoney <= 0 || migrated.opponentMoney > expectedFund * 2) {
+        migrated = migrated.copyWith(opponentMoney: expectedFund);
       }
 
       // 레거시 마이그레이션: activeSkillIds → inventorySkills
@@ -1036,7 +1109,7 @@ class RunStateNotifier extends _$RunStateNotifier {
   /// 새 게임 시작
   void newGame(String locale) {
     final currency = getCurrencyForLocale(locale);
-    final initialMoney = stageConfigs[0].stakeMultiplier * currency.pointValue * 5; // 판돈 5배
+    const initialMoney = 50.0; // $50 시작 소지금
     final firstOpponentFund = getOpponentFund(1, 0, currency.pointValue);
 
     // t_samshin_granny (삼신할머니): 런 시작 시 랜덤 Common 패시브 1개 지급
@@ -1048,6 +1121,7 @@ class RunStateNotifier extends _$RunStateNotifier {
     state = RunState(
       stage: 1,
       money: initialMoney,
+      highestMoney: initialMoney,
       gold: EconomyConfig.startingGold,
       currencyLocale: locale,
       currentOpponentIndex: 0,
@@ -1192,6 +1266,11 @@ class RunStateNotifier extends _$RunStateNotifier {
     _autoSave();
   }
 
+  /// 선(先) 결정용: 전판 승자 저장
+  void setLastRoundWinner(String winner) {
+    state = state.copyWith(lastRoundWinner: winner);
+  }
+
   /// 나가리(무승부) 처리 — 골드 손실 없음
   /// ps_insurance: 나가리 시 연승 유지 (50% 확률)
   void onNagari() {
@@ -1207,12 +1286,32 @@ class RunStateNotifier extends _$RunStateNotifier {
     _autoSave();
   }
 
-  /// 파산 여부 체크: 소지금이 현재 스테이지 최소 판돈(1점어치) 미만이면 파산
+  /// 파산 여부 체크: 소지금이 3점 판돈(최소 한 판 비용) 미만이면 파산
   bool get isBankrupt {
     final currency = getCurrencyForLocale(state.currencyLocale);
-    final stageIdx = (state.stage - 1).clamp(0, stageConfigs.length - 1);
-    final minBet = stageConfigs[stageIdx].getStake(currency.pointValue);
+    final minBet = currency.pointValue * 3; // 3점 최소 판 비용
     return state.money < minBet;
+  }
+
+  /// 언어 변경 시 화폐 변환 (포인트 기준 환산)
+  void changeCurrency(String newLocale) {
+    if (state.currencyLocale == newLocale) return;
+    final oldCurrency = getCurrencyForLocale(state.currencyLocale);
+    final newCurrency = getCurrencyForLocale(newLocale);
+    final ratio = newCurrency.pointValue / oldCurrency.pointValue;
+
+    state = state.copyWith(
+      currencyLocale: newLocale,
+      money: state.money * ratio,
+      opponentMoney: state.opponentMoney * ratio,
+      highestMoney: state.highestMoney * ratio,
+      moneyHistory: state.moneyHistory.map((m) => m * ratio).toList(),
+    );
+    // opponentMoney가 0 이하면 복구
+    if (state.opponentMoney <= 0) {
+      fixOpponentMoney();
+    }
+    _autoSave();
   }
 
   /// 런 재시작 (처음부터 다시)

@@ -10,6 +10,7 @@
 /// - 고: 1고=+1점, 2고=+2점, 3고=x2, 4고=x4...
 library;
 
+import 'dart:math';
 import '../models/card_def.dart';
 import '../models/round_state.dart';
 import '../models/run_state.dart';
@@ -514,6 +515,19 @@ class ScoreCalculator {
       ));
     }
 
+    // ps_flower_viewing: 같은 턴 2회 매칭(콤보) 시 보너스 칩
+    final doubleMatchBonus = (itemEffects.specialEffects['doubleMatchBonus'] as int?);
+    if (doubleMatchBonus != null && round.comboCount > 0) {
+      final flowerViewingChips = round.comboCount * doubleMatchBonus;
+      basePoints += flowerViewingChips;
+      yakuList.add('passive_flower_viewing');
+      breakdown.add(ScoreEntry(
+        key: 'passive_flower_viewing',
+        points: flowerViewingChips,
+        params: {'count': '${round.comboCount}', 'bonus': '$doubleMatchBonus'},
+      ));
+    }
+
     // ps_provoke: 도발 — 핸드 공개 x2.0
     if (itemEffects.specialEffects['provokeActive'] == true) {
       penaltyMult *= 2.0;
@@ -530,15 +544,16 @@ class ScoreCalculator {
     final totalBase = basePoints + synergyResult.chips + passiveChips;
     double totalMult = penaltyMult * (synergyResult.mult + passiveMult).clamp(1.0, double.infinity) * passiveXMult;
 
-    // 흔들기: 선언 시 점수 2배
-    if (round.isShaking) {
-      totalMult *= 2.0;
+    // 흔들기: 1벌=2배, 2벌=4배 (2^N)
+    if (round.shakeMonths.isNotEmpty) {
+      final shakeMult = pow(2.0, round.shakeMonths.length).toDouble();
+      totalMult *= shakeMult;
       yakuList.add('shake');
-      breakdown.add(const ScoreEntry(
+      breakdown.add(ScoreEntry(
         key: 'shake_bonus',
-        mult: 2.0,
+        mult: shakeMult,
         isMultiplier: true,
-        params: {'xmult': '2.0'},
+        params: {'xmult': shakeMult.toStringAsFixed(1)},
       ));
     }
 

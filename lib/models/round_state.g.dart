@@ -59,8 +59,10 @@ _$RoundStateImpl _$$RoundStateImplFromJson(Map<String, dynamic> json) =>
       flowerLordUsed: json['flowerLordUsed'] as bool? ?? false,
       rewindUsed: json['rewindUsed'] as bool? ?? false,
       hadTripleMonth: json['hadTripleMonth'] as bool? ?? false,
-      isShaking: json['isShaking'] as bool? ?? false,
-      shakeMonth: (json['shakeMonth'] as num?)?.toInt() ?? 0,
+      shakeMonths: (json['shakeMonths'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [],
       scoreBreakdown: (json['scoreBreakdown'] as List<dynamic>?)
               ?.map((e) => e as Map<String, dynamic>)
               .toList() ??
@@ -102,7 +104,6 @@ Map<String, dynamic> _$$RoundStateImplToJson(_$RoundStateImpl instance) =>
       'flowerLordUsed': instance.flowerLordUsed,
       'rewindUsed': instance.rewindUsed,
       'hadTripleMonth': instance.hadTripleMonth,
-      'isShaking': instance.isShaking,
-      'shakeMonth': instance.shakeMonth,
+      'shakeMonths': instance.shakeMonths,
       'scoreBreakdown': instance.scoreBreakdown,
     };

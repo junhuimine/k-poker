@@ -88,9 +88,10 @@ final List<CardDef> allCards = [
 /// 총 카드 수
 const int totalCards = 50;
 
-/// 딜링 규칙 (50장: 바닥 6, 플레이어 7, 상대 7, 덱 30)
-const int handSize = 7;
-const int fieldSize = 6;
+/// 딜링 규칙 (50장: 바닥 8, 플레이어 10, 상대 10, 덱 22)
+/// 표준 2인 고스톱 규칙 + 보너스 쌍피 2장
+const int handSize = 10;
+const int fieldSize = 8;
 
 /// 특정 월의 카드 4장 가져오기
 List<CardDef> getCardsByMonth(int month) => allCards.where((c) => c.month == month).toList();

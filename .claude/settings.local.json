@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)[:5]\\)\")",
+      "mcp__brave-search__brave_web_search",
+      "mcp__brave-search__brave_llm_context_search",
+      "Bash(kill %1)",
+      "Bash(xargs ls:*)",
+      "mcp__scheduled-tasks__list_scheduled_tasks",
+      "Bash(claude --version)",
+      "Bash(claude config:*)",
+      "Bash(sed 's/ - .*//')",
+      "Bash(cd:*)",
+      "Bash(powershell -Command \"flutter build web --release --base-href ''''/k-poker/''''\")",
+      "Bash(du:*)",
+      "Bash(^- \")",
+      "Bash(MSYS_NO_PATHCONV=1 flutter build web --release --base-href /k-poker/ 2>&1)",
+      "Bash(keytool)"
+    ]
+  }
+}

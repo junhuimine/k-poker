@@ -66,19 +66,19 @@ class CurrencyConfig {
   }
 }
 
-/// 지원하는 화폐 목록
+/// 화폐 설정 — 전 로케일 USD 통일 (1점 = $1)
 const Map<String, CurrencyConfig> currencies = {
-  'ko': CurrencyConfig(locale: 'ko', symbol: '₩', name: '원', pointValue: 1000),
-  'en': CurrencyConfig(locale: 'en', symbol: '\$', name: 'Dollar', pointValue: 0.50),
-  'ja': CurrencyConfig(locale: 'ja', symbol: '¥', name: '円', pointValue: 50),
-  'zh': CurrencyConfig(locale: 'zh', symbol: '¥', name: '元', pointValue: 2),
-  'es': CurrencyConfig(locale: 'es', symbol: '€', name: 'Euro', pointValue: 0.50),
-  'fr': CurrencyConfig(locale: 'fr', symbol: '€', name: 'Euro', pointValue: 0.50),
-  'de': CurrencyConfig(locale: 'de', symbol: '€', name: 'Euro', pointValue: 0.50),
-  'pt': CurrencyConfig(locale: 'pt', symbol: 'R\$', name: 'Real', pointValue: 2.50),
-  'ru': CurrencyConfig(locale: 'ru', symbol: '₽', name: 'Рубль', pointValue: 45),
-  'ar': CurrencyConfig(locale: 'ar', symbol: '\$', name: 'Dollar', pointValue: 0.50),
-  'th': CurrencyConfig(locale: 'th', symbol: '฿', name: 'Baht', pointValue: 15),
+  'ko': CurrencyConfig(locale: 'ko', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'en': CurrencyConfig(locale: 'en', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'ja': CurrencyConfig(locale: 'ja', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'zh': CurrencyConfig(locale: 'zh', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'es': CurrencyConfig(locale: 'es', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'fr': CurrencyConfig(locale: 'fr', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'de': CurrencyConfig(locale: 'de', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'pt': CurrencyConfig(locale: 'pt', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'ru': CurrencyConfig(locale: 'ru', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'ar': CurrencyConfig(locale: 'ar', symbol: '\$', name: 'Dollar', pointValue: 1),
+  'th': CurrencyConfig(locale: 'th', symbol: '\$', name: 'Dollar', pointValue: 1),
 };
 
 /// 로케일에 맞는 화폐 가져오기
@@ -123,7 +123,7 @@ const List<AiCharacter> allAiCharacters = [
   // ── 스테이지 1: 동네 골목 ──
   // 김 아저씨: 온화한 동네 어르신, 느긋하고 여유로움
   AiCharacter(id: 'kim', nameKo: '김 아저씨', nameEn: 'Mr. Kim',
-    avatarFile: 'ai_kim.png', gender: 'male', emoji: '👴',
+    avatarFile: 'ai_kim.jpg', gender: 'male', emoji: '👴',
     matchPriority: 0.30, goAggressiveness: 0.10,
     dialogues: {
       'match': ['허허, 먹었다~', '이야~ 딱이네!', '좋아좋아~'],
@@ -144,7 +144,7 @@ const List<AiCharacter> allAiCharacters = [
     }),
   // 여우 수진: 교활하고 애교 넘치는 여성, 약을 잘 올림
   AiCharacter(id: 'fox', nameKo: '여우 수진', nameEn: 'Fox Sujin',
-    avatarFile: 'ai_fox.png', gender: 'female', emoji: '🦊',
+    avatarFile: 'ai_fox.jpg', gender: 'female', emoji: '🦊',
     matchPriority: 0.38, goAggressiveness: 0.15,
     dialogues: {
       'match': ['후후~ 먹었다♡', '이건 내 거~', '캬~ 맛있어♡'],
@@ -166,7 +166,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 스테이지 2: 시장 판 ──
   AiCharacter(id: 'yuna', nameKo: '꽃집 유나', nameEn: 'Flower Yuna',
-    avatarFile: 'ai_yuna.png', gender: 'female', emoji: '🌸',
+    avatarFile: 'ai_yuna.jpg', gender: 'female', emoji: '🌸',
     matchPriority: 0.45, goAggressiveness: 0.20,
     dialogues: {
       'match': ['예쁜 꽃이네~', '이건 제 거예요!', '어머, 짝을 찾았네요~'],
@@ -186,7 +186,7 @@ const List<AiCharacter> allAiCharacters = [
       'player_miss': ['호호~ 엇갈렸네요', '운이 예쁜 꽃을 빗겨갔나봐요'],
     }),
   AiCharacter(id: 'dragon', nameKo: '용남이', nameEn: 'Dragon Nam',
-    avatarFile: 'ai_dragon.png', gender: 'male', emoji: '🐉',
+    avatarFile: 'ai_dragon.jpg', gender: 'male', emoji: '🐉',
     matchPriority: 0.52, goAggressiveness: 0.30,
     dialogues: {
       'match': ['크크, 먹었다!', '이건 다 내 차지다!', '시장은 내 구역이지!'],
@@ -208,7 +208,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 스테이지 3: 도시 카지노 ──
   AiCharacter(id: 'miran', nameKo: '여왕벌 미란', nameEn: 'Queen Bee Miran',
-    avatarFile: 'ai_miran.png', gender: 'female', emoji: '👑',
+    avatarFile: 'ai_miran.jpg', gender: 'female', emoji: '👑',
     matchPriority: 0.60, goAggressiveness: 0.35,
     dialogues: {
       'match': ['후후, 내 손바닥 위야~', '이건 여왕의 꿀이지!', '달달하네~'],
@@ -229,7 +229,7 @@ const List<AiCharacter> allAiCharacters = [
       'gwangbak': ['아이쿠야...! 광이 없잖아!'],
     }),
   AiCharacter(id: 'monk', nameKo: '무심 스님', nameEn: 'Monk Musim',
-    avatarFile: 'ai_monk.png', gender: 'male', emoji: '🧘',
+    avatarFile: 'ai_monk.jpg', gender: 'male', emoji: '🧘',
     matchPriority: 0.65, goAggressiveness: 0.40,
     dialogues: {
       'match': ['인연이로다...', '나무아미타불...', '보시라 생각하겠소'],
@@ -251,7 +251,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 스테이지 4: 지하 도박장 ──
   AiCharacter(id: 'han', nameKo: '그림자 한', nameEn: 'Shadow Han',
-    avatarFile: 'ai_han.png', gender: 'male', emoji: '🌑',
+    avatarFile: 'ai_han.jpg', gender: 'male', emoji: '🌑',
     matchPriority: 0.75, goAggressiveness: 0.50,
     dialogues: {
       'match': ['...먹었다', '그림자는 놓치지 않아', '음... 일격필살'],
@@ -271,7 +271,7 @@ const List<AiCharacter> allAiCharacters = [
       'player_miss': ['...시야가 흐려진 건가?', '꼴사납군'],
     }),
   AiCharacter(id: 'empress', nameKo: '황후', nameEn: 'The Empress',
-    avatarFile: 'ai_empress.png', gender: 'female', emoji: '👸',
+    avatarFile: 'ai_empress.jpg', gender: 'female', emoji: '👸',
     matchPriority: 0.78, goAggressiveness: 0.55,
     dialogues: {
       'match': ['오호호~ 가져가마', '황후의 손길이란~', '이건 짐의 국고로!'],
@@ -294,7 +294,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 스테이지 5: 꽃패의 사원 ──
   AiCharacter(id: 'hana', nameKo: '꽃무녀 하나', nameEn: 'Priestess Hana',
-    avatarFile: 'ai_hana.png', gender: 'female', emoji: '🌺',
+    avatarFile: 'ai_hana.jpg', gender: 'female', emoji: '🌺',
     matchPriority: 0.85, goAggressiveness: 0.60,
     dialogues: {
       'match': ['꽃이 피었어요~', '자연의 섭리...', '향기롭네요'],
@@ -314,7 +314,7 @@ const List<AiCharacter> allAiCharacters = [
       'player_miss': ['씨앗이 싹트지 못했어요~', '어머... 빗나갔네요'],
     }),
   AiCharacter(id: 'phantom', nameKo: '유령', nameEn: 'The Phantom',
-    avatarFile: 'ai_phantom.png', gender: 'male', emoji: '👻',
+    avatarFile: 'ai_phantom.jpg', gender: 'male', emoji: '👻',
     matchPriority: 0.88, goAggressiveness: 0.65,
     dialogues: {
       'match': ['크크크... 보여', '스윽...!', '내 거다...'],
@@ -336,7 +336,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 스테이지 6: 도박의 신전 ──
   AiCharacter(id: 'reaper', nameKo: '사신', nameEn: 'The Reaper',
-    avatarFile: 'ai_reaper.png', gender: 'male', emoji: '💀',
+    avatarFile: 'ai_reaper.jpg', gender: 'male', emoji: '💀',
     matchPriority: 0.90, goAggressiveness: 0.70,
     dialogues: {
       'match': ['...수확이다', '죽음의 낫이 지나간다', '명부가 쓰여졌다'],
@@ -356,7 +356,7 @@ const List<AiCharacter> allAiCharacters = [
       'player_miss': ['...죽음의 그림자가 보이지 않나?', '어리석은 놈'],
     }),
   AiCharacter(id: 'oracle', nameKo: '신녀', nameEn: 'The Oracle',
-    avatarFile: 'ai_oracle.png', gender: 'female', emoji: '🔮',
+    avatarFile: 'ai_oracle.jpg', gender: 'female', emoji: '🔮',
     matchPriority: 0.92, goAggressiveness: 0.75,
     dialogues: {
       'match': ['이미 보았어요...', '예언대로...', '별빛이 닿았어요'],
@@ -378,7 +378,7 @@ const List<AiCharacter> allAiCharacters = [
 
   // ── 신급 무한: 최종 보스 ──
   AiCharacter(id: 'god', nameKo: '도박의 신', nameEn: 'God of Gamble',
-    avatarFile: 'ai_god.png', gender: 'divine', emoji: '🌌',
+    avatarFile: 'ai_god.jpg', gender: 'divine', emoji: '🌌',
     matchPriority: 0.95, goAggressiveness: 0.80,
     dialogues: {
       'match': ['하하하! 당연하지!', '신의 손길이다!', '우주가 나를 돕는다!'],
@@ -432,14 +432,15 @@ double getOpponentFund(int stage, int opponentIndex, double pointValue) {
     final loopCount = stage - 6;
     return 5000 * pointValue * (1.0 + loopCount * 0.5);
   }
-  // 스테이지별 AI 1인당 기본 자금 (포인트 단위)
+  // 스테이지별 AI 1인당 기본 자금 ($, 1점=$1)
+  // 여러 라운드 싸워야 탈락하도록 충분한 자금 배정
   const baseFunds = <int, double>{
-    1: 50,     // ₩50,000: 동네 골목 — 아저씨/여우
-    2: 120,    // ₩120,000: 시장 판 — 유나/용
-    3: 300,    // ₩300,000: 카지노 — 미란/스님
-    4: 700,    // ₩700,000: 지하 도박장 — 한씨/여제
-    5: 1500,   // ₩1,500,000: 사원 — 하나/팬텀
-    6: 3000,   // ₩3,000,000: 신전 — 신급
+    1: 50,     // $50: 동네 골목 — 3~5판
+    2: 120,    // $120: 시장 판
+    3: 250,    // $250: 카지노
+    4: 500,    // $500: 지하 도박장
+    5: 1000,   // $1,000: 사원
+    6: 2000,   // $2,000: 신전
   };
   final clampedStage = stage.clamp(1, 6);
   final baseFund = baseFunds[clampedStage] ?? 50;

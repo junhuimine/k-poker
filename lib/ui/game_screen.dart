@@ -14,6 +14,7 @@ import '../i18n/app_strings.dart';
 import '../i18n/locale_provider.dart';
 import '../engine/card_matcher.dart';
 import '../models/card_def.dart';
+import '../data/all_cards.dart';
 import '../data/stage_config.dart';
 import '../data/item_catalog.dart';
 import 'widgets/hwatu_card.dart';
@@ -27,6 +28,8 @@ import 'widgets/special_event_effect.dart';
 import '../state/tutorial_provider.dart';
 import 'widgets/tutorial_popup_overlay.dart';
 import '../common/responsive.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../services/crazygames.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -57,6 +60,18 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   // 필드 카드의 동적 렌더링 위치(RenderBox) 추적용 키 맵
   final Map<CardInstance, GlobalKey> _fieldCardKeys = {};
+
+  // 획득 영역 등급별 그룹 위치 추적용 GlobalKey (플레이어)
+  final GlobalKey _capturedBrightKey = GlobalKey();
+  final GlobalKey _capturedAnimalKey = GlobalKey();
+  final GlobalKey _capturedRibbonKey = GlobalKey();
+  final GlobalKey _capturedJunkKey = GlobalKey();
+
+  // 획득 영역 등급별 그룹 위치 추적용 GlobalKey (상대)
+  final GlobalKey _opCapturedBrightKey = GlobalKey();
+  final GlobalKey _opCapturedAnimalKey = GlobalKey();
+  final GlobalKey _opCapturedRibbonKey = GlobalKey();
+  final GlobalKey _opCapturedJunkKey = GlobalKey();
 
   // 설정/튜토리얼 오버레이
   bool _showSettings = false;
@@ -108,12 +123,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Future<void> _precacheAssets() async {
     // 5광 + 카드 뒷면 등 핵심 이미지 프리캐시
     final importantAssets = [
-      'assets/images/cards/card_back.png',
-      'assets/images/cards/m01_bright.png',
-      'assets/images/cards/m03_bright.png',
-      'assets/images/cards/m08_bright.png',
-      'assets/images/cards/m11_bright.png',
-      'assets/images/cards/m12_bright.png',
+      'assets/images/cards/card_back.jpg',
+      'assets/images/cards/m01_bright.jpg',
+      'assets/images/cards/m03_bright.jpg',
+      'assets/images/cards/m08_bright.jpg',
+      'assets/images/cards/m11_bright.jpg',
+      'assets/images/cards/m12_bright.jpg',
       // 배경 이미지 (깜빡임 방지)
       'assets/images/backgrounds/bg_stage1.png',
       'assets/images/backgrounds/bg_stage2.png',
@@ -142,6 +157,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() => _isLoading = false);
+        CrazyGamesService.loadingStop();
+        CrazyGamesService.gameplayStart();
       }
     }
   }
@@ -150,6 +167,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startGameWithDeal() {
     ref.read(gameStateProvider.notifier).startGame(); // sync!
     AudioManager().startBgmLoop();
+    CrazyGamesService.gameplayStart();
     final gameState = ref.read(gameStateProvider);
 
     setState(() {
@@ -157,7 +175,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _dealtOpponentCount = 0;
       _dealtFieldCount = 0;
       _dealtPlayerCount = 0;
-      _visibleDeckCount = 48;
+      _visibleDeckCount = totalCards;
       _flyingCards = [];
     });
 
@@ -259,6 +277,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
       });
       // 흔들기 체크: 딜링 후 핸드에 같은 월 3장이면 선택 다이얼로그
       _checkShake();
+      // 선(先)이 AI인 경우, 딜링 후 AI 턴 자동 실행
+      final st = ref.read(gameStateProvider);
+      if (st.currentTurn == 'opponent' && !st.isFinished) {
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) _executeAiTurn();
+      }
     }
   }
 
@@ -372,7 +396,24 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final isGoStopPending = ref.watch(goStopPendingProvider);
     final aiGoStopAnnounce = ref.watch(aiGoStopAnnounceProvider);
     final events = ref.watch(gameEventsProvider);
-    
+
+    // CrazyGames: 라운드 종료 시 gameplayStop + 미드게임 광고
+    ref.listen<dynamic>(gameStateProvider, (prev, next) {
+      if (prev != null && !prev.isFinished && next.isFinished) {
+        CrazyGamesService.gameplayStop();
+        if (kIsWeb) {
+          CrazyGamesService.requestMidgameAd(
+            onStarted: () => AudioManager().stopBgm(),
+            onFinished: () {
+              AudioManager().startBgmLoop();
+              CrazyGamesService.gameplayStart();
+            },
+            onError: (_) => CrazyGamesService.gameplayStart(),
+          );
+        }
+      }
+    });
+
     // 튜토리얼 팝업 상태 체크
     final tutState = ref.watch(tutorialProvider);
     final isFirstYakuTutVisible = !tutState.isLoading && !tutState.suppressAllTutorials && !tutState.hasSeenFirstYaku && gameState.playerScore >= 1;
@@ -408,14 +449,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     children: [
                       // 상단 영역: 통합 TopBar (캐릭터 / 상대 핸드 / 설정)
                       if (isGameStarted) _buildTopBar(gameState, strings),
-                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, strings.opponentCapturedLabel),
-                      
+                      if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, strings.opponentCapturedLabel, isPlayer: false),
+
                       // 중앙 영역: 덱 더미 + 필드
                       if (isGameStarted)
                         Expanded(child: _buildFieldWithDeck(gameState)),
-                      
+
                       // 하단 영역: 내 획득 카드 + 내 핸드
-                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, strings.playerCapturedLabel),
+                      if (isGameStarted) _buildCapturedArea(gameState.playerCaptured, strings.playerCapturedLabel, isPlayer: true),
                       if (isGameStarted) _buildPlayerHand(gameState),
                     ],
                   ),
@@ -455,6 +496,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               onAllComplete: () {
                 if (mounted) setState(() => _flyingCards = []);
               },
+              strings: ref.watch(appStringsProvider),
             ),
 
           if (!isGameStarted && !gameState.isFinished)
@@ -515,7 +557,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
               strings: strings,
               screenW: _screenW,
               scale: _scale,
-              onNextRound: () => _startGameWithDeal(),
+              onNextRound: () {
+                CrazyGamesService.gameplayStart();
+                _startGameWithDeal();
+              },
               onShop: () {
                 final run = ref.read(runStateNotifierProvider);
                 ref.read(runStateNotifierProvider.notifier).openShop(run.stage);
@@ -823,7 +868,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: HwatuCard(card: state.opponentHand[i], size: _opponentCardSize,
                 isFaceDown: i >= revealCount, // 처음 revealCount장은 앞면
-                skinPath: ref.watch(cardSkinProvider).assetPath),
+                skinPath: ref.watch(cardSkinProvider).assetPath,
+                strings: ref.watch(appStringsProvider)),
             ),
         ],
       ),
@@ -831,7 +877,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   // ─── 획득 카드 (부채형) ──────
-  Widget _buildCapturedArea(List<CardInstance> captured, String label) {
+  Widget _buildCapturedArea(List<CardInstance> captured, String label, {bool isPlayer = false}) {
     if (captured.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -865,10 +911,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
               ),
               child: Text('$label ${captured.length}', style: const TextStyle(color: Colors.amber, fontSize: 10)),
             ),
-            if (brights.isNotEmpty) _buildFanGroup(brights),
-            if (animals.isNotEmpty) _buildFanGroup(animals),
-            if (ribbons.isNotEmpty) _buildFanGroup(ribbons),
-            if (junks.isNotEmpty) _buildFanGroup(junks),
+            // 플레이어/상대 모두 GlobalKey 부여 (애니메이션 도착 좌표용)
+            if (brights.isNotEmpty) KeyedSubtree(
+                key: isPlayer ? _capturedBrightKey : _opCapturedBrightKey,
+                child: _buildFanGroup(brights)),
+            if (animals.isNotEmpty) KeyedSubtree(
+                key: isPlayer ? _capturedAnimalKey : _opCapturedAnimalKey,
+                child: _buildFanGroup(animals)),
+            if (ribbons.isNotEmpty) KeyedSubtree(
+                key: isPlayer ? _capturedRibbonKey : _opCapturedRibbonKey,
+                child: _buildFanGroup(ribbons)),
+            if (junks.isNotEmpty) KeyedSubtree(
+                key: isPlayer ? _capturedJunkKey : _opCapturedJunkKey,
+                child: _buildFanGroup(junks)),
           ],
         ),
       ),
@@ -894,7 +949,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 top: 0,
                 child: Transform.rotate(
                   angle: startAngle + i * fanAngleStep,
-                  child: HwatuCard(card: cards[i], size: cardSize, frontSkin: ref.watch(frontSkinProvider)),
+                  child: HwatuCard(card: cards[i], size: cardSize, strings: ref.watch(appStringsProvider)),
                 ),
               ),
           ],
@@ -1004,7 +1059,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     card: state.field[i],
                     size: _fieldCardSize,
                     isField: true,
-                    frontSkin: ref.watch(frontSkinProvider),
+
+                    strings: ref.watch(appStringsProvider),
                   ),
               ],
             ),
@@ -1040,8 +1096,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       fieldMonths.add(fc.def.month);
     }
 
-    // 폭탄 감지: 같은 월 3장 + 바닥에 같은 월 1장 이상
-    final bombMonth = GameEngine.getBombMonth(
+    // 폭탄 감지: 같은 월 3장 + 바닥에 같은 월 1장 이상 (복수 월 대응)
+    final bombMonths = GameEngine.getBombMonths(
       List<CardInstance>.from(state.playerHand),
       List<CardInstance>.from(state.field),
     );
@@ -1085,39 +1141,40 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   ),
                 );
               }(),
-            // 폭탄 버튼 (같은 월 3장 보유 시)
-            if (bombMonth != null && !_isDealing && state.currentTurn == 'player')
-              Padding(
-                padding: const EdgeInsets.only(right: 8, bottom: 15),
-                child: GestureDetector(
-                  onTap: () {
-                    _executeBomb(bombMonth);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFF4500), Color(0xFFFF8C00)],
+            // 폭탄 버튼 (같은 월 3장 보유 시 — 복수 월이면 각각 버튼 표시)
+            for (final bm in bombMonths)
+              if (!_isDealing && state.currentTurn == 'player')
+                Padding(
+                  padding: const EdgeInsets.only(right: 8, bottom: 15),
+                  child: GestureDetector(
+                    onTap: () {
+                      _executeBomb(bm);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF4500), Color(0xFFFF8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.orange.withValues(alpha: 0.5), blurRadius: 12)],
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: Colors.orange.withValues(alpha: 0.5), blurRadius: 12)],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('💣', style: TextStyle(fontSize: 24)),
-                        Text(ref.watch(appStringsProvider).bombMonthLabel(bombMonth), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                        Text(ref.watch(appStringsProvider).bombLabel, style: const TextStyle(color: Colors.white, fontSize: 10)),
-                      ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('💣', style: TextStyle(fontSize: 24)),
+                          Text(ref.watch(appStringsProvider).bombMonthLabel(bm), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text(ref.watch(appStringsProvider).bombLabel, style: const TextStyle(color: Colors.white, fontSize: 10)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             for (var i = 0; i < count && i < sortedHand.length; i++)
               () {
                 final card = sortedHand[i];
                 final canMatch = fieldMonths.contains(card.def.month);
-                final isBombCard = bombMonth != null && card.def.month == bombMonth;
+                final isBombCard = bombMonths.contains(card.def.month);
                 final isPlayable = !_isDealing && state.currentTurn == 'player';
                 return Padding(
                   padding: EdgeInsets.only(
@@ -1130,7 +1187,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                       HwatuCard(
                         card: card,
                         size: _playerCardSize,
-                        frontSkin: ref.watch(frontSkinProvider),
+    
+                        strings: ref.watch(appStringsProvider),
                         onTap: isPlayable
                             ? () => _playCardWithAnimation(card)
                             : null,
@@ -1179,6 +1237,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   /// 순차 애니메이션 시퀀스로 카드 플레이
   void _executePlay(CardInstance card, {CardInstance? targetFieldCard}) async {
+    try {
+      await _executePlayInner(card, targetFieldCard: targetFieldCard);
+    } catch (e) {
+      // 에러 발생 시 안전하게 상태 복구
+      if (mounted) setState(() => _flyingCards = []);
+    }
+  }
+
+  Future<void> _executePlayInner(CardInstance card, {CardInstance? targetFieldCard}) async {
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
     final random = Random();
@@ -1280,19 +1347,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       }
     }
 
-    // ── STEP 3: 획득 카드 한 장씩 내 영역으로 ──
+    // ── STEP 3: 획득 카드 한 장씩 내 영역으로 (등급별 GlobalKey 위치) ──
     final afterState = ref.read(gameStateProvider);
     final newCaptured = afterState.playerCaptured.length - state.playerCaptured.length;
-    
+
     if (newCaptured > 0) {
       for (var i = 0; i < newCaptured && i < 4; i++) {
         if (!mounted) return;
+        final capturedCard = afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i];
+        final dest = _getCapturedGroupPosition(capturedCard.def.grade);
         setState(() {
           _flyingCards = [
             FlyingCard(
-              card: afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i],
+              card: capturedCard,
               from: Offset(targetX + (i * 15), targetY),
-              to: Offset(screenW * 0.3 + (i * 25), screenH - 200), // 내 획득 영역
+              to: dest,
               startAngle: 0.05,
               endAngle: 0.0,
               duration: const Duration(milliseconds: 250),
@@ -1300,7 +1369,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             ),
           ];
         });
-        await Future.delayed(const Duration(milliseconds: 200)); // 착착착 한 장씩
+        await Future.delayed(const Duration(milliseconds: 200));
       }
     }
 
@@ -1387,6 +1456,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
     await Future.delayed(const Duration(milliseconds: 150));
     if (!mounted) return;
 
+    // AI 플레이 후 고/스톱 또는 종료 상태면 애니메이션 중단
+    final postAiState = ref.read(gameStateProvider);
+    final postAiPending = ref.read(goStopPendingProvider);
+    if (postAiState.isFinished || postAiPending) {
+      if (mounted) setState(() => _flyingCards = []);
+      return;
+    }
+
     // ── STEP 2: 덱에서 카드 뒤집기 → 필드 ──
     final updatedState = ref.read(gameStateProvider);
     if (updatedState.deck.isNotEmpty) {
@@ -1408,32 +1485,43 @@ class _GameScreenState extends ConsumerState<GameScreen>
       if (!mounted) return;
     }
 
-    // ── STEP 3: 획득 카드 → 상대 영역으로 순차 이동 ──
+    // ── STEP 3: 획득 카드 → 상대 등급별 영역으로 순차 이동 ──
     final afterState = ref.read(gameStateProvider);
     final newCaptured = afterState.opponentCaptured.length - prevState.opponentCaptured.length;
 
     if (newCaptured > 0) {
       for (var i = 0; i < newCaptured && i < 4; i++) {
         if (!mounted) return;
+        final capturedCard = afterState.opponentCaptured[afterState.opponentCaptured.length - newCaptured + i];
+        final dest = _getOpponentCapturedGroupPosition(capturedCard.def.grade);
         setState(() {
           _flyingCards = [
             FlyingCard(
-              card: afterState.opponentCaptured[afterState.opponentCaptured.length - newCaptured + i],
+              card: capturedCard,
               from: Offset(targetX + (i * 15), targetY),
-              to: Offset(screenW * 0.3 + (i * 25), 90),  // 상대 획득 영역 (상단)
-              startAngle: 0.05,
+              to: dest,
+              startAngle: -0.05,
               endAngle: 0.0,
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 280),
               size: 40,
             ),
           ];
         });
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 220));
       }
     }
 
     if (mounted) {
       setState(() => _flyingCards = []);
+    }
+
+    // AI 턴 후 상태 확인: 게임 안 끝났고 여전히 AI 턴이면 재실행
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    final finalState = ref.read(gameStateProvider);
+    final pendingGoStop = ref.read(goStopPendingProvider);
+    if (!finalState.isFinished && finalState.currentTurn == 'opponent' && !pendingGoStop) {
+      await _executeAiTurn();
     }
   }
 
@@ -1501,19 +1589,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
 
-    // ── STEP 3: 획득 카드들 내 영역으로 ──
+    // ── STEP 3: 획득 카드들 내 영역으로 (등급별 GlobalKey 위치) ──
     final afterState = ref.read(gameStateProvider);
     final newCaptured = afterState.playerCaptured.length - state.playerCaptured.length;
 
     if (newCaptured > 0) {
       for (var i = 0; i < newCaptured && i < 6; i++) {
         if (!mounted) return;
+        final capturedCard = afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i];
+        final dest = _getCapturedGroupPosition(capturedCard.def.grade);
         setState(() {
           _flyingCards = [
             FlyingCard(
-              card: afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i],
+              card: capturedCard,
               from: Offset(fieldCenterX, fieldCenterY),
-              to: Offset(screenW * 0.5, screenH * 0.68),
+              to: dest,
               startAngle: 0.1 * i,
               endAngle: 0,
               duration: const Duration(milliseconds: 250),
@@ -1988,10 +2078,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  /// 흔들기 체크: 딜링 완료 후 호출
+  /// 흔들기 체크: 딜링 완료 후 호출 (복수 월 대응 — 2벌이면 전체 흔들기로 4배)
   void _checkShake() {
-    final shakeMonth = ref.read(gameStateProvider.notifier).getShakeMonth();
-    if (shakeMonth == null) return;
+    final shakeMonths = ref.read(gameStateProvider.notifier).getShakeMonths();
+    if (shakeMonths.isEmpty) return;
     final s = ref.read(appStringsProvider);
 
     showDialog(
@@ -2008,7 +2098,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ],
         ),
         content: Text(
-          s.shakeDesc(shakeMonth),
+          shakeMonths.length > 1
+              ? '${shakeMonths.map((m) => s.shakeDesc(m)).join('\n')}\n\n${s.shakeAllDesc(shakeMonths.length)}'
+              : s.shakeDesc(shakeMonths.first),
           style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
         ),
         actions: [
@@ -2016,21 +2108,84 @@ class _GameScreenState extends ConsumerState<GameScreen>
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(s.shakePass, style: const TextStyle(color: Colors.white54, fontSize: 15)),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ref.read(gameStateProvider.notifier).declareShake(shakeMonth);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          // 2벌 이상이면 "전체 흔들기" 버튼 (4배+)
+          if (shakeMonths.length > 1)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                ref.read(gameStateProvider.notifier).declareShakeAll(shakeMonths);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(
+                '${s.shakeAllDeclare} (x${pow(2, shakeMonths.length).toInt()})',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
             ),
-            child: Text(s.shakeDeclare, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          ),
+          // 각 월별 개별 흔들기 버튼
+          for (final month in shakeMonths)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                ref.read(gameStateProvider.notifier).declareShake(month);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(
+                shakeMonths.length > 1
+                    ? '${s.shakeDeclare} (${s.monthFormatted(month)})'
+                    : s.shakeDeclare,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  /// 플레이어 획득 영역에서 등급별 그룹의 실제 화면 위치 반환
+  Offset _getCapturedGroupPosition(CardGrade grade) {
+    final key = switch (grade) {
+      CardGrade.bright => _capturedBrightKey,
+      CardGrade.animal => _capturedAnimalKey,
+      CardGrade.ribbon => _capturedRibbonKey,
+      CardGrade.junk   => _capturedJunkKey,
+    };
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      final pos = renderBox.localToGlobal(Offset.zero);
+      return Offset(pos.dx + renderBox.size.width - 20, pos.dy);
+    }
+    return Offset(_screenW * 0.4, _screenH - _playerHandHeight - _capturedAreaHeight / 2);
+  }
+
+  /// 상대 획득 영역에서 등급별 그룹의 실제 화면 위치 반환
+  Offset _getOpponentCapturedGroupPosition(CardGrade grade) {
+    final key = switch (grade) {
+      CardGrade.bright => _opCapturedBrightKey,
+      CardGrade.animal => _opCapturedAnimalKey,
+      CardGrade.ribbon => _opCapturedRibbonKey,
+      CardGrade.junk   => _opCapturedJunkKey,
+    };
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      final pos = renderBox.localToGlobal(Offset.zero);
+      return Offset(pos.dx + renderBox.size.width - 20, pos.dy);
+    }
+    // fallback: 상단 획득 영역 (등급별 수평 오프셋)
+    final gradeOffset = switch (grade) {
+      CardGrade.bright => 0.0,
+      CardGrade.animal => 60.0,
+      CardGrade.ribbon => 120.0,
+      CardGrade.junk   => 180.0,
+    };
+    return Offset(_screenW * 0.25 + gradeOffset, _capturedAreaHeight / 2);
   }
 
   /// 카드 등급별 색상 (다이얼로그용)
