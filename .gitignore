@@ -64,6 +64,9 @@ qa_screenshots/
 test_screenshots_complete/
 test/qa-screenshots/
 
+# API keys
+tool/geminikey.txt
+
 # Claude Code local config
 .claude/worktrees/
 .mcp.json
