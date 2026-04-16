@@ -22,17 +22,17 @@ void main() {
       expect(getOpponentFund(2, 0, pointValue), equals(120000));
       expect(getOpponentFund(2, 1, pointValue), equals(144000));
       
-      // 스테이지 3: 300 * 1000 = ₩300,000
-      expect(getOpponentFund(3, 0, pointValue), equals(300000));
-      
-      // 스테이지 4: 700 * 1000 = ₩700,000
-      expect(getOpponentFund(4, 0, pointValue), equals(700000));
-      
-      // 스테이지 5: 1500 * 1000 = ₩1,500,000
-      expect(getOpponentFund(5, 0, pointValue), equals(1500000));
-      
-      // 스테이지 6: 3000 * 1000 = ₩3,000,000
-      expect(getOpponentFund(6, 0, pointValue), equals(3000000));
+      // 스테이지 3: 250 * 1000 = ₩250,000
+      expect(getOpponentFund(3, 0, pointValue), equals(250000));
+
+      // 스테이지 4: 500 * 1000 = ₩500,000
+      expect(getOpponentFund(4, 0, pointValue), equals(500000));
+
+      // 스테이지 5: 1000 * 1000 = ₩1,000,000
+      expect(getOpponentFund(5, 0, pointValue), equals(1000000));
+
+      // 스테이지 6: 2000 * 1000 = ₩2,000,000
+      expect(getOpponentFund(6, 0, pointValue), equals(2000000));
       
       print('✅ 스테이지별 AI 자금 검증 완료');
       for (var s = 1; s <= 6; s++) {
@@ -65,9 +65,9 @@ void main() {
   });
 
   group('RunState 모델', () {
-    test('기본 RunState에 opponentMoney가 0', () {
+    test('기본 RunState에 opponentMoney가 50 (스테이지1 기본)', () {
       const run = RunState();
-      expect(run.opponentMoney, equals(0));
+      expect(run.opponentMoney, equals(50));
       expect(run.currentOpponentIndex, equals(0));
     });
 

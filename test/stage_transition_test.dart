@@ -50,8 +50,8 @@ void main() {
       expect(getOpponentFund(1, 1, pv), 60000.0);
     });
 
-    test('Stage 6 Op0 = ₩3,000,000', () {
-      expect(getOpponentFund(6, 0, pv), 3000000.0);
+    test('Stage 6 Op0 = ₩2,000,000', () {
+      expect(getOpponentFund(6, 0, pv), 2000000.0);
     });
 
     test('Stage 7 (신급) = ₩7,500,000', () {

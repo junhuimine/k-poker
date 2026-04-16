@@ -16,27 +16,29 @@ import 'package:k_poker/models/card_def.dart';
 
 void main() {
   group('딜링 규칙 (2인 맞고 공식)', () {
-    test('50장 = 바닥6 + 플레이어7 + 상대7 + 덱30', () {
+    test('50장 = 바닥8 + 플레이어10 + 상대10 + 덱22 (보너스 쌍피 획득 고려)', () {
       final state = GameEngine.createInitialState();
-      expect(state.field.length, 6);
-      expect(state.playerHand.length, 7);
-      expect(state.opponentHand.length, 7);
-      expect(state.deck.length, 30);
+      expect(state.playerHand.length, handSize);
+      expect(state.opponentHand.length, handSize);
+      // 보너스 쌍피가 바닥에 깔리면 captured로 이동하므로 total에 captured 포함
       final total = state.field.length + state.playerHand.length +
-          state.opponentHand.length + state.deck.length;
+          state.opponentHand.length + state.deck.length +
+          state.playerCaptured.length + state.opponentCaptured.length;
       expect(total, 50);
     });
 
-    test('handSize=7, fieldSize=6 상수 확인', () {
-      expect(handSize, 7);
-      expect(fieldSize, 6);
+    test('handSize=10, fieldSize=8 상수 확인', () {
+      expect(handSize, 10);
+      expect(fieldSize, 8);
     });
 
-    test('광 스캐너 장착 시에도 50장 유지', () {
+    test('광 스캐너 장착 시에도 50장 유지 (보너스 쌍피 획득 고려)', () {
       final run = RunState(equippedRoundItemIds: const ['c_gwang_scanner']);
       final state = GameEngine.createInitialState(run: run);
+      // 보너스 쌍피가 바닥에 깔리면 captured로 이동하므로 total에 captured 포함
       final total = state.field.length + state.playerHand.length +
-          state.opponentHand.length + state.deck.length;
+          state.opponentHand.length + state.deck.length +
+          state.playerCaptured.length + state.opponentCaptured.length;
       expect(total, 50);
     });
   });
@@ -270,17 +272,16 @@ void main() {
   });
 
   group('흔들기', () {
-    test('RoundState에 isShaking/shakeMonth 필드', () {
+    test('RoundState에 shakeMonths 필드', () {
       final state = RoundState(
         deck: const [],
         field: const [],
         playerHand: const [],
         opponentHand: const [],
-        isShaking: true,
-        shakeMonth: 3,
+        shakeMonths: const [3],
       );
-      expect(state.isShaking, true);
-      expect(state.shakeMonth, 3);
+      expect(state.shakeMonths.isNotEmpty, true);
+      expect(state.shakeMonths.first, 3);
     });
 
     test('흔들기 시 점수 x2', () {
@@ -297,10 +298,10 @@ void main() {
         playerCaptured: brightCards,
         opponentCaptured: const [],
         isFinished: true,
-        isShaking: true,
+        shakeMonths: const [3],
       );
       final resultNoShake = ScoreCalculator.calculate(
-        state.copyWith(isShaking: false), RunState(),
+        state.copyWith(shakeMonths: const []), RunState(),
       );
       final resultShake = ScoreCalculator.calculate(state, RunState());
       // 흔들기 시 배율이 더 높아야 함
