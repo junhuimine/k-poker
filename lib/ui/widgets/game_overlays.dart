@@ -17,6 +17,7 @@ import '../../data/stage_config.dart';
 import '../../common/responsive.dart';
 import '../../i18n/app_strings.dart';
 import '../../engine/score_calculator.dart';
+import 'ad_banner_widget.dart';
 import 'hwatu_card.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -196,6 +197,16 @@ class GameStartOverlay extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+        ),
+        // 메인 화면 하단 배너 광고
+        const Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: AdBannerWidget(vertical: false),
           ),
         ),
       ],
@@ -516,6 +527,7 @@ class RoundEndOverlay extends ConsumerWidget {
   final VoidCallback onNextRound;
   final VoidCallback onShop;
   final VoidCallback onRestart;
+  final VoidCallback? onContinueWithAd;
 
   const RoundEndOverlay({
     super.key,
@@ -526,16 +538,60 @@ class RoundEndOverlay extends ConsumerWidget {
     required this.onNextRound,
     required this.onShop,
     required this.onRestart,
+    this.onContinueWithAd,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    try {
+      return _buildContent(context, ref);
+    } catch (e) {
+      // 렌더링 실패 시 안전한 대체 UI
+      return Container(
+        color: Colors.black.withValues(alpha: 0.85),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(state.winner == 'player' ? '🏆' : '💀', style: const TextStyle(fontSize: 48)),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: onShop,
+                    icon: const Text('🛒'),
+                    label: const Text('Shop'),
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: onNextRound,
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700), foregroundColor: Colors.black),
+                    child: const Text('Next Round →', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref) {
+    // 나가리(무승부) 체크
+    final isDraw = state.isDraw
+        || (state.winner == null && state.playerScore == state.opponentScore);
+
     // state.winner 우선 (AI 스톱 → opponent 승리 등), 없으면 점수 비교
-    final isWin = state.winner == 'player'
-        || (state.winner == null && state.playerScore > state.opponentScore);
+    final isWin = !isDraw && (state.winner == 'player'
+        || (state.winner == null && state.playerScore > state.opponentScore));
     final run = ref.watch(runStateNotifierProvider);
     final currency = getCurrencyForLocale(run.currencyLocale);
-    final isBankrupt = !isWin && ref.read(runStateNotifierProvider.notifier).isBankrupt;
+    // 무승부일 때는 파산 체크 건너뜀
+    final isBankrupt = !isWin && !isDraw && ref.read(runStateNotifierProvider.notifier).isBankrupt;
     
     final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
     final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
@@ -544,7 +600,6 @@ class RoundEndOverlay extends ConsumerWidget {
     final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk)
         .fold<int>(0, (sum, c) => sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1));
 
-    final mult = state.multiplier;
     var lossScore = (state.opponentScore > 0 ? state.opponentScore : 1);
     if (!isWin && state.goCount > 0) lossScore *= 2; // 고박: 내가 고 선언 후 패배 시 2배
     var earnings = isWin
@@ -660,21 +715,20 @@ class RoundEndOverlay extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: 10 * rs),
-              // 버튼
+              // 버튼 — 승/패 모두 상점 진입 가능 (파산 시에는 위에서 별도 오버레이로 분기됨)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (isWin)
-                    OutlinedButton.icon(
-                      onPressed: onShop,
-                      icon: const Text('🛒'),
-                      label: Text(strings.shop, style: TextStyle(fontSize: 12 * rs)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Color(0xFF30363D)),
-                        padding: EdgeInsets.symmetric(horizontal: 12 * rs, vertical: 8 * rs),
-                      ),
+                  OutlinedButton.icon(
+                    onPressed: onShop,
+                    icon: const Text('🛒'),
+                    label: Text(strings.shop, style: TextStyle(fontSize: 12 * rs)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Color(0xFF30363D)),
+                      padding: EdgeInsets.symmetric(horizontal: 12 * rs, vertical: 8 * rs),
                     ),
+                  ),
                   SizedBox(width: 8 * rs),
                   ElevatedButton(
                     onPressed: onNextRound,
@@ -702,7 +756,12 @@ class RoundEndOverlay extends ConsumerWidget {
     dynamic strings,
     double rs,
   ) {
-    final entries = breakdownJson.map((j) => ScoreEntry.fromJson(j)).toList();
+    late final List<ScoreEntry> entries;
+    try {
+      entries = breakdownJson.map((j) => ScoreEntry.fromJson(j)).toList();
+    } catch (_) {
+      return []; // 파싱 실패 시 빈 리스트 반환 (흰 화면 방지)
+    }
     final List<Widget> rows = [];
 
     // 기본 점수 항목들
@@ -806,6 +865,20 @@ class RoundEndOverlay extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              if (onContinueWithAd != null) ...[
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: onContinueWithAd,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00C853),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('📺 광고 보고 계속하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 8),
+              ],
               ElevatedButton(
                 onPressed: onRestart,
                 style: ElevatedButton.styleFrom(

@@ -36,6 +36,10 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(appStringsProvider);
+    // 작은 화면(모바일 세로)에서 버튼이 잘리는 문제 방지 — 화면 기준으로 클램프
+    final screenSize = MediaQuery.of(context).size;
+    final dialogWidth = screenSize.width < 880 ? screenSize.width - 24 : 850.0;
+    final dialogHeight = screenSize.height < 580 ? screenSize.height - 24 : 550.0;
 
     return GestureDetector(
       onTap: widget.onComplete,
@@ -47,8 +51,8 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
           child: GestureDetector(
             onTap: () {}, // 뒷 배경 닫힘 방지
             child: Container(
-              width: 850,
-              height: 550,
+              width: dialogWidth,
+              height: dialogHeight,
               decoration: BoxDecoration(
                 color: const Color(0xFF161B22),
                 borderRadius: BorderRadius.circular(24),

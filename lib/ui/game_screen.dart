@@ -26,9 +26,11 @@ import 'widgets/side_panel.dart';
 import 'widgets/game_overlays.dart';
 import 'widgets/special_event_effect.dart';
 import '../state/tutorial_provider.dart';
+import 'widgets/ad_banner_widget.dart';
 import 'widgets/tutorial_popup_overlay.dart';
 import '../common/responsive.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../services/ad_service.dart';
 import '../services/crazygames.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -138,17 +140,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
       'assets/images/backgrounds/bg_stage6.png',
     ];
 
-    final futures = importantAssets.map((path) {
-      return precacheImage(AssetImage(path), context).catchError((_) {
+    final futures = importantAssets.map((path) async {
+      try {
+        await precacheImage(AssetImage(path), context);
+      } catch (_) {
         // 이미지 로드 실패 시 무시 (errorBuilder가 대응)
-        debugPrint('precache failed: $path');
-      });
+      }
     }).toList();
 
-    await Future.wait(futures);
+    // 프리캐시 타임아웃: 5초 넘으면 포기하고 진행 (로딩 멈춤 방지)
+    await Future.wait(futures).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => <Null>[],
+    );
 
-    // 최소 표시 시간 보장 (1초)
-    await Future.delayed(const Duration(milliseconds: 800));
+    // 최소 표시 시간 보장
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted) {
       // 페이드아웃 트리거
@@ -286,109 +293,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  void _runDealSequence(dynamic gameState) async {
-    final screenW = MediaQuery.of(context).size.width;
-    final screenH = MediaQuery.of(context).size.height;
-
-    // 덱 위치 (왼쪽 중앙)
-    final deckPos = Offset(30, screenH * 0.4);
-
-    // 상대 핸드 영역 (상단 중앙)
-    final opponentBaseX = screenW * 0.3;
-    const opponentY = 60.0;
-
-    // 필드 영역 (중앙)
-    final fieldBaseX = screenW * 0.25;
-    final fieldY = screenH * 0.35;
-
-    // 플레이어 핸드 영역 (하단)
-    final playerBaseX = screenW * 0.2;
-    final playerY = screenH - 150.0;
-
-    final dealOrder = <_DealTarget>[];
-
-    // 고스톱 딜링 순서: 상대3 → 필드4 → 나3 → 상대3 → 필드4 → 나3 → ...
-    // 단순화: 필드8 → 상대10 → 나10
-    for (int i = 0; i < 8; i++) {
-      dealOrder.add(_DealTarget('field', i));
-    }
-    for (int i = 0; i < 10; i++) {
-      dealOrder.add(_DealTarget('opponent', i));
-    }
-    for (int i = 0; i < 10; i++) {
-      dealOrder.add(_DealTarget('player', i));
-    }
-
-    for (final target in dealOrder) {
-      if (!mounted) return;
-
-      Offset to;
-      CardInstance card;
-      bool faceDown = false;
-
-      switch (target.area) {
-        case 'field':
-          to = Offset(fieldBaseX + target.index * 65, fieldY);
-          card = gameState.field[target.index];
-          break;
-        case 'opponent':
-          to = Offset(opponentBaseX + target.index * 42, opponentY);
-          card = gameState.opponentHand[target.index];
-          faceDown = true;
-          break;
-        case 'player':
-          to = Offset(playerBaseX + target.index * 78, playerY);
-          card = gameState.playerHand[target.index];
-          break;
-        default:
-          continue;
-      }
-
-      // 카드 하나 날려보내기 (setState 1회로 통합)
-      final random = Random();
-      final throwAngle = (random.nextDouble() - 0.5) * 0.15;
-
-      setState(() {
-        _visibleDeckCount--;
-        switch (target.area) {
-          case 'field':
-            _dealtFieldCount = target.index + 1;
-            break;
-          case 'opponent':
-            _dealtOpponentCount = target.index + 1;
-            break;
-          case 'player':
-            _dealtPlayerCount = target.index + 1;
-            break;
-        }
-        _flyingCards = [
-          FlyingCard(
-            card: card,
-            from: deckPos,
-            to: to,
-            startAngle: -0.3,
-            endAngle: throwAngle,
-            isFaceDown: faceDown,
-            duration: const Duration(milliseconds: 400),
-            size: faceDown ? 38 : (target.area == 'field' ? 50 : 72),
-            style: 'deal',
-          ),
-        ];
-      });
-
-      await Future.delayed(const Duration(milliseconds: 250));
-    }
-
-    // 딜링 완료
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (mounted) {
-      setState(() {
-        _isDealing = false;
-        _flyingCards = [];
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameStateProvider);
@@ -447,6 +351,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 Expanded(
                   child: Column(
                     children: [
+                      // 최상단 가로 배너 광고 (적 핸드 위)
+                      if (isGameStarted) const AdBannerWidget(),
                       // 상단 영역: 통합 TopBar (캐릭터 / 상대 핸드 / 설정)
                       if (isGameStarted) _buildTopBar(gameState, strings),
                       if (isGameStarted) _buildCapturedArea(gameState.opponentCaptured, strings.opponentCapturedLabel, isPlayer: false),
@@ -552,25 +458,82 @@ class _GameScreenState extends ConsumerState<GameScreen>
             ),
 
           if (gameState.isFinished)
-            RoundEndOverlay(
-              state: gameState,
-              strings: strings,
-              screenW: _screenW,
-              scale: _scale,
-              onNextRound: () {
-                CrazyGamesService.gameplayStart();
-                _startGameWithDeal();
-              },
-              onShop: () {
-                final run = ref.read(runStateNotifierProvider);
-                ref.read(runStateNotifierProvider.notifier).openShop(run.stage);
-                setState(() => _showShop = true);
-              },
-              onRestart: () async {
-                await ref.read(runStateNotifierProvider.notifier).restartRun();
-                _startGameWithDeal();
-              },
-            ),
+            Builder(builder: (context) {
+              try {
+                return RoundEndOverlay(
+                  state: gameState,
+                  strings: strings,
+                  screenW: _screenW,
+                  scale: _scale,
+                  onNextRound: () {
+                    CrazyGamesService.gameplayStart();
+                    _startGameWithDeal();
+                  },
+                  onShop: () {
+                    final run = ref.read(runStateNotifierProvider);
+                    ref.read(runStateNotifierProvider.notifier).openShop(run.stage);
+                    setState(() => _showShop = true);
+                  },
+                  onRestart: () async {
+                    await ref.read(runStateNotifierProvider.notifier).restartRun();
+                    _startGameWithDeal();
+                  },
+                  onContinueWithAd: () async {
+                    await AdService.showRewardedAd(
+                      onRewarded: () {
+                        ref.read(runStateNotifierProvider.notifier).reviveWithAd();
+                        _startGameWithDeal();
+                      },
+                      onError: (error) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error), backgroundColor: Colors.red[800]),
+                        );
+                      },
+                    );
+                  },
+                );
+              } catch (e) {
+                // RoundEndOverlay 렌더링 실패 시 안전한 대체 UI
+                return Container(
+                  color: Colors.black.withValues(alpha: 0.85),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(gameState.winner == 'player' ? '🏆 ${strings.ui('victory')}' : '💀 ${strings.ui('defeat')}',
+                          style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                final run = ref.read(runStateNotifierProvider);
+                                ref.read(runStateNotifierProvider.notifier).openShop(run.stage);
+                                setState(() => _showShop = true);
+                              },
+                              icon: const Text('🛒'),
+                              label: Text(strings.shop),
+                              style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                CrazyGamesService.gameplayStart();
+                                _startGameWithDeal();
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700), foregroundColor: Colors.black),
+                              child: Text(strings.ui('nextRound'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            }),
 
           // 설정 오버레이
           if (_showSettings)
@@ -2217,11 +2180,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 }
 
-class _DealTarget {
-  final String area; // 'field', 'opponent', 'player'
-  final int index;
-  _DealTarget(this.area, this.index);
-}
 
 /// 화투판 바닥 패턴 페인터 (스테이지별 다른 질감)
 // ignore: unused_element

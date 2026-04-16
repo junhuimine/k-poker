@@ -18,6 +18,7 @@ class AudioManager {
   double _sfxVolume = 0.2;
   bool _bgmMuted = false;
   bool _sfxMuted = false;
+  bool _bgmLoopStarted = false; // 순환 루프가 한 번이라도 시작됐는지
 
   double get bgmVolume => _bgmVolume;
   double get sfxVolume => _sfxVolume;
@@ -32,10 +33,11 @@ class AudioManager {
     _bgmMuted = prefs.getBool('bgm_muted') ?? true;
     _sfxMuted = prefs.getBool('sfx_muted') ?? true;
     
-    _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+    _bgmPlayer.setReleaseMode(ReleaseMode.stop);
     await _bgmPlayer.setVolume(_bgmMuted ? 0 : _bgmVolume);
 
     // 곡 끝나면 자동 다음 곡 (리스너 1회만 등록)
+    // ReleaseMode.stop 사용 — loop과 onPlayerComplete가 충돌하여 Android에서 BGM 멈춤
     _bgmPlayer.onPlayerComplete.listen((_) {
       playNextBgm();
     });
@@ -116,7 +118,22 @@ class AudioManager {
   }
 
   /// BGM 시작 (게임 시작 시 호출)
-  Future<void> startBgmLoop() async {
+  ///
+  /// 이미 재생 중이면 재시작하지 않음 — 스테이지 전환 시 곡이 끊기는 문제 방지.
+  /// `force: true` 를 넘기면 현재 곡을 중단하고 1번 곡부터 재시작.
+  Future<void> startBgmLoop({bool force = false}) async {
+    if (!force && _bgmLoopStarted) {
+      // 이미 루프가 시작됐으면, 정지된 상태일 때만 현재 곡 이어서 재생
+      final state = _bgmPlayer.state;
+      if (state == PlayerState.playing || state == PlayerState.paused) {
+        if (state == PlayerState.paused) await _bgmPlayer.resume();
+        return;
+      }
+      // stopped/completed → 현재 인덱스에서 이어 재생
+      await playNextBgm();
+      return;
+    }
+    _bgmLoopStarted = true;
     _currentBgmIndex = 0;
     await playNextBgm();
   }

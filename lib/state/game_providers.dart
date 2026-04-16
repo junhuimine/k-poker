@@ -1320,6 +1320,13 @@ class RunStateNotifier extends _$RunStateNotifier {
     newGame(state.currencyLocale);
   }
 
+  /// 광고 보상으로 부활 — 소지금을 시작 금액(50)으로 복구
+  void reviveWithAd() {
+    const reviveMoney = 50.0;
+    state = state.copyWith(money: reviveMoney);
+    _autoSave();
+  }
+
   /// 금화 획득 (출석/광고 보상)
   void addGold(int amount) {
     state = state.copyWith(gold: state.gold + amount);

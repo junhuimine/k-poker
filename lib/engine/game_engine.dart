@@ -42,7 +42,7 @@ class GameEngine {
         .toList();
 
     // c_gwang_scanner [광 스캐너]: 바닥이나 핸드(앞 20장)에 광카드 배치 확률 대폭 증가
-    final dealZone = fieldSize + handSize * 2; // 8+10+10 = 28
+    const dealZone = fieldSize + handSize * 2; // 8+10+10 = 28
     if (run != null && (run.equippedRoundItemIds.contains('c_gwang_scanner') || run.equippedRoundItemIds.contains('P-001'))) {
       final brights = deck.where((c) => c.def.grade == CardGrade.bright).toList();
       final others = deck.where((c) => c.def.grade != CardGrade.bright).toList();

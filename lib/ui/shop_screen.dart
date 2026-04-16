@@ -79,7 +79,7 @@ class ShopScreen extends ConsumerWidget {
 
   Widget _buildHeader(dynamic run, AppStrings s) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [const Color(0xFF1A1A2E), Colors.black.withValues(alpha: 0.8)],
@@ -88,50 +88,69 @@ class ShopScreen extends ConsumerWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          children: [
-            const Text('🏪', style: TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
-            Text(
-              s.ui('shopSecretShop'),
-              style: const TextStyle(
-                color: Color(0xFFFFD700),
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            // Stage 표시
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.blueGrey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                s.shopStage(run.stage),
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // 골드 표시
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.amber),
-              ),
-              child: Text(
-                '🪙 ${run.gold} G',
-                style: const TextStyle(
-                  color: Colors.amberAccent,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // 좁은 화면에서는 타이틀 폰트/패딩 축소
+            final isNarrow = constraints.maxWidth < 380;
+            final titleFont = isNarrow ? 17.0 : 22.0;
+            final chipFont = isNarrow ? 11.0 : 13.0;
+            final goldFont = isNarrow ? 13.0 : 15.0;
+
+            return Row(
+              children: [
+                Text('🏪', style: TextStyle(fontSize: isNarrow ? 22 : 28)),
+                SizedBox(width: isNarrow ? 6 : 12),
+                // 타이틀 — Flexible + ellipsis로 오버플로우 방지
+                Flexible(
+                  child: Text(
+                    s.ui('shopSecretShop'),
+                    style: TextStyle(
+                      color: const Color(0xFFFFD700),
+                      fontSize: titleFont,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ),
-          ],
+                SizedBox(width: isNarrow ? 6 : 12),
+                // Stage 표시
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: isNarrow ? 6 : 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    s.shopStage(run.stage),
+                    style: TextStyle(color: Colors.white70, fontSize: chipFont),
+                  ),
+                ),
+                SizedBox(width: isNarrow ? 4 : 8),
+                // 골드 표시 — FittedBox로 큰 숫자도 축소 처리
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: isNarrow ? 10 : 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.amber),
+                  ),
+                  constraints: BoxConstraints(maxWidth: isNarrow ? 100 : 140),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '🪙 ${run.gold} G',
+                      style: TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: goldFont,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -169,20 +188,27 @@ class ShopScreen extends ConsumerWidget {
   // ═══════════════════════════════════════
 
   Widget _buildSlotGrid(WidgetRef ref, dynamic run, ShopState shopState, AppStrings s) {
-    return SizedBox(
-      height: 240,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: shopState.slots.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final slot = shopState.slots[index];
-          final item = findCatalogItem(slot.itemId);
-          if (item == null) return const SizedBox.shrink();
-          return _buildSlotCard(ref, run, slot, item, index, s);
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 화면 폭에 따라 카드 크기 조정 (모바일 좁은 화면 대응)
+        final isNarrow = constraints.maxWidth < 380;
+        final cardHeight = isNarrow ? 220.0 : 240.0;
+        return SizedBox(
+          height: cardHeight,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: shopState.slots.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final slot = shopState.slots[index];
+              final item = findCatalogItem(slot.itemId);
+              if (item == null) return const SizedBox.shrink();
+              return _buildSlotCard(ref, run, slot, item, index, s, isNarrow: isNarrow);
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -192,15 +218,16 @@ class ShopScreen extends ConsumerWidget {
     ShopSlot slot,
     ItemDef item,
     int index,
-    AppStrings s,
-  ) {
+    AppStrings s, {
+    bool isNarrow = false,
+  }) {
     final borderColor = _rarityBorderColor(item.rarity);
     final canAfford = run.gold >= slot.price;
     final isLocked = slot.locked;
     final isSold = slot.sold;
 
     return Container(
-      width: 170,
+      width: isNarrow ? 150 : 170,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isSold
@@ -306,18 +333,21 @@ class ShopScreen extends ConsumerWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: canAfford ? borderColor : Colors.grey.withValues(alpha: 0.2),
                           foregroundColor: Colors.black,
-                          padding: EdgeInsets.zero,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           disabledBackgroundColor: Colors.grey.withValues(alpha: 0.15),
                         ),
-                        child: Text(
-                          '🪙 ${slot.price} G',
-                          style: TextStyle(
-                            color: canAfford ? Colors.black : Colors.grey,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '🪙 ${slot.price} G',
+                            style: TextStyle(
+                              color: canAfford ? Colors.black : Colors.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

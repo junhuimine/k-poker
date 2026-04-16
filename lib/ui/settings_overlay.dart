@@ -122,6 +122,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
                               AppLanguage.de => 'de',
                               AppLanguage.pt => 'pt',
                               AppLanguage.th => 'th',
+                              AppLanguage.vi => 'vi',
                             };
                             ref.read(runStateNotifierProvider.notifier).changeCurrency(currencyLocale);
                           },
@@ -310,6 +311,7 @@ class _SettingsOverlayState extends ConsumerState<SettingsOverlay> {
       case AppLanguage.de: return '🇩🇪 Deutsch';
       case AppLanguage.pt: return '🇧🇷 Português';
       case AppLanguage.th: return '🇹🇭 ภาษาไทย';
+      case AppLanguage.vi: return '🇻🇳 Tiếng Việt';
     }
   }
 }
