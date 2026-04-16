@@ -70,3 +70,8 @@ tool/geminikey.txt
 # Claude Code local config
 .claude/worktrees/
 .mcp.json
+releases/
+
+# Playwright MCP artifacts + 루트 임시 스크린샷 (Play Store 자산은 tool/에 보관)
+.playwright-mcp/
+/screenshot_*.png
