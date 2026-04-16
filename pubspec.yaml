@@ -1,7 +1,7 @@
 name: k_poker
 description: "K-Poker: 화투 로그라이크 카드 배틀 게임"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.5+11
 
 environment:
   sdk: ^3.5.0
@@ -16,6 +16,8 @@ dependencies:
   audioplayers: ^6.0.0
   shared_preferences: ^2.2.3
   google_fonts: ^6.2.1
+  google_mobile_ads: ^5.1.0
+  in_app_update: ^4.2.5
 
 dev_dependencies:
   flutter_test:

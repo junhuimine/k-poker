@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'services/ad_service.dart';
 import 'services/crazygames.dart';
+import 'services/update_service.dart';
 import 'ui/game_screen.dart';
 
 void main() async {
@@ -20,11 +22,16 @@ void main() async {
     await CrazyGamesService.init();
   }
 
+  // Android: AdMob 초기화 + 인앱 업데이트 체크
+  if (!kIsWeb) {
+    await AdService.init();
+    UpdateService.checkForUpdate(); // 비동기 — 게임 시작 차단하지 않음
+  }
+
   // 모바일: 가로 모드 우선 + 상태바/네비게이션 숨기기
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
-    DeviceOrientation.portraitUp, // fallback
   ]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const ProviderScope(child: KPokerApp()));
