@@ -5,7 +5,7 @@ from pathlib import Path
 from google import genai
 from google.genai import types
 
-API_KEY = "AIzaSyCgzX8lE8ZbvMiTUFsZDQ0njnaGjB_ucuY"
+API_KEY = "AIzaSyCslJxg4Up-BtdQ4wPv6TG5xmyRTR4bJzI"
 OUTPUT_DIR = Path(__file__).parent.parent / "assets" / "images" / "cards_manga_v2"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 

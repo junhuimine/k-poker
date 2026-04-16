@@ -13,7 +13,7 @@ os.environ["PYTHONIOENCODING"] = "utf-8"
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-API_KEY = "AIzaSyCgzX8lE8ZbvMiTUFsZDQ0njnaGjB_ucuY"
+API_KEY = "AIzaSyCslJxg4Up-BtdQ4wPv6TG5xmyRTR4bJzI"
 OUTPUT_DIR = Path("D:/02_project/08_k-poker/assets/images/cards")
 MODEL = "imagen-4.0-ultra-generate-001"
 
