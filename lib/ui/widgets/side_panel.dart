@@ -677,7 +677,7 @@ class MySkillsBlock extends ConsumerWidget {
     if (skillId == 'a_joker' || skillId == 'a_card_laundry') {
       if (field.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('바닥에 카드가 없습니다'), duration: const Duration(seconds: 2)),
+          SnackBar(content: Text(appStr.ui('skillNoFieldCards')), duration: const Duration(seconds: 2)),
         );
         return;
       }
@@ -685,7 +685,7 @@ class MySkillsBlock extends ConsumerWidget {
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: const Color(0xFF1A1F2E),
-          title: Text(skillId == 'a_joker' ? '🃏 획득할 카드 선택' : '🧼 덱으로 보낼 카드 선택',
+          title: Text(skillId == 'a_joker' ? appStr.ui('skillJokerSelectTitle') : appStr.ui('skillLaundrySelectTitle'),
               style: const TextStyle(color: Colors.white, fontSize: 14)),
           content: SizedBox(
             width: 200,
@@ -699,7 +699,7 @@ class MySkillsBlock extends ConsumerWidget {
                   dense: true,
                   title: Text(card.def.nameKo ?? card.def.name,
                       style: const TextStyle(color: Colors.white, fontSize: 12)),
-                  subtitle: Text('${card.def.month}월',
+                  subtitle: Text(appStr.monthFormatted(card.def.month),
                       style: const TextStyle(color: Colors.white38, fontSize: 10)),
                   onTap: () {
                     Navigator.pop(context);
@@ -716,7 +716,7 @@ class MySkillsBlock extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+              child: Text(appStr.ui('cancel'), style: const TextStyle(color: Colors.white54)),
             ),
           ],
         ),
@@ -726,7 +726,7 @@ class MySkillsBlock extends ConsumerWidget {
       final topCards = deck.take(3).toList();
       if (topCards.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('덱이 비어있습니다'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(appStr.ui('skillNoDeckCards')), duration: const Duration(seconds: 2)),
         );
         return;
       }
@@ -735,19 +735,19 @@ class MySkillsBlock extends ConsumerWidget {
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: const Color(0xFF1A1F2E),
-          title: const Text('👁️ 덱 위 3장 확인',
-              style: TextStyle(color: Colors.white, fontSize: 14)),
+          title: Text(appStr.ui('skillKeenEyeTitle'),
+              style: const TextStyle(color: Colors.white, fontSize: 14)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < topCards.length; i++)
                 ListTile(
                   dense: true,
-                  leading: Text('${i + 1}위',
+                  leading: Text('${i + 1}${appStr.ui('rankSuffix')}',
                       style: const TextStyle(color: Colors.white54, fontSize: 11)),
                   title: Text(topCards[i].def.nameKo ?? topCards[i].def.name,
                       style: const TextStyle(color: Colors.white, fontSize: 12)),
-                  subtitle: Text('${topCards[i].def.month}월',
+                  subtitle: Text(appStr.monthFormatted(topCards[i].def.month),
                       style: const TextStyle(color: Colors.white38, fontSize: 10)),
                 ),
             ],
@@ -755,7 +755,7 @@ class MySkillsBlock extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('확인', style: TextStyle(color: Colors.white54)),
+              child: Text(appStr.ui('confirm'), style: const TextStyle(color: Colors.white54)),
             ),
             TextButton(
               onPressed: () {
@@ -765,8 +765,8 @@ class MySkillsBlock extends ConsumerWidget {
                     List.generate(topCards.length, (i) => topCards.length - 1 - i));
                 ref.read(runStateNotifierProvider.notifier).consumeActiveSkill(skillId);
               },
-              child: const Text('역순으로 바꾸기',
-                  style: TextStyle(color: Colors.cyanAccent)),
+              child: Text(appStr.ui('skillKeenEyeReverseBtn'),
+                  style: const TextStyle(color: Colors.cyanAccent)),
             ),
           ],
         ),
@@ -775,8 +775,8 @@ class MySkillsBlock extends ConsumerWidget {
       final hand = gameState.playerHand as List;
       if (field.isEmpty || hand.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('필드 또는 손패가 없습니다'), duration: Duration(seconds: 2)),
+          SnackBar(
+              content: Text(appStr.ui('skillNoFieldOrHand')), duration: const Duration(seconds: 2)),
         );
         return;
       }
@@ -785,8 +785,8 @@ class MySkillsBlock extends ConsumerWidget {
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: const Color(0xFF1A1F2E),
-          title: const Text('🃏 변경할 바닥 카드 선택',
-              style: TextStyle(color: Colors.white, fontSize: 14)),
+          title: Text(appStr.ui('skillTrickSelectTitle'),
+              style: const TextStyle(color: Colors.white, fontSize: 14)),
           content: SizedBox(
             width: 200,
             child: ListView.separated(
@@ -799,7 +799,7 @@ class MySkillsBlock extends ConsumerWidget {
                   dense: true,
                   title: Text(fCard.def.nameKo ?? fCard.def.name,
                       style: const TextStyle(color: Colors.white, fontSize: 12)),
-                  subtitle: Text('${fCard.def.month}월 → 내 패 월로 변경',
+                  subtitle: Text('${appStr.monthFormatted(fCard.def.month)} ${appStr.ui('skillTrickChangeToHand')}',
                       style: const TextStyle(color: Colors.white38, fontSize: 10)),
                   onTap: () {
                     Navigator.pop(context);
@@ -820,7 +820,7 @@ class MySkillsBlock extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+              child: Text(appStr.ui('cancel'), style: const TextStyle(color: Colors.white54)),
             ),
           ],
         ),
