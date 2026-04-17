@@ -11,10 +11,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'services/ad_service.dart';
 import 'services/crazygames.dart';
 import 'services/update_service.dart';
+import 'state/audio_manager.dart';
 import 'ui/game_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 오디오 초기화 — SharedPreferences 로드 + onPlayerComplete 리스너 등록 (BGM 순환 재생 필수)
+  await AudioManager().init();
 
   // CrazyGames SDK: 로딩 시작 알림 → 초기화
   if (kIsWeb) {

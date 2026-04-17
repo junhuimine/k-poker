@@ -29,9 +29,10 @@ class AudioManager {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _bgmVolume = prefs.getDouble('bgm_volume') ?? 0.2;
-    _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.2;
-    _bgmMuted = prefs.getBool('bgm_muted') ?? true;
-    _sfxMuted = prefs.getBool('sfx_muted') ?? true;
+    _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.3;
+    // 신규 설치 시 소리 ON (이전에는 기본값 true로 되어 있어 첫 실행 시 무음)
+    _bgmMuted = prefs.getBool('bgm_muted') ?? false;
+    _sfxMuted = prefs.getBool('sfx_muted') ?? false;
     
     _bgmPlayer.setReleaseMode(ReleaseMode.stop);
     await _bgmPlayer.setVolume(_bgmMuted ? 0 : _bgmVolume);
