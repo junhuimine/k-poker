@@ -75,3 +75,6 @@ releases/
 # Playwright MCP artifacts + 루트 임시 스크린샷 (Play Store 자산은 tool/에 보관)
 .playwright-mcp/
 /screenshot_*.png
+
+# Runtime test artifacts (실기 에뮬 테스트 중 생성되는 일회성 스크린샷)
+tool/runtime_test_*.png
