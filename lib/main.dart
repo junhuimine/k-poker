@@ -19,6 +19,8 @@ void main() async {
 
   // 오디오 초기화 — SharedPreferences 로드 + onPlayerComplete 리스너 등록 (BGM 순환 재생 필수)
   await AudioManager().init();
+  // 앱 시작 시 BGM 루프 시작 — 타이틀 화면부터 음악 재생 (await 없이 비동기 호출, 앱 시작 차단하지 않음)
+  AudioManager().startBgmLoop();
 
   // CrazyGames SDK: 로딩 시작 알림 → 초기화
   if (kIsWeb) {

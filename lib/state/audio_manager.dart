@@ -3,6 +3,8 @@
 /// BGM + SFX 재생, 볼륨 관리, SharedPreferences 저장
 library;
 
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +21,7 @@ class AudioManager {
   bool _bgmMuted = false;
   bool _sfxMuted = false;
   bool _bgmLoopStarted = false; // 순환 루프가 한 번이라도 시작됐는지
+  Timer? _bgmWatchdog; // 릴리스 빌드에서 onPlayerComplete 누락 방지용 폴링
 
   double get bgmVolume => _bgmVolume;
   double get sfxVolume => _sfxVolume;
@@ -34,14 +37,42 @@ class AudioManager {
     _bgmMuted = prefs.getBool('bgm_muted') ?? false;
     _sfxMuted = prefs.getBool('sfx_muted') ?? false;
     
-    _bgmPlayer.setReleaseMode(ReleaseMode.stop);
+    // 🎯 loop 모드로 설정 — 한 곡이 끝나면 즉시 처음부터 다시 재생 (침묵 0)
+    //
+    // 배경: 2026-04-17 실기기 에뮬 검증 결과, audioplayers 6.0 Android 릴리스 빌드에서
+    // onPlayerComplete / onPlayerStateChanged 이벤트 둘 다 안정적으로 발생하지 않음.
+    // → 'stop' 모드 + 이벤트 기반 다음 곡 재생 방식은 Android 릴리스에서 1곡 후 침묵.
+    // → 'loop' 모드로 바꾸면 audioplayers 네이티브가 끝나면 자동 재시작해서 침묵 없음.
+    // → 10곡 순환은 별도 Timer로 주기적으로 playNextBgm()을 호출해서 구현.
+    _bgmPlayer.setReleaseMode(ReleaseMode.loop);
     await _bgmPlayer.setVolume(_bgmMuted ? 0 : _bgmVolume);
 
-    // 곡 끝나면 자동 다음 곡 (리스너 1회만 등록)
-    // ReleaseMode.stop 사용 — loop과 onPlayerComplete가 충돌하여 Android에서 BGM 멈춤
-    _bgmPlayer.onPlayerComplete.listen((_) {
-      playNextBgm();
+    // 이벤트 기반 다음 곡 (정상 환경에서는 동작, 릴리스 Android에서는 안 불려도 loop이 커버)
+    _bgmPlayer.onPlayerComplete.listen((_) => _advanceIfNeeded('onPlayerComplete'));
+    _bgmPlayer.onPlayerStateChanged.listen((state) {
+      if (state == PlayerState.completed) {
+        _advanceIfNeeded('onPlayerStateChanged');
+      }
     });
+
+    // 주기적 곡 전환 — 같은 곡을 너무 오래 반복하지 않게 110초마다 다음 곡으로 전환.
+    // BGM 파일 길이는 100~180초 범위 → 110초 주기면 대부분의 곡이 한 번 또는 약간 반복 후 전환.
+    _bgmWatchdog?.cancel();
+    _bgmWatchdog = Timer.periodic(const Duration(seconds: 110), (_) async {
+      if (!_bgmLoopStarted || _bgmMuted) return;
+      await _advanceIfNeeded('watchdog-periodic');
+    });
+  }
+
+  bool _advancing = false;
+  Future<void> _advanceIfNeeded(String trigger) async {
+    if (_advancing) return;
+    _advancing = true;
+    try {
+      await playNextBgm();
+    } finally {
+      _advancing = false;
+    }
   }
 
   /// BGM 볼륨 설정
@@ -148,6 +179,7 @@ class AudioManager {
   }
 
   void dispose() {
+    _bgmWatchdog?.cancel();
     _bgmPlayer.dispose();
     _sfxPlayer.dispose();
   }
