@@ -78,3 +78,4 @@ releases/
 
 # Runtime test artifacts (실기 에뮬 테스트 중 생성되는 일회성 스크린샷)
 tool/runtime_test_*.png
+.test_screenshots/

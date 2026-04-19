@@ -483,16 +483,18 @@ class ShopScreen extends ConsumerWidget {
   // ═══════════════════════════════════════
 
   Widget _buildInventorySection(WidgetRef ref, dynamic run, AppStrings s) {
-    final passiveNames = run.ownedPassiveIds
-        .map((String id) => findCatalogItem(id))
-        .where((ItemDef? i) => i != null)
-        .map((ItemDef? i) => '${i!.emoji} ${s.getItemName(i.id, i.nameKo)}')
+    // dynamic run에서 List<String>/Map 제네릭 정보가 릴리스 빌드에서 손실되므로
+    // 명시적으로 List<String>으로 캐스트한 뒤 whereType<ItemDef>()로 안전하게 non-null 필터링.
+    final passiveNames = (run.ownedPassiveIds as List<String>)
+        .map(findCatalogItem)
+        .whereType<ItemDef>()
+        .map((i) => '${i.emoji} ${s.getItemName(i.id, i.nameKo)}')
         .toList();
 
-    final talismanNames = run.ownedTalismanIds
-        .map((String id) => findCatalogItem(id))
-        .where((ItemDef? i) => i != null)
-        .map((ItemDef? i) => '${i!.emoji} ${s.getItemName(i.id, i.nameKo)}')
+    final talismanNames = (run.ownedTalismanIds as List<String>)
+        .map(findCatalogItem)
+        .whereType<ItemDef>()
+        .map((i) => '${i.emoji} ${s.getItemName(i.id, i.nameKo)}')
         .toList();
 
     final activeEntries = <String>[];

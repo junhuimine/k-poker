@@ -36,7 +36,28 @@ class AudioManager {
     // 신규 설치 시 소리 ON (이전에는 기본값 true로 되어 있어 첫 실행 시 무음)
     _bgmMuted = prefs.getBool('bgm_muted') ?? false;
     _sfxMuted = prefs.getBool('sfx_muted') ?? false;
-    
+
+    // 🎚️ 오디오 컨텍스트 분리 — SFX가 BGM의 오디오 포커스를 뺏지 않도록.
+    // 2026-04-19 실기기 테스트: 패를 낼 때마다 SFX가 기본 gain 포커스를 요청해서
+    // BGM 플레이어가 매번 음소거/정지됨. SFX는 포커스 요청 없이 재생하도록 분리.
+    // ignore: prefer_const_constructors — AudioContext 생성자가 const가 아니라 런타임 구성 필요
+    await _bgmPlayer.setAudioContext(AudioContext(
+      android: const AudioContextAndroid(
+        contentType: AndroidContentType.music,
+        usageType: AndroidUsageType.media,
+        audioFocus: AndroidAudioFocus.gain,
+      ),
+    ));
+    await _sfxPlayer.setPlayerMode(PlayerMode.lowLatency);
+    // ignore: prefer_const_constructors
+    await _sfxPlayer.setAudioContext(AudioContext(
+      android: const AudioContextAndroid(
+        contentType: AndroidContentType.sonification,
+        usageType: AndroidUsageType.assistanceSonification,
+        audioFocus: AndroidAudioFocus.none,
+      ),
+    ));
+
     // 🎯 loop 모드로 설정 — 한 곡이 끝나면 즉시 처음부터 다시 재생 (침묵 0)
     //
     // 배경: 2026-04-17 실기기 에뮬 검증 결과, audioplayers 6.0 Android 릴리스 빌드에서

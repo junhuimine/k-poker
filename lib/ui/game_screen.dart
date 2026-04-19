@@ -29,9 +29,7 @@ import '../state/tutorial_provider.dart';
 import 'widgets/ad_banner_widget.dart';
 import 'widgets/tutorial_popup_overlay.dart';
 import '../common/responsive.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/ad_service.dart';
-import '../services/crazygames.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -125,12 +123,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Future<void> _precacheAssets() async {
     // 5광 + 카드 뒷면 등 핵심 이미지 프리캐시
     final importantAssets = [
-      'assets/images/cards/card_back.jpg',
-      'assets/images/cards/m01_bright.jpg',
-      'assets/images/cards/m03_bright.jpg',
-      'assets/images/cards/m08_bright.jpg',
-      'assets/images/cards/m11_bright.jpg',
-      'assets/images/cards/m12_bright.jpg',
+      'assets/images/cards/card_back.webp',
+      'assets/images/cards/m01_bright.webp',
+      'assets/images/cards/m03_bright.webp',
+      'assets/images/cards/m08_bright.webp',
+      'assets/images/cards/m11_bright.webp',
+      'assets/images/cards/m12_bright.webp',
       // 배경 이미지 (깜빡임 방지)
       'assets/images/backgrounds/bg_stage1.png',
       'assets/images/backgrounds/bg_stage2.png',
@@ -164,8 +162,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() => _isLoading = false);
-        CrazyGamesService.loadingStop();
-        CrazyGamesService.gameplayStart();
       }
     }
   }
@@ -174,7 +170,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startGameWithDeal() {
     ref.read(gameStateProvider.notifier).startGame(); // sync!
     AudioManager().startBgmLoop();
-    CrazyGamesService.gameplayStart();
     final gameState = ref.read(gameStateProvider);
 
     setState(() {
@@ -300,23 +295,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final isGoStopPending = ref.watch(goStopPendingProvider);
     final aiGoStopAnnounce = ref.watch(aiGoStopAnnounceProvider);
     final events = ref.watch(gameEventsProvider);
-
-    // CrazyGames: 라운드 종료 시 gameplayStop + 미드게임 광고
-    ref.listen<dynamic>(gameStateProvider, (prev, next) {
-      if (prev != null && !prev.isFinished && next.isFinished) {
-        CrazyGamesService.gameplayStop();
-        if (kIsWeb) {
-          CrazyGamesService.requestMidgameAd(
-            onStarted: () => AudioManager().stopBgm(),
-            onFinished: () {
-              AudioManager().startBgmLoop();
-              CrazyGamesService.gameplayStart();
-            },
-            onError: (_) => CrazyGamesService.gameplayStart(),
-          );
-        }
-      }
-    });
 
     // 튜토리얼 팝업 상태 체크
     final tutState = ref.watch(tutorialProvider);
@@ -466,7 +444,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   screenW: _screenW,
                   scale: _scale,
                   onNextRound: () {
-                    CrazyGamesService.gameplayStart();
                     _startGameWithDeal();
                   },
                   onShop: () {
@@ -520,7 +497,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
                             const SizedBox(width: 8),
                             ElevatedButton(
                               onPressed: () {
-                                CrazyGamesService.gameplayStart();
                                 _startGameWithDeal();
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700), foregroundColor: Colors.black),

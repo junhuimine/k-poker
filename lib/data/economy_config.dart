@@ -1,7 +1,6 @@
 /// K-Poker -- 골드 이코노미 상수
 ///
 /// 골드 관련 모든 상수를 한 곳에서 관리.
-/// itch.io 버전: 광고 없이 순수 인게임 경제만.
 library;
 
 class EconomyConfig {
