@@ -21,7 +21,8 @@ class AudioManager {
   bool _bgmMuted = false;
   bool _sfxMuted = false;
   bool _bgmLoopStarted = false; // 순환 루프가 한 번이라도 시작됐는지
-  Timer? _bgmWatchdog; // 릴리스 빌드에서 onPlayerComplete 누락 방지용 폴링
+  Timer? _bgmNextTimer;   // 현재 곡 길이에 맞춰 예약된 다음 곡 전환 타이머
+  Timer? _bgmFailsafe;    // onPlayerComplete + duration 둘 다 실패할 때의 최후 방어 (5분)
 
   double get bgmVolume => _bgmVolume;
   double get sfxVolume => _sfxVolume;
@@ -58,30 +59,49 @@ class AudioManager {
       ),
     ));
 
-    // 🎯 loop 모드로 설정 — 한 곡이 끝나면 즉시 처음부터 다시 재생 (침묵 0)
+    // 🎯 release 모드 + duration 기반 정확한 전환 스케줄링
     //
-    // 배경: 2026-04-17 실기기 에뮬 검증 결과, audioplayers 6.0 Android 릴리스 빌드에서
-    // onPlayerComplete / onPlayerStateChanged 이벤트 둘 다 안정적으로 발생하지 않음.
-    // → 'stop' 모드 + 이벤트 기반 다음 곡 재생 방식은 Android 릴리스에서 1곡 후 침묵.
-    // → 'loop' 모드로 바꾸면 audioplayers 네이티브가 끝나면 자동 재시작해서 침묵 없음.
-    // → 10곡 순환은 별도 Timer로 주기적으로 playNextBgm()을 호출해서 구현.
-    _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+    // 배경: 이전엔 ReleaseMode.loop + Timer.periodic(110초)로 강제 전환했는데,
+    // 곡 길이(100~180초)와 주기가 맞지 않아 중간에 끊기거나 부자연스러운 페이드가 발생.
+    //
+    // 개선 (2026-04-19): 곡을 한 번만 재생(release)하고, onDurationChanged로 얻은
+    // 실제 곡 길이에 맞춰 정확히 "곡 끝나기 300ms 전"에 다음 곡으로 전환 예약.
+    // → 자연스러운 곡 종료 직전에 매끄러운 전환. 침묵/끊김 최소화.
+    // onPlayerComplete는 백업 경로로 유지 (duration이 null이거나 이벤트가 늦을 때).
+    _bgmPlayer.setReleaseMode(ReleaseMode.release);
     await _bgmPlayer.setVolume(_bgmMuted ? 0 : _bgmVolume);
 
-    // 이벤트 기반 다음 곡 (정상 환경에서는 동작, 릴리스 Android에서는 안 불려도 loop이 커버)
+    // 주 경로: 곡이 로드되면 duration이 방출됨 → 그 길이에 맞춰 전환 예약
+    _bgmPlayer.onDurationChanged.listen(_scheduleNextFromDuration);
+
+    // 백업 경로: 이벤트가 정상이면 완료 시점에 즉시 다음 곡
     _bgmPlayer.onPlayerComplete.listen((_) => _advanceIfNeeded('onPlayerComplete'));
     _bgmPlayer.onPlayerStateChanged.listen((state) {
       if (state == PlayerState.completed) {
         _advanceIfNeeded('onPlayerStateChanged');
       }
     });
+  }
 
-    // 주기적 곡 전환 — 같은 곡을 너무 오래 반복하지 않게 110초마다 다음 곡으로 전환.
-    // BGM 파일 길이는 100~180초 범위 → 110초 주기면 대부분의 곡이 한 번 또는 약간 반복 후 전환.
-    _bgmWatchdog?.cancel();
-    _bgmWatchdog = Timer.periodic(const Duration(seconds: 110), (_) async {
+  /// 현재 재생 중인 곡의 실제 길이에 맞춰 다음 곡 전환 시점 예약.
+  /// duration 이 null/0이거나 비정상이면 무시 (onPlayerComplete 경로에 맡김).
+  void _scheduleNextFromDuration(Duration duration) {
+    _bgmNextTimer?.cancel();
+    _bgmFailsafe?.cancel();
+    final ms = duration.inMilliseconds;
+    if (ms <= 2000) return; // 너무 짧으면 무시 (잘못된 메타)
+
+    // 곡 끝 300ms 전에 전환 → 자연스러운 페이드아웃 직전
+    final leadMs = ms > 1000 ? ms - 300 : ms;
+    _bgmNextTimer = Timer(Duration(milliseconds: leadMs), () {
       if (!_bgmLoopStarted || _bgmMuted) return;
-      await _advanceIfNeeded('watchdog-periodic');
+      _advanceIfNeeded('duration-scheduled');
+    });
+
+    // 최후 방어: 곡 길이 + 30초가 지나도 다음 곡 전환이 없으면 강제 전환
+    _bgmFailsafe = Timer(Duration(milliseconds: ms + 30000), () {
+      if (!_bgmLoopStarted || _bgmMuted) return;
+      _advanceIfNeeded('failsafe');
     });
   }
 
@@ -200,7 +220,8 @@ class AudioManager {
   }
 
   void dispose() {
-    _bgmWatchdog?.cancel();
+    _bgmNextTimer?.cancel();
+    _bgmFailsafe?.cancel();
     _bgmPlayer.dispose();
     _sfxPlayer.dispose();
   }
