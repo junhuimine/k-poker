@@ -1059,9 +1059,13 @@ class RunStateNotifier extends _$RunStateNotifier {
       var migrated = saved;
 
       // 세이브 보정: opponentMoney가 0 이하이거나 비정상적이면 현재 스테이지에 맞게 초기화
+      // 2026-04-19: 하한 조건 추가 — AI 자금 2배 상향(50→100 등) 후 기존 세이브의 소액이
+      // 그대로 유지되는 문제 해결. 기대값의 60% 미만이면 구버전 세이브로 간주하고 재설정.
       final currency = getCurrencyForLocale(migrated.currencyLocale);
       final expectedFund = getOpponentFund(migrated.stage, migrated.currentOpponentIndex, currency.pointValue);
-      if (migrated.opponentMoney <= 0 || migrated.opponentMoney > expectedFund * 2) {
+      if (migrated.opponentMoney <= 0 ||
+          migrated.opponentMoney < expectedFund * 0.6 ||
+          migrated.opponentMoney > expectedFund * 2) {
         migrated = migrated.copyWith(opponentMoney: expectedFund);
       }
 

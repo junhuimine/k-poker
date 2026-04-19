@@ -13,26 +13,26 @@ void main() {
     test('각 스테이지별 AI 자금이 올바르게 계산됨', () {
       const pointValue = 1000.0; // KRW
       
-      // 스테이지 1: AI당 50 * 1000 = ₩50,000
-      expect(getOpponentFund(1, 0, pointValue), equals(50000));
-      // 두 번째 상대는 20% 높음
-      expect(getOpponentFund(1, 1, pointValue), equals(60000));
-      
-      // 스테이지 2: 120 * 1000 = ₩120,000
-      expect(getOpponentFund(2, 0, pointValue), equals(120000));
-      expect(getOpponentFund(2, 1, pointValue), equals(144000));
-      
-      // 스테이지 3: 250 * 1000 = ₩250,000
-      expect(getOpponentFund(3, 0, pointValue), equals(250000));
+      // 스테이지 1: AI당 100 * 1000 = ₩100,000
+      expect(getOpponentFund(1, 0, pointValue), equals(100000));
+      // 두 번째 상대는 1번째의 2배
+      expect(getOpponentFund(1, 1, pointValue), equals(200000));
 
-      // 스테이지 4: 500 * 1000 = ₩500,000
-      expect(getOpponentFund(4, 0, pointValue), equals(500000));
+      // 스테이지 2: 240 * 1000 = ₩240,000
+      expect(getOpponentFund(2, 0, pointValue), equals(240000));
+      expect(getOpponentFund(2, 1, pointValue), equals(480000));
 
-      // 스테이지 5: 1000 * 1000 = ₩1,000,000
-      expect(getOpponentFund(5, 0, pointValue), equals(1000000));
+      // 스테이지 3: 500 * 1000 = ₩500,000
+      expect(getOpponentFund(3, 0, pointValue), equals(500000));
 
-      // 스테이지 6: 2000 * 1000 = ₩2,000,000
-      expect(getOpponentFund(6, 0, pointValue), equals(2000000));
+      // 스테이지 4: 1000 * 1000 = ₩1,000,000
+      expect(getOpponentFund(4, 0, pointValue), equals(1000000));
+
+      // 스테이지 5: 2000 * 1000 = ₩2,000,000
+      expect(getOpponentFund(5, 0, pointValue), equals(2000000));
+
+      // 스테이지 6: 4000 * 1000 = ₩4,000,000
+      expect(getOpponentFund(6, 0, pointValue), equals(4000000));
       
       print('✅ 스테이지별 AI 자금 검증 완료');
       for (var s = 1; s <= 6; s++) {
@@ -86,28 +86,28 @@ void main() {
       // 시작 상태: 스테이지 1, 상대 0 (김 아저씨), 자금 ₩50,000
       var stage = 1;
       var opIdx = 0;
-      var opMoney = getOpponentFund(1, 0, pointValue); // 50000
+      var opMoney = getOpponentFund(1, 0, pointValue); // 100000
       var playerMoney = 250000.0; // 시작 자금
       
       print('\n=== 스테이지 진행 시뮬레이션 ===');
       print('시작: 소지금 ₩${playerMoney.toInt()}, 스테이지 $stage, 상대 ${getAiForStage(stage, opIdx).nameKo} (₩${opMoney.toInt()})');
       
-      // 라운드 1: ₩15,000 이김
-      var earnings = 15000.0;
+      // 라운드 1: ₩30,000 이김
+      var earnings = 30000.0;
       opMoney -= earnings;
       playerMoney += earnings;
       print('라운드 1 승리: +₩${earnings.toInt()} → 상대 잔액 ₩${opMoney.toInt()}');
       expect(opMoney, greaterThan(0));
-      
-      // 라운드 2: ₩20,000 이김
-      earnings = 20000.0;
+
+      // 라운드 2: ₩35,000 이김
+      earnings = 35000.0;
       opMoney -= earnings;
       playerMoney += earnings;
       print('라운드 2 승리: +₩${earnings.toInt()} → 상대 잔액 ₩${opMoney.toInt()}');
       expect(opMoney, greaterThan(0));
-      
-      // 라운드 3: ₩20,000 이김 → 상대 잔액 ₩-5,000 → 다음 상대!
-      earnings = 20000.0;
+
+      // 라운드 3: ₩40,000 이김 → 상대 잔액 ₩-5,000 → 다음 상대!
+      earnings = 40000.0;
       opMoney -= earnings;
       playerMoney += earnings;
       print('라운드 3 승리: +₩${earnings.toInt()} → 상대 잔액 ₩${opMoney.toInt()} → 탈락!');
@@ -115,7 +115,7 @@ void main() {
       
       // 다음 상대로 전환
       opIdx = 1;
-      opMoney = getOpponentFund(1, 1, pointValue); // 60000
+      opMoney = getOpponentFund(1, 1, pointValue); // 200000
       print('→ 다음 상대: ${getAiForStage(stage, opIdx).nameKo} (₩${opMoney.toInt()})');
       expect(opIdx, equals(1));
       
@@ -125,23 +125,23 @@ void main() {
       // 스테이지 클리어 → 다음 스테이지
       stage = 2;
       opIdx = 0;
-      opMoney = getOpponentFund(2, 0, pointValue); // 120000
+      opMoney = getOpponentFund(2, 0, pointValue); // 240000
       print('→ 스테이지 $stage 진입: ${getAiForStage(stage, opIdx).nameKo} (₩${opMoney.toInt()})');
       expect(stage, equals(2));
-      expect(opMoney, equals(120000));
+      expect(opMoney, equals(240000));
       
       print('\n✅ 스테이지 진행 시뮬레이션 완료');
     });
 
     test('패배 시 상대 자금 증가', () {
       const pointValue = 1000.0;
-      var opMoney = getOpponentFund(1, 0, pointValue); // 50000
+      var opMoney = getOpponentFund(1, 0, pointValue); // 100000
       
       // 패배: 상대에게 ₩10,000 잃음
       const penalty = 10000.0;
       opMoney += penalty;
-      expect(opMoney, equals(60000));
-      print('✅ 패배 시 상대 자금 증가: ₩50,000 → ₩${opMoney.toInt()}');
+      expect(opMoney, equals(110000));
+      print('✅ 패배 시 상대 자금 증가: ₩100,000 → ₩${opMoney.toInt()}');
     });
 
     test('전체 밸런싱 검증: 이전 스테이지 수입 ≈ 다음 스테이지 자금', () {

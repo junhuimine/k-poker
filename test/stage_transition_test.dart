@@ -42,21 +42,21 @@ void main() {
   group('상대 자금', () {
     const pv = 1000.0;
 
-    test('Stage 1 Op0 = ₩50,000', () {
-      expect(getOpponentFund(1, 0, pv), 50000.0);
+    test('Stage 1 Op0 = ₩100,000', () {
+      expect(getOpponentFund(1, 0, pv), 100000.0);
     });
 
-    test('Stage 1 Op1 = ₩60,000 (1.2x)', () {
-      expect(getOpponentFund(1, 1, pv), 60000.0);
+    test('Stage 1 Op1 = ₩200,000 (2x)', () {
+      expect(getOpponentFund(1, 1, pv), 200000.0);
     });
 
-    test('Stage 6 Op0 = ₩2,000,000', () {
-      expect(getOpponentFund(6, 0, pv), 2000000.0);
+    test('Stage 6 Op0 = ₩4,000,000', () {
+      expect(getOpponentFund(6, 0, pv), 4000000.0);
     });
 
-    test('Stage 7 (신급) = ₩7,500,000', () {
-      // loopCount=1 → 5000*1000*(1+0.5) = 7,500,000
-      expect(getOpponentFund(7, 0, pv), 7500000.0);
+    test('Stage 7 (신급) = ₩15,000,000', () {
+      // loopCount=1 → 10000*1000*(1+0.5) = 15,000,000
+      expect(getOpponentFund(7, 0, pv), 15000000.0);
     });
 
     test('Stage 8 (신급+2) > Stage 7', () {

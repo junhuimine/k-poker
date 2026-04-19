@@ -118,7 +118,7 @@ class AiCharacter {
   }
 }
 
-/// AI 캐릭터 11명 전체 목록
+/// AI 캐릭터 13명 전체 목록 (스테이지 1~6 각 2명 + 신급 1명)
 const List<AiCharacter> allAiCharacters = [
   // ── 스테이지 1: 동네 골목 ──
   // 김 아저씨: 온화한 동네 어르신, 느긋하고 여유로움
@@ -426,26 +426,27 @@ AiCharacter getAiForStage(int stage, int opponentIndex) {
 
 /// AI 상대의 초기 자금 (stage + opponentIndex)
 /// 밸런싱: 플레이어가 누적 획득할 금액 ≈ 다음 스테이지 AI 자금
+/// 2026-04-19: 한 방에 끝나는 경우 방지 위해 기존 자금 2배로 상향
 double getOpponentFund(int stage, int opponentIndex, double pointValue) {
   // stage 7+ = 도박의 신 (무한 반복, 점점 강해짐)
   if (stage >= 7) {
     final loopCount = stage - 6;
-    return 5000 * pointValue * (1.0 + loopCount * 0.5);
+    return 10000 * pointValue * (1.0 + loopCount * 0.5);
   }
   // 스테이지별 AI 1인당 기본 자금 ($, 1점=$1)
   // 여러 라운드 싸워야 탈락하도록 충분한 자금 배정
   const baseFunds = <int, double>{
-    1: 50,     // $50: 동네 골목 — 3~5판
-    2: 120,    // $120: 시장 판
-    3: 250,    // $250: 카지노
-    4: 500,    // $500: 지하 도박장
-    5: 1000,   // $1,000: 사원
-    6: 2000,   // $2,000: 신전
+    1: 100,    // $100: 동네 골목 — 6~10판
+    2: 240,    // $240: 시장 판
+    3: 500,    // $500: 카지노
+    4: 1000,   // $1,000: 지하 도박장
+    5: 2000,   // $2,000: 사원
+    6: 4000,   // $4,000: 신전
   };
   final clampedStage = stage.clamp(1, 6);
-  final baseFund = baseFunds[clampedStage] ?? 50;
-  // 2번째 상대는 20% 더 강해요 (자금도 더 많음)
-  final multiplier = opponentIndex == 0 ? 1.0 : 1.2;
+  final baseFund = baseFunds[clampedStage] ?? 100;
+  // 2번째 상대는 1번째의 2배 자금 (1.2x → 2.0x로 차등 확대)
+  final multiplier = opponentIndex == 0 ? 1.0 : 2.0;
   return baseFund * pointValue * multiplier;
 }
 
