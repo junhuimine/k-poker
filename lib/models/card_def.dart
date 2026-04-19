@@ -44,7 +44,7 @@ class CardDef with _$CardDef {
   /// _upgraded 접미사가 붙은 가상 카드는 기본 카드 이미지를 사용
   String get imagePath {
     final baseId = id.endsWith('_upgraded') ? id.replaceFirst('_upgraded', '') : id;
-    return 'assets/images/cards/$baseId.jpg';
+    return 'assets/images/cards/$baseId.webp';
   }
 }
 

@@ -161,7 +161,7 @@ class _TutorialOverlayState extends ConsumerState<TutorialOverlay> with SingleTi
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: Image.asset(
-                            'assets/images/cards/${c.id}.jpg',
+                            'assets/images/cards/${c.id}.webp',
                             width: 36, height: 54, fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _errorCardFallback(c),
                           ),

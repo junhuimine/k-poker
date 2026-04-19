@@ -9,11 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// 사용 가능한 뒷면 스킨 목록
 enum CardSkin {
-  original('Original', 'assets/images/cards/card_back.jpg', '🎴'),
-  classic('Classic', 'assets/images/cards/card_back_classic.jpg', '🌟'),
-  midnight('Midnight', 'assets/images/cards/card_back_midnight.jpg', '🌙'),
-  jade('Jade', 'assets/images/cards/card_back_jade.jpg', '💎'),
-  sakura('Sakura', 'assets/images/cards/card_back_sakura.jpg', '🌸');
+  original('Original', 'assets/images/cards/card_back.webp', '🎴'),
+  classic('Classic', 'assets/images/cards/card_back_classic.webp', '🌟'),
+  midnight('Midnight', 'assets/images/cards/card_back_midnight.webp', '🌙'),
+  jade('Jade', 'assets/images/cards/card_back_jade.webp', '💎'),
+  sakura('Sakura', 'assets/images/cards/card_back_sakura.webp', '🌸');
 
   final String displayName;
   final String assetPath;

@@ -102,7 +102,7 @@ class GameStartOverlay extends ConsumerWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(6),
                                   child: Image.asset(
-                                    'assets/images/cards/${brightIds[i]}.jpg',
+                                    'assets/images/cards/${brightIds[i]}.webp',
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(
                                       color: const Color(0xFF2A1A3A),

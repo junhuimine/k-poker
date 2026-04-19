@@ -53,7 +53,7 @@ class CardAnimationOverlay extends StatefulWidget {
     super.key,
     required this.flyingCards,
     this.onAllComplete,
-    this.skinPath = 'assets/images/cards/card_back.jpg',
+    this.skinPath = 'assets/images/cards/card_back.webp',
     this.strings,
   });
 

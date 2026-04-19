@@ -110,7 +110,7 @@ class HwatuCard extends StatefulWidget {
     this.isSelected = false,
     this.isField = false,
     this.isFaceDown = false,
-    this.skinPath = 'assets/images/cards/card_back.jpg',
+    this.skinPath = 'assets/images/cards/card_back.webp',
     this.strings,
   });
 
