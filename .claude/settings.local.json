@@ -55,7 +55,17 @@
       "Bash(adb -s emulator-5554 shell input tap 1320 760)",
       "Bash(adb -s emulator-5554 shell input tap 960 540)",
       "Bash(adb -s emulator-5554 shell input tap 1010 600)",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; git diff {} | grep -E \"^[+-]\" | grep -iE \"webp|jpg|crazy\" | head -3')"
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; git diff {} | grep -E \"^[+-]\" | grep -iE \"webp|jpg|crazy\" | head -3')",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell pm list packages)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell pm clear com.h2techjun.kpoker)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell pm uninstall com.h2techjun.kpoker)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell wm size)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell wm density)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe devices *)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell 'dumpsys activity activities | grep -i '\\\\''mResumedActivity\\\\|topResumed'\\\\''')",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 logcat -d -s flutter,KPoker,AndroidRuntime,ActivityTaskManager --format=time)",
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 install build/app/outputs/flutter-apk/app-release.apk)"
     ]
   }
 }

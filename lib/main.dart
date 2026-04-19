@@ -52,29 +52,45 @@ void main() async {
         );
       };
 
-      // 오디오 초기화 — SharedPreferences 로드 + onPlayerComplete 리스너 등록 (BGM 순환 재생 필수)
-      await AudioManager().init();
-      // 앱 시작 시 BGM 루프 시작 — 타이틀 화면부터 음악 재생 (await 없이 비동기 호출, 앱 시작 차단하지 않음)
-      AudioManager().startBgmLoop();
-
-      // Android: AdMob 초기화 + 인앱 업데이트 체크
-      if (!kIsWeb) {
-        await AdService.init();
-        UpdateService.checkForUpdate(); // 비동기 — 게임 시작 차단하지 않음
-      }
-
-      // 모바일: 가로 모드 우선 + 상태바/네비게이션 숨기기
-      SystemChrome.setPreferredOrientations([
+      // ⚡ 시스템 UI 설정을 FIRST FRAME 이전에 — hit test 좌표계 정합성 보장.
+      // 2026-04-19: 이게 runApp 이후에 있으면 portrait + system bar 포함 상태로
+      // 첫 레이아웃/hit test 계산이 고정됐다가, 이후 landscape + immersive 전환 시
+      // 시각 위치만 이동하고 hit test는 원래 좌표계에 남아 마우스 좌표가
+      // 왼쪽 위로 shift되는 현상이 발생. 빠른 동기 호출이므로 await 비용 <10ms.
+      await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+      // UI 표시 (즉시). AudioManager/AdMob 등 느린 외부 서비스는 runApp 이후 백그라운드.
       runApp(const ProviderScope(child: KPokerApp()));
+
+      _bootServices();
     },
     (error, stack) {
       _lastCaughtError = '$error\n\n$stack';
     },
   );
+}
+
+/// 외부 서비스 초기화를 백그라운드로 실행. 실패해도 앱은 계속 동작.
+Future<void> _bootServices() async {
+  // 오디오 — 최대한 빠르게 BGM 시작하도록 가장 먼저.
+  try {
+    await AudioManager().init();
+    AudioManager().startBgmLoop();
+  } catch (e) {
+    _lastCaughtError = 'AudioManager 초기화 실패: $e';
+  }
+
+  // 외부 네트워크 의존 서비스 — 각각 독립 백그라운드.
+  if (!kIsWeb) {
+    AdService.init().catchError((Object e, StackTrace s) {
+      _lastCaughtError = 'AdService.init 실패: $e';
+    });
+    UpdateService.checkForUpdate();
+  }
 }
 
 /// 마지막으로 캐치된 에러(디버그 오버레이용).

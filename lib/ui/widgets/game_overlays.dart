@@ -47,10 +47,15 @@ class GameStartOverlay extends ConsumerWidget {
     final ai = getAiForStage(run.stage, run.currentOpponentIndex);
     final currency = getCurrencyForLocale(run.currencyLocale);
     
-    var displayOpponentMoney = run.opponentMoney;
-    if (displayOpponentMoney <= 0) {
-      displayOpponentMoney = getOpponentFund(run.stage, run.currentOpponentIndex, currency.pointValue);
-    }
+    // 2026-04-19: 타이틀 화면 표시값 보정 — RunState 기본값(50)이 실제 AI 자금 $100보다 작게
+    // 노출되던 버그 수정. game_providers.dart의 loadGame 마이그레이션 조건과 동일 로직 유지.
+    final expectedFund = getOpponentFund(run.stage, run.currentOpponentIndex, currency.pointValue);
+    final displayOpponentMoney =
+        (run.opponentMoney <= 0 ||
+                run.opponentMoney < expectedFund * 0.6 ||
+                run.opponentMoney > expectedFund * 2)
+            ? expectedFund
+            : run.opponentMoney;
     
     return Stack(
       children: [
@@ -64,8 +69,13 @@ class GameStartOverlay extends ConsumerWidget {
               colors: [Color(0xFF0D0D0D), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0D0D0D)],
             ),
           ),
+          // 2026-04-19: BoxFit.scaleDown → BoxFit.contain 으로 변경.
+          // scaleDown 은 원본이 작으면 그대로 유지해서 큰 화면(태블릿 등)에서 UI가
+          // 가운데에만 작게 표시되고 터치 영역도 좁아지는 문제 발생. contain 은 비율을
+          // 유지하며 양방향 스케일(확대/축소 모두)이라 어떤 디바이스에서도 UI가 꽉 차게
+          // 표시되고 FittedBox 가 hit test도 함께 변환하므로 터치 좌표 문제 없음.
           child: FittedBox(
-            fit: BoxFit.scaleDown,
+            fit: BoxFit.contain,
             child: SizedBox(
               width: 1200,
               height: 700,

@@ -14,10 +14,26 @@ class AdService {
 
   static RewardedAd? _rewardedAd;
   static bool _isLoading = false;
+  static bool _sdkInitialized = false;
+  static Future<void>? _sdkInitFuture; // 재진입 방지용
 
-  static Future<void> init() async {
-    await MobileAds.instance.initialize();
-    await loadRewardedAd();
+  /// MobileAds SDK 초기화 — idempotent. 동시에 여러 번 호출돼도 한 번만 실제 초기화.
+  static Future<void> init() {
+    if (_sdkInitialized) return Future.value();
+    _sdkInitFuture ??= _doInit();
+    return _sdkInitFuture!;
+  }
+
+  static Future<void> _doInit() async {
+    try {
+      await MobileAds.instance.initialize();
+      _sdkInitialized = true;
+      // 보상형 광고 프리로드는 기다리지 않음 (fire-and-forget)
+      loadRewardedAd();
+    } catch (_) {
+      _sdkInitFuture = null; // 재시도 허용
+      rethrow;
+    }
   }
 
   static Future<void> loadRewardedAd() async {
@@ -45,6 +61,17 @@ class AdService {
     required void Function() onRewarded,
     void Function(String error)? onError,
   }) async {
+    // SDK 초기화 확인 — 앱 시작 시 백그라운드로 돌아가는 중일 수 있음.
+    // 최대 3초 내 초기화 완료 기다림. 타임아웃이면 사용자 안내.
+    if (!_sdkInitialized) {
+      try {
+        await init().timeout(const Duration(seconds: 3));
+      } catch (_) {
+        onError?.call('광고 준비 중입니다. 잠시 후 다시 시도해주세요.');
+        return false;
+      }
+    }
+
     if (_rewardedAd == null) {
       onError?.call('광고를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       loadRewardedAd(); // 백그라운드에서 미리 로드
