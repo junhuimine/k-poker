@@ -400,12 +400,20 @@ class GoStopOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.read(gameStateProvider);
     final s = Responsive.scaleMax(context); // 폰트가 너무 작아지지 않게
-    
+
     final pBright = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
     final pAnimal = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
     final pRibbon = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
     // 실효 피 카운트: 쌍피=2장, 보너스=2장으로 계산
     final pJunk = state.playerCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk)
+        .fold<int>(0, (sum, c) => sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1));
+
+    // 상대 획득 카드 구성 — 고/스톱 결정 시 내 점수와 비교용.
+    // 2026-04-19: 요청에 따라 추가. 숫자(VS)만 보지 말고 광/띠/피 구성을 보고 결정.
+    final oBright = state.opponentCaptured.where((CardInstance c) => c.def.grade == CardGrade.bright).length;
+    final oAnimal = state.opponentCaptured.where((CardInstance c) => c.def.grade == CardGrade.animal).length;
+    final oRibbon = state.opponentCaptured.where((CardInstance c) => c.def.grade == CardGrade.ribbon).length;
+    final oJunk = state.opponentCaptured.where((CardInstance c) => c.def.grade == CardGrade.junk)
         .fold<int>(0, (sum, c) => sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1));
 
     return Container(
@@ -438,19 +446,31 @@ class GoStopOverlay extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
+              // 카드 구성 비교 — 나 / 상대 2행으로 나란히 배치.
+              // 2026-04-19: 상대 행 추가. 구성 보고 고/스톱 결정 가능하도록.
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    _goStopChip('⭐', strings.ui('kwang'), pBright, const Color(0xFFFFD700)),
-                    _goStopChip('🦌', strings.ui('animal'), pAnimal, const Color(0xFF00E5FF)),
-                    _goStopChip('🎀', strings.ui('plain'), pRibbon, const Color(0xFFFF4081)),
-                    _goStopChip('🎴', strings.ui('pi'), pJunk, const Color(0xFF78909C)),
+                    _goStopCompareRow(
+                      labelIcon: '👤',
+                      labelColor: const Color(0xFFFFD700),
+                      bright: pBright, animal: pAnimal, ribbon: pRibbon, junk: pJunk,
+                      strings: strings,
+                    ),
+                    const SizedBox(height: 4),
+                    Divider(color: Colors.white.withValues(alpha: 0.08), height: 1, thickness: 1),
+                    const SizedBox(height: 4),
+                    _goStopCompareRow(
+                      labelIcon: '🤖',
+                      labelColor: Colors.redAccent,
+                      bright: oBright, animal: oAnimal, ribbon: oRibbon, junk: oJunk,
+                      strings: strings,
+                    ),
                   ],
                 ),
               ),
@@ -962,13 +982,44 @@ Widget _multBadge(String text, Color color, double s) {
   );
 }
 
-Widget _goStopChip(String emoji, String label, int count, Color color) {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
+/// 고/스톱 오버레이의 나 vs 상대 비교 행.
+/// 라벨 이모지 뒤에 광/동물/띠/피 4개 카운트를 가로로 나열.
+Widget _goStopCompareRow({
+  required String labelIcon,
+  required Color labelColor,
+  required int bright,
+  required int animal,
+  required int ribbon,
+  required int junk,
+  required dynamic strings,
+}) {
+  return Row(
     children: [
-      Text(emoji, style: const TextStyle(fontSize: 16)),
-      const SizedBox(height: 2),
-      Text('$label $count', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      SizedBox(
+        width: 24,
+        child: Text(labelIcon, style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+      ),
+      const SizedBox(width: 4),
+      Expanded(child: _goStopCompareCell('⭐', strings.ui('kwang'), bright, labelColor)),
+      Expanded(child: _goStopCompareCell('🦌', strings.ui('animal'), animal, labelColor)),
+      Expanded(child: _goStopCompareCell('🎀', strings.ui('plain'), ribbon, labelColor)),
+      Expanded(child: _goStopCompareCell('🎴', strings.ui('pi'), junk, labelColor)),
+    ],
+  );
+}
+
+Widget _goStopCompareCell(String emoji, String label, int count, Color color) {
+  final dimmed = count == 0;
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(emoji, style: TextStyle(fontSize: 13, color: dimmed ? Colors.white24 : null)),
+      const SizedBox(width: 3),
+      Text('$label $count', style: TextStyle(
+        color: dimmed ? Colors.white38 : color,
+        fontSize: 10,
+        fontWeight: dimmed ? FontWeight.normal : FontWeight.bold,
+      )),
     ],
   );
 }

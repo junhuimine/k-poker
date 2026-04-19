@@ -84,9 +84,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
   double get _scale => Responsive.scale(context);
   double get _scaleH => Responsive.scaleY(context);
   
-  bool _isPanelExpanded = false;
-  // 모바일 가로 모드 (화면 폭 900 미만)에서는 사이드 패널을 기본으로 숨기고 토글형으로.
-  bool get _shouldShowPanel => _screenW >= 900 ? true : _isPanelExpanded;
+  // null = 사용자가 아직 토글 안 함 → 화면 크기 기반 기본값 사용.
+  // 큰 화면(≥900): 기본 열림 / 작은 화면(<900): 기본 닫힘.
+  // 사용자가 토글하면 그 선택을 우선 적용 → 어느 화면에서도 접기 가능.
+  bool? _isPanelExpanded;
+  bool get _shouldShowPanel => _isPanelExpanded ?? (_screenW >= 900);
 
   // 카드 크기 (화면 비율에 따라 부드럽게 스케일, 터치 영역 확보를 위해 여유있게)
   double get _opponentCardSize => (42 * _scale).clamp(16, 55);
@@ -351,13 +353,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
             ),
           ),
 
-          // 우측 패널 토글 버튼 (화면이 작을 때만 표시)
-          if (isGameStarted && _screenW < 900)
+          // 우측 패널 토글 버튼 — 화면 크기 관계없이 항상 표시.
+          // 2026-04-19: 큰 화면(≥900)에서는 항상 펼쳐진 상태였지만, 태블릿에서
+          // 족보/기술가방/로그가 동시에 보이기엔 여전히 좁아서 접을 수 있는 옵션 유지.
+          if (isGameStarted)
             Positioned(
               right: _shouldShowPanel ? 140 : 0, // 열렸을 땐 패널 너비만큼 이동
               top: _screenH * 0.4,
               child: GestureDetector(
-                onTap: () => setState(() => _isPanelExpanded = !_isPanelExpanded),
+                onTap: () => setState(() => _isPanelExpanded = !_shouldShowPanel),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                   decoration: BoxDecoration(

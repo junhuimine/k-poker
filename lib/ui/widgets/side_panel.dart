@@ -335,57 +335,80 @@ class YakuProgress extends StatelessWidget {
       return sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1);
     });
 
+    // 2026-04-19: 진행바 제거 + 2열 grid 로 간략화.
+    // 기존 6 rows × ~12px = ~72px 세로 공간 → 3 rows × ~14px = ~42px 로 축소.
+    // 기술가방/로그 영역 확보. 완료 시 볼드+컬러로 시각 강조 유지.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('📊 ${strings.ui('yakuProgress')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 2),
-        _yakuBar('⭐ ${strings.ui('kwang')}', brights, 3, Colors.amber),
-        _yakuBar('🔴 ${strings.ui('red')}', redRibbons, 3, Colors.red),
-        _yakuBar('🔵 ${strings.ui('blue')}', blueRibbons, 3, Colors.blue),
-        _yakuBar('🟢 ${strings.ui('grass')}', grassRibbons, 3, Colors.green),
-        _yakuBar('🦌 ${strings.ui('animal')}', animals, 5, Colors.cyan),
-        _yakuBar('🃏 ${strings.ui('pi')}', junks, 10, Colors.grey),
+        const SizedBox(height: 3),
+        _yakuGridRow([
+          _YakuCell(label: '⭐', current: brights, target: 3, color: Colors.amber),
+          _YakuCell(label: '🔴', current: redRibbons, target: 3, color: Colors.red),
+        ]),
+        _yakuGridRow([
+          _YakuCell(label: '🔵', current: blueRibbons, target: 3, color: Colors.blue),
+          _YakuCell(label: '🟢', current: grassRibbons, target: 3, color: Colors.green),
+        ]),
+        _yakuGridRow([
+          _YakuCell(label: '🦌', current: animals, target: 5, color: Colors.cyan),
+          _YakuCell(label: '🃏', current: junks, target: 10, color: Colors.grey),
+        ]),
       ],
     );
   }
 
-  Widget _yakuBar(String name, int current, int target, Color color) {
-    final ratio = (current / target).clamp(0.0, 1.0);
-    final isComplete = current >= target;
+  Widget _yakuGridRow(List<_YakuCell> cells) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 2),
       child: Row(
         children: [
-          SizedBox(width: 45, child: Text(name, style: TextStyle(
-            color: isComplete ? color : Colors.white54, fontSize: 9,
-            fontWeight: isComplete ? FontWeight.bold : FontWeight.normal,
-          ))),
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: ratio,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isComplete ? color : color.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 30, child: Text('$current/$target', textAlign: TextAlign.right,
-            style: TextStyle(color: isComplete ? color : Colors.white38, fontSize: 9))),
+          for (var i = 0; i < cells.length; i++) ...[
+            if (i > 0) const SizedBox(width: 4),
+            Expanded(child: _yakuChip(cells[i])),
+          ],
         ],
       ),
     );
   }
+
+  Widget _yakuChip(_YakuCell cell) {
+    final isComplete = cell.current >= cell.target;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: isComplete ? cell.color.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: isComplete ? cell.color.withValues(alpha: 0.7) : Colors.white12,
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(cell.label, style: const TextStyle(fontSize: 10)),
+          const SizedBox(width: 3),
+          Text('${cell.current}/${cell.target}',
+              style: TextStyle(
+                color: isComplete ? cell.color : Colors.white54,
+                fontSize: 9,
+                fontWeight: isComplete ? FontWeight.bold : FontWeight.normal,
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class _YakuCell {
+  final String label;
+  final int current;
+  final int target;
+  final Color color;
+  const _YakuCell({required this.label, required this.current, required this.target, required this.color});
 }
 
 // ─── 내 아이템/스킬 블록 ─────────────
