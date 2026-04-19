@@ -9,6 +9,7 @@
 library;
 
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_providers.dart';
@@ -575,35 +576,88 @@ class RoundEndOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     try {
       return _buildContent(context, ref);
-    } catch (e) {
-      // 렌더링 실패 시 안전한 대체 UI
+    } catch (e, stack) {
+      // 렌더링 실패 원인을 logcat에 남겨 다음 발생 시 원인 파악 가능하게.
+      // kDebugMode에서는 fallback UI 에도 에러 메시지 일부 표시해 실기기 진단 보조.
+      debugPrint('⚠️ RoundEndOverlay._buildContent FAILED: $e');
+      debugPrintStack(stackTrace: stack, label: 'RoundEndOverlay');
+      final isWin = state.winner == 'player';
       return Container(
-        color: Colors.black.withValues(alpha: 0.85),
+        color: Colors.black.withValues(alpha: 0.88),
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(state.winner == 'player' ? '🏆' : '💀', style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: onShop,
-                    icon: const Text('🛒'),
-                    label: const Text('Shop'),
-                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 360),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF161B22),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, width: 2),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(isWin ? '🏆' : '💀', style: const TextStyle(fontSize: 52)),
+                const SizedBox(height: 12),
+                Text(
+                  isWin ? strings.ui('victory') : strings.ui('defeat'),
+                  style: TextStyle(
+                    color: isWin ? const Color(0xFFFFD700) : Colors.redAccent,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: onNextRound,
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700), foregroundColor: Colors.black),
-                    child: const Text('Next Round →', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${state.playerScore} ${strings.ui('pointSuffix')} vs ${state.opponentScore} ${strings.ui('pointSuffix')}',
+                  style: const TextStyle(color: Colors.white60, fontSize: 14),
+                ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'DEBUG: $e',
+                      style: const TextStyle(color: Colors.redAccent, fontSize: 10),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
-              ),
-            ],
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: onShop,
+                      icon: const Text('🛒'),
+                      label: Text(strings.shop),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Color(0xFF30363D)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: onNextRound,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD700),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      ),
+                      child: Text(
+                        isWin ? strings.ui('nextRound') : strings.ui('retry'),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -649,6 +703,18 @@ class RoundEndOverlay extends ConsumerWidget {
     return Container(
       color: Colors.black.withValues(alpha: 0.85),
       child: Center(
+        // 2026-04-19: scale-in + fade-in 등장 연출 — 결과 화면이 "뿅"하고 떠오르며
+        // 승패가 드라마틱하게 드러남. elasticOut 으로 살짝 튕기는 느낌.
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 550),
+          curve: Curves.elasticOut,
+          builder: (context, t, child) {
+            return Transform.scale(
+              scale: 0.6 + 0.4 * t.clamp(0.0, 1.0),
+              child: Opacity(opacity: t.clamp(0.0, 1.0), child: child),
+            );
+          },
         child: Container(
           constraints: BoxConstraints(maxWidth: (w * 0.85).clamp(260.0, 400.0)),
           padding: EdgeInsets.symmetric(horizontal: 16 * rs, vertical: 12 * rs),
@@ -656,20 +722,52 @@ class RoundEndOverlay extends ConsumerWidget {
             color: const Color(0xFF161B22),
             borderRadius: BorderRadius.circular(18 * rs),
             border: Border.all(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, width: 2),
-            boxShadow: [BoxShadow(color: (isWin ? Colors.amber : Colors.red).withValues(alpha: 0.3), blurRadius: 20)],
+            boxShadow: [
+              BoxShadow(
+                color: (isWin ? Colors.amber : Colors.red).withValues(alpha: 0.35),
+                blurRadius: 28,
+                spreadRadius: 4,
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 승패 아이콘 + 텍스트 (한 줄로 압축)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 28 * rs)),
-                  SizedBox(width: 8 * rs),
-                  Text(isWin ? strings.ui('victory') : strings.ui('defeat'),
-                    style: TextStyle(color: isWin ? const Color(0xFFFFD700) : Colors.redAccent, fontSize: 22 * rs, fontWeight: FontWeight.bold)),
-                ],
+              // 승패 아이콘 + 텍스트 — 승리 시 🌟 그라디언트, 패배 시 은은한 빨강.
+              // TweenAnimationBuilder 로 아이콘만 추가 scale pulse (0.5~1.0s).
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 900),
+                curve: Curves.easeOutCubic,
+                builder: (context, t, _) {
+                  final pulse = 1.0 + 0.12 * sin(t * pi * 2);
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Transform.scale(
+                        scale: pulse,
+                        child: Text(isWin ? '🏆' : '💀', style: TextStyle(fontSize: 32 * rs)),
+                      ),
+                      SizedBox(width: 10 * rs),
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: isWin
+                              ? [const Color(0xFFFFE680), const Color(0xFFFFD700), const Color(0xFFFFB300)]
+                              : [Colors.redAccent.shade200, Colors.redAccent, Colors.red.shade900],
+                        ).createShader(bounds),
+                        child: Text(
+                          isWin ? strings.ui('victory') : strings.ui('defeat'),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 26 * rs,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               SizedBox(height: 8 * rs),
               // 점수 비교
@@ -776,6 +874,7 @@ class RoundEndOverlay extends ConsumerWidget {
             ],
           ),
         ),
+        ), // TweenAnimationBuilder 닫기
       ),
     );
   }

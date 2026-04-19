@@ -19,6 +19,7 @@ import '../data/stage_config.dart';
 import '../data/item_catalog.dart';
 import 'widgets/hwatu_card.dart';
 import 'widgets/card_animation_overlay.dart';
+import 'widgets/score_text_effect.dart';
 import 'settings_overlay.dart';
 import 'tutorial_overlay.dart';
 import 'shop_screen.dart';
@@ -47,6 +48,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
   // 딜링 애니메이션 상태
   bool _isDealing = false;
   List<FlyingCard> _flyingCards = [];
+
+  // 점수 획득 플로팅 텍스트 ("+5" 같은 popup) — Balatro 스타일 시각 피드백.
+  // 2026-04-19: "이펙트가 다 사라졌다"는 피드백 반영. 카드 획득 시 delta 점수가
+  // 매칭 위치에서 튀어나와 위로 떠오르며 페이드아웃 (ScoreTextEffect 자체가 1s 애니).
+  final List<_ScorePopup> _scorePopups = [];
+  int _scorePopupCounter = 0;
   
   // 딜링 중 보여줄 카드 수 (점진적 증가)
   int _dealtOpponentCount = 0;
@@ -385,6 +392,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 if (mounted) setState(() => _flyingCards = []);
               },
               strings: ref.watch(appStringsProvider),
+            ),
+
+          // 점수 획득 플로팅 팝업 ("+5" 등) — 카드 획득 위치에서 떠오름.
+          for (final popup in _scorePopups)
+            ScoreTextEffect(
+              key: ValueKey('score_popup_${popup.id}'),
+              text: popup.text,
+              position: popup.position,
+              color: popup.color,
             ),
 
           if (!isGameStarted && !gameState.isFinished)
@@ -1218,12 +1234,14 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _selectableFieldCards = [];
     });
 
+    // 2026-04-19: 게임 템포 개선 — 각 스텝 애니/휴지기를 약 1.4~1.6배로 늘려서
+    // 점수 획득·매칭 결과를 체감할 시간 확보. "너무 빨라서 금방금방 흐른다"는 피드백 반영.
     // ── isDeckDraw 카드: 덱 뒤집기만 수행 (핸드 카드를 바닥에 내지 않음) ──
     if (card.isDeckDraw) {
       // 게임 로직 실행 (playTurn 내부에서 덱 뒤집기 + 매칭 처리)
       ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 200));
       if (!mounted) return;
 
       // 덱 뒤집기 애니메이션
@@ -1235,13 +1253,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
             to: Offset(targetX, targetY),
             startAngle: 0.1,
             endAngle: -0.1 + random.nextDouble() * 0.08,
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 500),
             size: 50,
           ),
         ];
       });
 
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 560));
       if (!mounted) return;
     } else {
       // ── STEP 1: 내 카드 → 필드 매칭 카드로 던짐 ──
@@ -1253,19 +1271,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
             to: Offset(targetX, targetY),
             startAngle: -0.15 + random.nextDouble() * 0.1,
             endAngle: 0.12 + random.nextDouble() * 0.08,
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 500),
             size: 55,
           ),
         ];
       });
 
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 560));
       if (!mounted) return;
 
       // 게임 로직 실행
       ref.read(gameStateProvider.notifier).playCard(card, selectedMatch: targetFieldCard);
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 220));
       if (!mounted) return;
 
       // ── STEP 2: 덱에서 카드 뒤집기 → 필드로 던짐 ──
@@ -1279,13 +1297,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
               to: Offset(targetX + 40, targetY + 10),
               startAngle: 0.1,
               endAngle: -0.1 + random.nextDouble() * 0.08,
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 500),
               size: 50,
             ),
           ];
         });
 
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future.delayed(const Duration(milliseconds: 560));
         if (!mounted) return;
       }
     }
@@ -1295,6 +1313,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final newCaptured = afterState.playerCaptured.length - state.playerCaptured.length;
 
     if (newCaptured > 0) {
+      // 점수 획득 플로팅 효과 트리거 — 매칭 결과를 시각화
+      final scoreDelta = afterState.playerScore - state.playerScore;
+      if (scoreDelta > 0) {
+        _pushScorePopup(
+          text: '+$scoreDelta',
+          position: Offset(targetX, targetY - 40),
+          color: Colors.yellowAccent,
+        );
+      }
+
       for (var i = 0; i < newCaptured && i < 4; i++) {
         if (!mounted) return;
         final capturedCard = afterState.playerCaptured[afterState.playerCaptured.length - newCaptured + i];
@@ -1307,12 +1335,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
               to: dest,
               startAngle: 0.05,
               endAngle: 0.0,
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 350),
               size: 40,
             ),
           ];
         });
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 280));
       }
     }
 
@@ -1321,8 +1349,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       setState(() => _flyingCards = []);
     }
 
-    // AI 턴 감지 → 애니메이션 처리
-    await Future.delayed(const Duration(milliseconds: 300));
+    // AI 턴 감지 → 애니메이션 처리 (한숨 돌릴 여유)
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     final stateAfterPlay = ref.read(gameStateProvider);
     final isPending = ref.read(goStopPendingProvider); // 고/스톱 대기 중인지 확인
@@ -1384,19 +1412,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
           to: Offset(targetX, targetY),
           startAngle: 0.1 + random.nextDouble() * 0.1,
           endAngle: -0.08 + random.nextDouble() * 0.06,
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 550),
           size: 55,
         ),
       ];
     });
 
-    await Future.delayed(const Duration(milliseconds: 450));
+    await Future.delayed(const Duration(milliseconds: 620));
     if (!mounted) return;
 
     // 게임 로직 실행
     ref.read(gameStateProvider.notifier).playAiCard(aiCard);
 
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 260));
     if (!mounted) return;
 
     // AI 플레이 후 고/스톱 또는 종료 상태면 애니메이션 중단
@@ -1418,13 +1446,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
             to: Offset(targetX + 40, targetY + 10),
             startAngle: 0.1,
             endAngle: -0.1 + random.nextDouble() * 0.08,
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 500),
             size: 50,
           ),
         ];
       });
 
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 560));
       if (!mounted) return;
     }
 
@@ -1433,6 +1461,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final newCaptured = afterState.opponentCaptured.length - prevState.opponentCaptured.length;
 
     if (newCaptured > 0) {
+      // AI 점수 획득 플로팅 — 빨간색으로 상대 획득 시각화
+      final scoreDelta = afterState.opponentScore - prevState.opponentScore;
+      if (scoreDelta > 0) {
+        _pushScorePopup(
+          text: '+$scoreDelta',
+          position: Offset(targetX, targetY - 40),
+          color: Colors.redAccent,
+        );
+      }
+
       for (var i = 0; i < newCaptured && i < 4; i++) {
         if (!mounted) return;
         final capturedCard = afterState.opponentCaptured[afterState.opponentCaptured.length - newCaptured + i];
@@ -1445,12 +1483,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
               to: dest,
               startAngle: -0.05,
               endAngle: 0.0,
-              duration: const Duration(milliseconds: 280),
+              duration: const Duration(milliseconds: 380),
               size: 40,
             ),
           ];
         });
-        await Future.delayed(const Duration(milliseconds: 220));
+        await Future.delayed(const Duration(milliseconds: 300));
       }
     }
 
@@ -1459,7 +1497,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
 
     // AI 턴 후 상태 확인: 게임 안 끝났고 여전히 AI 턴이면 재실행
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     final finalState = ref.read(gameStateProvider);
     final pendingGoStop = ref.read(goStopPendingProvider);
@@ -2158,6 +2196,34 @@ class _GameScreenState extends ConsumerState<GameScreen>
         return s.ui('cardGradeJunk');
     }
   }
+
+  /// 점수 획득 플로팅 팝업 등록 — 1초 뒤 자동 제거.
+  /// ScoreTextEffect 자체 애니가 1000ms라 동일 시점에 제거.
+  void _pushScorePopup({
+    required String text,
+    required Offset position,
+    required Color color,
+  }) {
+    if (!mounted) return;
+    final id = ++_scorePopupCounter;
+    setState(() {
+      _scorePopups.add(_ScorePopup(id: id, text: text, position: position, color: color));
+    });
+    Future.delayed(const Duration(milliseconds: 1050), () {
+      if (!mounted) return;
+      setState(() {
+        _scorePopups.removeWhere((p) => p.id == id);
+      });
+    });
+  }
+}
+
+class _ScorePopup {
+  final int id;
+  final String text;
+  final Offset position;
+  final Color color;
+  const _ScorePopup({required this.id, required this.text, required this.position, required this.color});
 }
 
 
