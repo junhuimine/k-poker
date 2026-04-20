@@ -96,14 +96,7 @@ class GameSidePanel extends ConsumerWidget {
                   Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
                   Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        YakuProgress(state: state, strings: strings),
-                        const SizedBox(height: 8),
-                        MySkillsBlock(run: run),
-                      ],
-                    ),
+                    child: MySkillsBlock(run: run),
                   ),
                   Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
                   SizedBox(
@@ -122,29 +115,22 @@ class GameSidePanel extends ConsumerWidget {
               OpponentSummaryBlock(state: state, run: run, ai: ai, currency: currency, strings: strings),
               Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
 
-              // 2. 내 정보
+              // 2. 내 정보 (상대와 대칭: 획득 카드 태그 포함)
               MySummaryBlock(state: state, run: run, currency: currency, strings: strings),
               Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
 
-              // 3. 족보 진행도 및 스킬 가방
+              // 3. 스킬 가방 — 족보 진행도 제거로 공간 더 확보
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      YakuProgress(state: state, strings: strings),
-                      const SizedBox(height: 8),
-                      MySkillsBlock(run: run),
-                    ],
-                  ),
+                  child: MySkillsBlock(run: run),
                 ),
               ),
               Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1),
 
-              // 4. 게임 로그 (약 4줄 정도 보이도록 85px로 조정)
+              // 4. 게임 로그 (족보 제거 분 공간 여유 → 110px로 확장)
               SizedBox(
-                height: 85,
+                height: 110,
                 child: _buildLogList(events),
               ),
             ],
@@ -286,6 +272,30 @@ class MySummaryBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 2026-04-19: 상대 블록과 대칭이 되도록 내 획득 카드 현황 태그 추가.
+    // 기존엔 YakuProgress(목표 대비 진행도) 였는데 마스터 피드백으로 상대처럼 간결한
+    // "광 N / 열끗 N / 청단/홍단/초단 N / 피 N" 태그 형태로 통일 (공간 절약 + 일관성).
+    int kwang = 0, animal = 0, blue = 0, red = 0, grass = 0, plain = 0, pi = 0;
+    for (var c in state.playerCaptured) {
+      if (c.def.grade == CardGrade.bright) {
+        kwang++;
+      } else if (c.def.grade == CardGrade.animal) {
+        animal++;
+      } else if (c.def.grade == CardGrade.ribbon) {
+        if (c.def.ribbonType == RibbonType.blue) {
+          blue++;
+        } else if (c.def.ribbonType == RibbonType.red) {
+          red++;
+        } else if (c.def.ribbonType == RibbonType.grass) {
+          grass++;
+        } else {
+          plain++;
+        }
+      } else if (c.def.grade == CardGrade.junk) {
+        pi += c.def.doubleJunk ? 2 : 1;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(8),
       color: Colors.blueAccent.withValues(alpha: 0.1),
@@ -310,105 +320,27 @@ class MySummaryBlock extends StatelessWidget {
               Text('${state.baseChips > 0 ? state.baseChips : state.playerScore} × ${state.multiplier.toStringAsFixed(1)}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
+          const SizedBox(height: 6),
+          Text('🎴 ${strings.ui('handStatus')}', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 9)),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 2, runSpacing: 2,
+            children: [
+              if (kwang > 0) _miniTag('${strings.ui('kwang')} $kwang', Colors.amber),
+              if (animal > 0) _miniTag('${strings.ui('animal')} $animal', Colors.cyan),
+              if (blue > 0) _miniTag('${strings.ui('blue')} $blue', Colors.blue),
+              if (red > 0) _miniTag('${strings.ui('red')} $red', Colors.red),
+              if (grass > 0) _miniTag('${strings.ui('grass')} $grass', Colors.green),
+              if (plain > 0) _miniTag('${strings.ui('plain')} $plain', Colors.purple),
+              if (pi > 0) _miniTag('${strings.ui('pi')} $pi', Colors.grey),
+              if (kwang==0 && animal==0 && blue==0 && red==0 && grass==0 && plain==0 && pi==0)
+                Text(strings.ui('none'), style: const TextStyle(color: Colors.white30, fontSize: 9)),
+            ],
+          ),
         ],
       ),
     );
   }
-}
-
-// ─── 족보 진행도 ─────────────
-class YakuProgress extends StatelessWidget {
-  final dynamic state;
-  final AppStrings strings;
-
-  const YakuProgress({super.key, required this.state, required this.strings});
-
-  @override
-  Widget build(BuildContext context) {
-    final captured = state.playerCaptured as List<CardInstance>;
-    final brights = captured.where((c) => c.def.grade == CardGrade.bright).length;
-    final animals = captured.where((c) => c.def.grade == CardGrade.animal).length;
-    final redRibbons = captured.where((c) => c.def.ribbonType == RibbonType.red).length;
-    final blueRibbons = captured.where((c) => c.def.ribbonType == RibbonType.blue).length;
-    final grassRibbons = captured.where((c) => c.def.ribbonType == RibbonType.grass).length;
-    final junks = captured.where((c) => c.def.grade == CardGrade.junk).fold<int>(0, (sum, c) {
-      return sum + ((c.def.doubleJunk || c.def.isBonus) ? 2 : 1);
-    });
-
-    // 2026-04-19: 진행바 제거 + 2열 grid 로 간략화.
-    // 기존 6 rows × ~12px = ~72px 세로 공간 → 3 rows × ~14px = ~42px 로 축소.
-    // 기술가방/로그 영역 확보. 완료 시 볼드+컬러로 시각 강조 유지.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('📊 ${strings.ui('yakuProgress')}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 3),
-        _yakuGridRow([
-          _YakuCell(label: '⭐', current: brights, target: 3, color: Colors.amber),
-          _YakuCell(label: '🔴', current: redRibbons, target: 3, color: Colors.red),
-        ]),
-        _yakuGridRow([
-          _YakuCell(label: '🔵', current: blueRibbons, target: 3, color: Colors.blue),
-          _YakuCell(label: '🟢', current: grassRibbons, target: 3, color: Colors.green),
-        ]),
-        _yakuGridRow([
-          _YakuCell(label: '🦌', current: animals, target: 5, color: Colors.cyan),
-          _YakuCell(label: '🃏', current: junks, target: 10, color: Colors.grey),
-        ]),
-      ],
-    );
-  }
-
-  Widget _yakuGridRow(List<_YakuCell> cells) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        children: [
-          for (var i = 0; i < cells.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
-            Expanded(child: _yakuChip(cells[i])),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _yakuChip(_YakuCell cell) {
-    final isComplete = cell.current >= cell.target;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: isComplete ? cell.color.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isComplete ? cell.color.withValues(alpha: 0.7) : Colors.white12,
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(cell.label, style: const TextStyle(fontSize: 10)),
-          const SizedBox(width: 3),
-          Text('${cell.current}/${cell.target}',
-              style: TextStyle(
-                color: isComplete ? cell.color : Colors.white54,
-                fontSize: 9,
-                fontWeight: isComplete ? FontWeight.bold : FontWeight.normal,
-              )),
-        ],
-      ),
-    );
-  }
-}
-
-class _YakuCell {
-  final String label;
-  final int current;
-  final int target;
-  final Color color;
-  const _YakuCell({required this.label, required this.current, required this.target, required this.color});
 }
 
 // ─── 내 아이템/스킬 블록 ─────────────

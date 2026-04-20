@@ -1361,9 +1361,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
   }
 
-  /// AI 턴: 카드 선택 → 애니메이션 → playAiCard
-  Future<void> _executeAiTurn() async {
+  /// AI 턴: 카드 선택 → 애니메이션 → playAiCard.
+  /// 2026-04-19: 재귀 깊이 제한 + 진행 없음 검출 추가. 뻑 연속/턴 전환 누락으로
+  /// AI 가 무한히 턴을 돌던 버그 방어. depth 8 초과 또는 opponentHand 가 줄지
+  /// 않으면 강제 중단 + logcat 에 경고.
+  Future<void> _executeAiTurn({int depth = 0}) async {
     if (!mounted) return;
+    if (depth >= 8) {
+      debugPrint('⚠️ AI turn recursion reached depth=$depth, force stopping');
+      return;
+    }
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
     final random = Random();
@@ -1496,13 +1503,24 @@ class _GameScreenState extends ConsumerState<GameScreen>
       setState(() => _flyingCards = []);
     }
 
-    // AI 턴 후 상태 확인: 게임 안 끝났고 여전히 AI 턴이면 재실행
+    // AI 턴 후 상태 확인: 게임 안 끝났고 여전히 AI 턴이면 재실행.
+    // 진행 검증: opponentHand 가 실제로 1장 이상 줄었는지 확인 — 안 줄었으면 무한 루프.
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     final finalState = ref.read(gameStateProvider);
     final pendingGoStop = ref.read(goStopPendingProvider);
+    final handShrunk = finalState.opponentHand.length < prevState.opponentHand.length;
+
     if (!finalState.isFinished && finalState.currentTurn == 'opponent' && !pendingGoStop) {
-      await _executeAiTurn();
+      if (!handShrunk) {
+        // 진행 없음 = 버그 가능성. 강제 중단 + 로그.
+        debugPrint('⚠️ AI turn: opponentHand did not shrink '
+            '(${prevState.opponentHand.length} → ${finalState.opponentHand.length}) '
+            'at depth=$depth. Aborting recursion.');
+        return;
+      }
+      debugPrint('ℹ️ AI turn continues (depth=${depth + 1}, hand=${finalState.opponentHand.length})');
+      await _executeAiTurn(depth: depth + 1);
     }
   }
 

@@ -69,6 +69,7 @@ tool/geminikey.txt
 
 # Claude Code local config
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 .mcp.json
 releases/
 

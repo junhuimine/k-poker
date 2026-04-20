@@ -65,7 +65,14 @@
       "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk)",
       "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 shell 'dumpsys activity activities | grep -i '\\\\''mResumedActivity\\\\|topResumed'\\\\''')",
       "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 logcat -d -s flutter,KPoker,AndroidRuntime,ActivityTaskManager --format=time)",
-      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 install build/app/outputs/flutter-apk/app-release.apk)"
+      "Bash(/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe -s emulator-5554 install build/app/outputs/flutter-apk/app-release.apk)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" devices *)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 shell pm list packages)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 shell am force-stop com.h2techjun.kpoker)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 install -r \"D:/02_PROJECT/08_k-poker/build/app/outputs/flutter-apk/app-release.apk\")",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 shell monkey -p com.h2techjun.kpoker -c android.intent.category.LAUNCHER 1)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 logcat -d --format=time)",
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 logcat -c)"
     ]
   }
 }
