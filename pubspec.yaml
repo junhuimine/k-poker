@@ -1,7 +1,7 @@
 name: k_poker
 description: "K-Poker: 화투 로그라이크 카드 배틀 게임"
 publish_to: 'none'
-version: 1.0.5+11
+version: 1.0.6+12
 
 environment:
   sdk: ^3.5.0
