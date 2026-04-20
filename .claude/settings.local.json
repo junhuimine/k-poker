@@ -72,7 +72,12 @@
       "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 install -r \"D:/02_PROJECT/08_k-poker/build/app/outputs/flutter-apk/app-release.apk\")",
       "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 shell monkey -p com.h2techjun.kpoker -c android.intent.category.LAUNCHER 1)",
       "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 logcat -d --format=time)",
-      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 logcat -c)"
+      "Bash(\"/c/Users/gagum/AppData/Local/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 logcat -c)",
+      "Bash(mkdir -p /tmp/aab_verify)",
+      "Bash(rm -rf *)",
+      "Bash(unzip -q \"D:/02_PROJECT/08_k-poker/build/app/outputs/bundle/release/app-release.aab\")",
+      "Bash(file /tmp/aab_verify/META-INF/*.RSA)",
+      "Bash(openssl x509 *)"
     ]
   }
 }

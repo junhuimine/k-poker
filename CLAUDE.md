@@ -82,3 +82,26 @@ bash tool/android_full_check.sh .
 - **Windows**: 개발·디버깅 편의용 유지 (빠른 hot reload)
 - **Web**: 2026-04-19 비활성화 (`flutter config --no-enable-web`). 필요 시 `--enable-web`으로 복구 가능
 - **iOS**: 계획 없음
+
+## 현재 릴리스 상태 (2026-04-20)
+- **최신 AAB**: `releases/k-poker-v1.0.6+12.aab` (71.8MB, versionCode=12)
+- **서명 SHA-1**: `DF:62:94:E8:3C:B4:21:4F:04:C0:8D:82:A3:98:BE:CF:B9:E7:E8:0D`
+- **미완료**: Play Console 내부 테스트 트랙 업로드
+
+### 알려진 미해결 버그 (2026-04-20)
+1. **RoundEndOverlay silent exception**: 라운드 종료 시 내용 대신 빈 UI 표시 가능성. `_buildContent` catch 블록에 `debugPrint` 추가됨. logcat 확인 포인트: `⚠️ RoundEndOverlay._buildContent FAILED`
+2. **AI 연속 턴 근본 원인 미확인**: 안전가드(depth=8 + handShrunk) 추가됨. 쪽 룰에 의한 정상 동작인지, 상태 버그인지 아직 불명. logcat: `ℹ️ AI turn continues depth=N`
+
+## K-Poker 특화 패턴
+
+### 히트테스트 좌표 버그
+`SystemChrome.setPreferredOrientations` + `setEnabledSystemUIMode` 를 `runApp()` **이전에 await** 필수.
+이후 호출 시 첫 프레임 좌표계 고정으로 터치 좌표가 어긋남 (특히 가로 모드 게임).
+
+### AI 재귀 안전가드
+`_executeAiTurn(depth: 0)` — depth 8 상한 + opponentHand 축소 확인으로 무한 루프 방어.
+logcat에서 `⚠️` 로그 시 상태 버그 의심, `ℹ️` 로그는 정상 연속 턴.
+
+### bool? 토글 패턴
+`bool? _isPanelExpanded` — null=화면폭 기본값, 명시값=유저 선택. 
+`bool get _shouldShow => _isPanelExpanded ?? (screenW >= 900)` 형태로 사용.
